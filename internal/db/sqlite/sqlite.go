@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func RunMigrations(db *sql.DB) (err error) {
+func RunMigrations(db *sql.DB, migrationsPath string) (err error) {
 	defer func() {
 		if err != nil {
 			db.Close()
@@ -20,7 +20,7 @@ func RunMigrations(db *sql.DB) (err error) {
 		return fmt.Errorf("RunMigrations: Enabling PRAGMA: %w", err)
 	}
 
-	entries, err := os.ReadDir("./db/migrations/sqlite")
+	entries, err := os.ReadDir(migrationsPath)
 	if err != nil {
 		return fmt.Errorf("RunMigrations: ReadDir: %w", err)
 	}
@@ -34,7 +34,7 @@ func RunMigrations(db *sql.DB) (err error) {
 			continue
 		}
 
-		path := "./db/migrations/sqlite/" + ent.Name()
+		path := migrationsPath + ent.Name()
 
 		query, err := os.ReadFile(path)
 		if err != nil {
@@ -43,7 +43,7 @@ func RunMigrations(db *sql.DB) (err error) {
 
 		_, err = db.Exec(string(query))
 		if err != nil {
-			return fmt.Errorf("RunMigrations: Setting up tables: %w", err)
+			return fmt.Errorf("RunMigrations: up tables: %w", err)
 		}
 	}
 	return nil

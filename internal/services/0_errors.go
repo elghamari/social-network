@@ -38,3 +38,8 @@ var (
 	ErrInvalidMessageId = errors.New("invalid message_id")
 	ErrInvalidMessage   = errors.New("invalid message")
 )
+
+// ===== Groups =====
+var (
+	ErrInvalidGroupId = errors.New("invalid groupId")
+)

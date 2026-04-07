@@ -25,7 +25,7 @@ func NewHandler(svcs *services.Services, port string) *Handler {
 
 func New(svcs *services.Services, port string) http.Handler {
 	mux := http.NewServeMux()
-	// h := NewHandler(svcs, port)
+	h := NewHandler(svcs, port)
 
 	// mux.HandleFunc("/api/auth", h.Auth)
 
@@ -37,7 +37,7 @@ func New(svcs *services.Services, port string) http.Handler {
 	}
 
 	authRoutes := map[string]http.HandlerFunc{
-		// Routes dyal li mlogyin
+		"/api/groups": h.Groups,
 	}
 	for path, hand := range authRoutes {
 		mux.Handle(path, middleware.AuthRequired(hand))

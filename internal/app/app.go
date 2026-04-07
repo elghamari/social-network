@@ -34,7 +34,7 @@ func New(cfg *Config) (*App, error) {
 		return nil, err
 	}
 
-	db, err := initDataBase(cfg.DBPath)
+	db, err := initDataBase(cfg.DBPath, cfg.MigrationsPath)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func New(cfg *Config) (*App, error) {
 	}, nil
 }
 
-func initDataBase(dbPath string) (*sql.DB, error) {
+func initDataBase(dbPath, migrationsPath string) (*sql.DB, error) {
 	db, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
 		return nil, fmt.Errorf("initDataBase: Opening DB: %w", err)
@@ -68,7 +68,7 @@ func initDataBase(dbPath string) (*sql.DB, error) {
 		return nil, fmt.Errorf("initDataBase: Pinging: %w", err)
 	}
 
-	err = sqlite.RunMigrations(db)
+	err = sqlite.RunMigrations(db,migrationsPath)
 	if err != nil {
 		return nil, err
 	}

@@ -3,11 +3,13 @@ package repositories
 import "database/sql"
 
 type Repos struct {
-	Auth *AuthRepo
+	Auth   *AuthRepo
+	Groups *GroupsRepo
 }
 
 func New(db *sql.DB) *Repos {
 	return &Repos{
-		Auth: NewAuthRepo(db),
+		Auth:   NewAuthRepo(db),
+		Groups: NewGroupsRepo(db),
 	}
 }
