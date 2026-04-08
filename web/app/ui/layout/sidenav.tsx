@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { NavItem } from "@/app/types";
-import "./layout.css";
+import { NavItem } from "@/app/lib/types/groups";
+import "./sidenav.css";
 
 const navItems: NavItem[] = [
   {

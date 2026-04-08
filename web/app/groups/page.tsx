@@ -1,118 +1,189 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import GroupCard from "@/app/ui/groups/groups-card";
-import { Group } from "@/app/types";
-import "@/app/ui/groups/groups.css";
+import { useState, useMemo } from "react";
 
-// Fake data for testing
-const fakeGroups: Group[] = [
+import Link from "next/link";
+import { PlusIcon } from "@/app/ui/icons";
+
+import { Group } from "@/app/lib/types/groups";
+import GroupCard from "@/app/ui/groups/card";
+import "./page.css";
+
+const mockGroups: Group[] = [
   {
     id: "1",
-    creatorId: "1",
-    title: "Web Developers",
+    title: "React Developers",
     description:
-      "A community for web developers to share knowledge and collaborate on projects.",
-    memberCount: 128,
-    createdAt: "2024-01-15T10:00:00Z",
+      "A community for React developers to share knowledge and best practices. ",
+    createdAt: "2024-01-15",
+    creatorId: "user1",
+    creator: { id: "user1", firstName: "John", lastName: "Doe" },
+    memberCount: 1250,
+    isJoined: true,
+    role: "member",
   },
   {
     id: "2",
-    creatorId: "2",
     title: "Photography Enthusiasts",
-    description: "Share your photos, get feedback, and learn new techniques.",
-    memberCount: 56,
-    createdAt: "2024-02-20T14:30:00Z",
+    description:
+      "Share your photography and get feedback from fellow photographers.",
+    coverImage:
+      "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=800",
+    createdAt: "2024-02-20",
+    creatorId: "user2",
+    creator: { id: "user2", firstName: "Jane", lastName: "Smith" },
+    memberCount: 890,
   },
   {
     id: "3",
-    creatorId: "1",
-    title: "Music Producers",
-    description: "Connect with fellow producers, share beats, and collaborate.",
-    memberCount: 89,
-    createdAt: "2024-03-10T09:15:00Z",
+    title: "Startup Founders",
+    description: "Connect with other startup founders and share experiences.",
+    createdAt: "2024-01-05",
+    creatorId: "user3",
+    creator: { id: "user3", firstName: "Mike", lastName: "Johnson" },
+    memberCount: 456,
+    isPending: true,
+  },
+  {
+    id: "4",
+    title: "Fitness & Wellness",
+    description: "Your journey to a healthier lifestyle starts here.",
+    coverImage:
+      "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800",
+    createdAt: "2024-03-01",
+    creatorId: "user4",
+    creator: { id: "user4", firstName: "Sarah", lastName: "Wilson" },
+    memberCount: 2100,
+    isJoined: true,
+    role: "creator",
+  },
+  {
+    id: "5",
+    title: "Gaming League",
+    description:
+      "Competitive and casual gamers unite! Join tournaments and find teammates.",
+    coverImage:
+      "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800",
+    createdAt: "2024-02-10",
+    creatorId: "user5",
+    creator: { id: "user5", firstName: "Alex", lastName: "Brown" },
+    memberCount: 3400,
   },
 ];
 
-type TabType = "discover" | "my-groups";
+type Tab = "discover" | "joined" | "pending";
 
-export default function GroupsPage() {
-  const [groups, setGroups] = useState<Group[]>([]);
-  const [activeTab, setActiveTab] = useState<TabType>("discover");
-  const [isLoading, setIsLoading] = useState(true);
+export default function Page() {
+  const [activeTab, setActiveTab] = useState<Tab>("discover");
+  const [search, setSearch] = useState("");
+  const [groups, setGroups] = useState<Group[]>(mockGroups);
 
-  useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setGroups(fakeGroups);
-      setIsLoading(false);
-    }, 500);
-  }, []);
+  const handleRequestJoin = (groupId: string) => {
+    setGroups((prev) =>
+      prev.map((g) => (g.id === groupId ? { ...g, isPending: true } : g)),
+    );
+  };
+
+  const filteredGroups = useMemo(() => {
+    let result = groups;
+
+    if (activeTab === "joined") result = result.filter((g) => g.isJoined);
+    else if (activeTab === "pending")
+      result = result.filter((g) => g.isPending);
+
+    if (search) {
+      const q = search.toLowerCase();
+      result = result.filter(
+        (g) =>
+          g.title.toLowerCase().includes(q) ||
+          g.description.toLowerCase().includes(q),
+      );
+    }
+
+    return result;
+  }, [groups, activeTab, search]);
+
+  const counts = {
+    joined: groups.filter((g) => g.isJoined).length,
+    pending: groups.filter((g) => g.isPending).length,
+  };
 
   return (
     <div className="groups-page">
-      {/* Header */}
       <div className="groups-page__header">
-        <div className="groups-page__title">
-          <h1>Groups</h1>
-          <p>Discover communities and connect with like-minded people</p>
-        </div>
-        <Link href="/groups/create" className="btn btn--primary">
-          <svg
-            viewBox="0 0 24 24"
-            width="18"
-            height="18"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path d="M12 5v14M5 12h14" />
-          </svg>
-          <span>Create Group</span>
+        <h1 className="groups-page__title">Groups</h1>
+        <Link href="/groups/create" className="btn-primary">
+          <PlusIcon />
+          Create
         </Link>
       </div>
 
-      {/* Tabs */}
-      <div className="groups-page__tabs">
+      <div className="groups-tabs">
         <button
-          className={`tab ${activeTab === "discover" ? "tab--active" : ""}`}
+          className={`groups-tabs__tab ${activeTab === "discover" ? "groups-tabs__tab--active" : ""}`}
           onClick={() => setActiveTab("discover")}
         >
           Discover
         </button>
         <button
-          className={`tab ${activeTab === "my-groups" ? "tab--active" : ""}`}
-          onClick={() => setActiveTab("my-groups")}
+          className={`groups-tabs__tab ${activeTab === "joined" ? "groups-tabs__tab--active" : ""}`}
+          onClick={() => setActiveTab("joined")}
         >
-          My Groups
+          Joined ({counts.joined})
+        </button>
+        <button
+          className={`groups-tabs__tab ${activeTab === "pending" ? "groups-tabs__tab--active" : ""}`}
+          onClick={() => setActiveTab("pending")}
+        >
+          Pending ({counts.pending})
         </button>
       </div>
 
-      {/* Content */}
-      <div className="groups-page__content">
-        {isLoading ? (
-          <div className="groups-page__loading">
-            <div className="spinner"></div>
-            <p>Loading groups...</p>
-          </div>
-        ) : groups.length === 0 ? (
-          <div className="groups-page__empty">
-            <div className="empty-icon">👥</div>
-            <h3>No groups found</h3>
-            <p>Be the first to create a group!</p>
-            <Link href="/groups/create" className="btn btn--primary">
-              Create Group
-            </Link>
-          </div>
-        ) : (
-          <div className="groups-grid">
-            {groups.map((group) => (
-              <GroupCard key={group.id} group={group} />
-            ))}
-          </div>
-        )}
+      <div className="groups-search">
+        <span className="groups-search__icon">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+        </span>
+        <input
+          type="text"
+          className="groups-search__input"
+          placeholder="Search groups..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
       </div>
+
+      {filteredGroups.length > 0 ? (
+        <div className="groups-grid">
+          {filteredGroups.map((group) => (
+            <GroupCard
+              key={group.id}
+              group={group}
+              onRequestJoin={handleRequestJoin}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="groups-empty">
+          <p className="groups-empty__title">No groups found</p>
+          <p className="groups-empty__text">
+            {activeTab === "joined"
+              ? "You haven't joined any groups yet"
+              : activeTab === "pending"
+                ? "No pending requests"
+                : "Try a different search"}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

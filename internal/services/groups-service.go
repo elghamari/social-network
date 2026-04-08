@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"soc-net/internal/repositories"
 	"soc-net/internal/types"
 	"strconv"
@@ -20,6 +21,39 @@ func NewGroupsService(auth *repositories.AuthRepo, grps *repositories.GroupsRepo
 
 var srvs string = "groups-service"
 
+func (s *GroupsService) AddGroup(input types.GroupInput) (types.Group, error) {
+
+	group := types.Group{}
+
+	err := ValidateGroupInput(input)
+	if err != nil {
+		return group, err
+	}
+
+	tx, err := s.Groups.DB.Begin()
+	if err != nil {
+		return group, fmt.Errorf("%s.AddGroup: Starting tx: %w", srvs, err)
+	}
+	defer tx.Rollback()
+
+	groupId, err := s.Groups.Insert(tx, input)
+	if err != nil {
+		return group, err
+	}
+
+	group, err = s.Groups.GetGroupById(tx, groupId)
+	if err != nil {
+		return group, err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return group, fmt.Errorf("%s.AddGroup: Commiting tx: %w", srvs, err)
+	}
+
+	return group, nil
+}
+
 func (s *GroupsService) GetAll(strCursorId string) ([]types.Group, error) {
 	cursorId, err := strconv.Atoi(strCursorId)
 	if err != nil {
@@ -34,4 +68,8 @@ func (s *GroupsService) GetAll(strCursorId string) ([]types.Group, error) {
 	if cursorId > lastGroupId {
 		return nil, ErrInvalidGroupId
 	}
+
+	// s.Groups.GetAll(cursorId)
+
+	return []types.Group{}, nil
 }

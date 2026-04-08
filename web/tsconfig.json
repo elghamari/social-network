@@ -34,7 +34,7 @@
     "app",
     "components",
     "context",
-    "app/types",
+    "app/lib/types",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
