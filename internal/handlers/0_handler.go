@@ -41,19 +41,10 @@ func New(svcs *services.Services, port string) http.Handler {
 		"/api/groups/create": h.CreateGroup,
 	}
 	for path, hand := range authRoutes {
-		mux.Handle(path, middleware.AuthRequired(hand))
+		// mux.Handle(path, middleware.AuthRequired(hand))
+		mux.Handle(path, hand)
 	}
 
-	mux.Handle("/js/",
-		http.StripPrefix("/js/", http.FileServer(http.Dir("./web/js"))),
-	)
-	mux.Handle("/assets/",
-		http.StripPrefix("/assets/", http.FileServer(http.Dir("./web/assets"))),
-	)
-
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "./web/index.html")
-	})
-
-	return middleware.SessionLoader(svcs.Auth)(mux)
+	// return middleware.SessionLoader(svcs.Auth)(mux)
+	return mux
 }

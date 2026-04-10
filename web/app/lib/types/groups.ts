@@ -22,5 +22,10 @@ export interface JoinRequest {
 export interface FormData {
   title: string;
   description: string;
-  coverImage: string;
+  // coverImage: string;
+}
+
+export interface FormErrors {
+  title?: string;
+  description?: string;
 }

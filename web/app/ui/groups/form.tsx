@@ -1,39 +1,15 @@
 "use client";
 
-import { FormData } from "@/app/lib/types/groups";
-import { useState, useRef, useActionState } from "react";
+import { FormData, FormErrors } from "@/app/lib/types/groups";
+
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import "./form.css";
-import { createGroup, State } from "@/app/lib/actions";
-
-interface FormErrors {
-  title?: string;
-  description?: string;
-}
+import { createGroup } from "@/app/lib/actions";
 
 export default function Form() {
-  // const router = useRouter();
+  const router = useRouter();
   // const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // const [formData, setFormData] = useState<FormData>({
-  //   title: "",
-  //   description: "",
-  //   coverImage: "",
-  // });
-
-  // const [errors, setErrors] = useState<FormErrors>({});
-  // const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // const handleChange = (
-  //   e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  // ) => {
-  //   const { name, value } = e.target;
-  //   setFormData((prev) => ({ ...prev, [name]: value }));
-
-  //   if (errors[name as keyof FormErrors]) {
-  //     setErrors((prev) => ({ ...prev, [name]: undefined }));
-  //   }
-  // };
 
   // const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
   //   const file = e.target.files?.[0];
@@ -91,12 +67,34 @@ export default function Form() {
   //   }
   // };
 
-  // const handleCancel = () => {
-  //   router.push("/groups");
-  // };
+  const [formData, setFormData] = useState<FormData>({
+    title: "",
+    description: "",
+  });
+  const [errors, setFormErrors] = useState<FormErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const initialState: State = { title: "", description: "" };
-  const [state, formAction] = useActionState(createGroup, initialState);
+  function handleChange(
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormErrors((prev) => ({ ...prev, [name]: undefined }));
+  }
+
+  async function handleSubmit(e: React.SubmitEvent) {
+    e.preventDefault();
+
+    setIsSubmitting(true);
+
+    try {
+      const resp = await createGroup(formData);
+      if (resp) setFormErrors(resp);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <form className="group-form" onSubmit={handleSubmit}>
@@ -135,15 +133,46 @@ export default function Form() {
         )}
       </div>
 
-      <div className="group-form__field">
+      <div className="group-form__actions">
+        <button
+          type="button"
+          className="group-form__btn group-form__btn--cancel"
+          onClick={() => {
+            router.push("/groups");
+          }}
+          // disabled={isSubmitting}
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          className="group-form__btn group-form__btn--submit"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <>
+              <span className="group-form__spinner" />
+              Creating...
+            </>
+          ) : (
+            "Create Group"
+          )}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+{
+  /* <div className="group-form__field">
         <label className="group-form__label">Cover Image (optional)</label>
         <div
-          className={`group-form__upload ${formData.coverImage ? "group-form__upload--has-image" : ""}`}
-          onClick={() => !formData.coverImage && fileInputRef.current?.click()}
+          className={`group-form__upload ${state.coverImage ? "group-form__upload--has-image" : ""}`}
+          onClick={() => !state.coverImage && fileInputRef.current?.click()}
         >
-          {formData.coverImage ? (
+          {state.coverImage ? (
             <div className="group-form__upload-preview">
-              <img src={formData.coverImage} alt="Cover preview" />
+              <img src={state.coverImage} alt="Cover preview" />
               <button
                 type="button"
                 className="group-form__upload-remove"
@@ -188,32 +217,5 @@ export default function Form() {
             aria-label="Upload cover image"
           />
         </div>
-      </div>
-
-      <div className="group-form__actions">
-        <button
-          type="button"
-          className="group-form__btn group-form__btn--cancel"
-          onClick={handleCancel}
-          disabled={isSubmitting}
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          className="group-form__btn group-form__btn--submit"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? (
-            <>
-              <span className="group-form__spinner" />
-              Creating...
-            </>
-          ) : (
-            "Create Group"
-          )}
-        </button>
-      </div>
-    </form>
-  );
+      </div> */
 }

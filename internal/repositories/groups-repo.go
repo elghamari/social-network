@@ -17,6 +17,7 @@ func NewGroupsRepo(db *sql.DB) *GroupsRepo {
 var repo string = "groups-repo"
 
 func (r *GroupsRepo) Insert(tx *sql.Tx, input types.GroupInput) (int, error) {
+	fmt.Println(input)
 	res, err := tx.Exec(`
 	INSERT INTO groups
 		(creator_id, title, description)

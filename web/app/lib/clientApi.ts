@@ -1,3 +1,5 @@
+const API_BASE = "http://localhost:8080/api";
+
 class ClientApi {
   async request(endPoint: string, options = {}) {
     const config = {
@@ -7,7 +9,7 @@ class ClientApi {
 
     try {
       //
-      const resp = await fetch(`/api${endPoint}`, config);
+      const resp = await fetch(`${API_BASE}${endPoint}`, config);
       return resp.json();
 
       //

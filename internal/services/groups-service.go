@@ -21,7 +21,7 @@ func NewGroupsService(auth *repositories.AuthRepo, grps *repositories.GroupsRepo
 
 var srvs string = "groups-service"
 
-func (s *GroupsService) AddGroup(input types.GroupInput) (types.Group, error) {
+func (s *GroupsService) CreateGroup(input types.GroupInput) (types.Group, error) {
 
 	group := types.Group{}
 

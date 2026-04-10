@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"soc-net/internal/types"
 	"soc-net/internal/utils"
@@ -16,6 +15,9 @@ func (h *Handler) Groups(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	utils.WriteJson(w, map[string]any{
+		"status": http.StatusOK,
+	})
 }
 
 func (h *Handler) CreateGroup(w http.ResponseWriter, r *http.Request) {
@@ -35,22 +37,12 @@ func (h *Handler) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	input.CreatorId = utils.GetUserId(r)
+	// input.CreatorId = utils.GetUserId(r)
+	input.CreatorId = "user"
 
-	group, err := h.Services.Groups.AddGroup(input)
+	group, err := h.Services.Groups.CreateGroup(input)
 	if err != nil {
-		code := ErrorCode(err)
-		if code != "" {
-			utils.WriteJson(w, map[string]any{
-				"status": http.StatusBadRequest,
-				"code":   code,
-			})
-			return
-		}
-		utils.WriteJson(w, map[string]any{
-			"status": http.StatusInternalServerError,
-		})
-		log.Println(err)
+		HandleError(w, err)
 		return
 	}
 
