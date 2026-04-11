@@ -1,13 +1,16 @@
 "use client";
 
-import { useState, useMemo } from "react";
-
-import Link from "next/link";
-import { PlusIcon } from "@/app/ui/icons";
-
-import { Group } from "@/app/lib/types/groups";
-import GroupCard from "@/app/ui/groups/card";
 import "./page.css";
+
+import { useState, useMemo } from "react";
+import Link from "next/link";
+import { Tab } from "@/app/lib/types/groups";
+import { Group } from "@/app/lib/types/groups";
+
+import GroupCard from "@/app/ui/groups/card";
+import Tabs from "@s/ui/groups/tabs";
+
+import { PlusIcon } from "@/app/ui/icons";
 
 const mockGroups: Group[] = [
   {
@@ -17,7 +20,6 @@ const mockGroups: Group[] = [
       "A community for React developers to share knowledge and best practices. ",
     createdAt: "2024-01-15",
     creatorId: "user1",
-    creator: { id: "user1", firstName: "John", lastName: "Doe" },
     memberCount: 1250,
     isJoined: true,
     role: "member",
@@ -31,7 +33,6 @@ const mockGroups: Group[] = [
       "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=800",
     createdAt: "2024-02-20",
     creatorId: "user2",
-    creator: { id: "user2", firstName: "Jane", lastName: "Smith" },
     memberCount: 890,
   },
   {
@@ -40,7 +41,6 @@ const mockGroups: Group[] = [
     description: "Connect with other startup founders and share experiences.",
     createdAt: "2024-01-05",
     creatorId: "user3",
-    creator: { id: "user3", firstName: "Mike", lastName: "Johnson" },
     memberCount: 456,
     isPending: true,
   },
@@ -52,7 +52,6 @@ const mockGroups: Group[] = [
       "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800",
     createdAt: "2024-03-01",
     creatorId: "user4",
-    creator: { id: "user4", firstName: "Sarah", lastName: "Wilson" },
     memberCount: 2100,
     isJoined: true,
     role: "creator",
@@ -66,12 +65,9 @@ const mockGroups: Group[] = [
       "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800",
     createdAt: "2024-02-10",
     creatorId: "user5",
-    creator: { id: "user5", firstName: "Alex", lastName: "Brown" },
     memberCount: 3400,
   },
 ];
-
-type Tab = "discover" | "joined" | "pending";
 
 export default function Page() {
   const [activeTab, setActiveTab] = useState<Tab>("discover");
@@ -117,28 +113,8 @@ export default function Page() {
           Create
         </Link>
       </div>
-
-      <div className="groups-tabs">
-        <button
-          className={`groups-tabs__tab ${activeTab === "discover" ? "groups-tabs__tab--active" : ""}`}
-          onClick={() => setActiveTab("discover")}
-        >
-          Discover
-        </button>
-        <button
-          className={`groups-tabs__tab ${activeTab === "joined" ? "groups-tabs__tab--active" : ""}`}
-          onClick={() => setActiveTab("joined")}
-        >
-          Joined ({counts.joined})
-        </button>
-        <button
-          className={`groups-tabs__tab ${activeTab === "pending" ? "groups-tabs__tab--active" : ""}`}
-          onClick={() => setActiveTab("pending")}
-        >
-          Pending ({counts.pending})
-        </button>
-      </div>
-
+      
+      Tab
       <div className="groups-search">
         <span className="groups-search__icon">
           <svg
@@ -161,7 +137,6 @@ export default function Page() {
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
-
       {filteredGroups.length > 0 ? (
         <div className="groups-grid">
           {filteredGroups.map((group) => (

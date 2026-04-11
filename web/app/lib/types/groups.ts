@@ -29,3 +29,5 @@ export interface FormErrors {
   title?: string;
   description?: string;
 }
+
+export type Tab = "discover" | "joined" | "pending";
