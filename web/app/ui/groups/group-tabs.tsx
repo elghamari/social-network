@@ -3,10 +3,13 @@ import { Tab } from "@/app/lib/types/groups";
 
 import "./tabs.css";
 
-export default function Tabs(
-  activeTab: Tab,
-  setActiveTab: Dispatch<SetStateAction<Tab>>,
-) {
+export default function GroupTabs({
+  activeTab,
+  setActiveTab,
+}: {
+  activeTab: Tab;
+  setActiveTab: Dispatch<SetStateAction<Tab>>;
+}) {
   return (
     <div className="groups-tabs">
       <button

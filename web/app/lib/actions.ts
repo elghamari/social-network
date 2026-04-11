@@ -1,8 +1,10 @@
 "use server";
 
-import clientAPI from "./clientApi";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+
+import clientAPI from "./clientApi";
+
 import { FormData, FormErrors } from "./types/groups";
 
 export async function createGroup(data: FormData) {
@@ -22,8 +24,6 @@ export async function createGroup(data: FormData) {
     errors.description =
       "Description cannot be empty and must be between 10 and 500 letters.";
   }
-
-  console.log(data, errors);
 
   if (Object.keys(errors).length !== 0) return errors;
 

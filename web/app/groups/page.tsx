@@ -7,10 +7,11 @@ import Link from "next/link";
 import { Tab } from "@/app/lib/types/groups";
 import { Group } from "@/app/lib/types/groups";
 
-import GroupCard from "@/app/ui/groups/card";
-import Tabs from "@s/ui/groups/tabs";
+import GroupCard from "@/app/ui/groups/group-card";
+import Tabs from "@/app/ui/groups/group-tabs";
 
 import { PlusIcon } from "@/app/ui/icons";
+import Search from "../ui/groups/group-search";
 
 const mockGroups: Group[] = [
   {
@@ -113,52 +114,12 @@ export default function Page() {
           Create
         </Link>
       </div>
-      
-      Tab
-      <div className="groups-search">
-        <span className="groups-search__icon">
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-        </span>
-        <input
-          type="text"
-          className="groups-search__input"
-          placeholder="Search groups..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
-      {filteredGroups.length > 0 ? (
-        <div className="groups-grid">
-          {filteredGroups.map((group) => (
-            <GroupCard
-              key={group.id}
-              group={group}
-              onRequestJoin={handleRequestJoin}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="groups-empty">
-          <p className="groups-empty__title">No groups found</p>
-          <p className="groups-empty__text">
-            {activeTab === "joined"
-              ? "You haven't joined any groups yet"
-              : activeTab === "pending"
-                ? "No pending requests"
-                : "Try a different search"}
-          </p>
-        </div>
-      )}
+
+      <Tabs activeTab={activeTab} setActiveTab={setActiveTab} />
+
+      <Search search={search} setSearch={setSearch} />
+
+
     </div>
   );
 }

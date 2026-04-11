@@ -4,10 +4,9 @@ import { FormData, FormErrors } from "@/app/lib/types/groups";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import "./form.css";
 import { createGroup } from "@/app/lib/actions";
 
-export default function Form() {
+export default function GroupForm() {
   const router = useRouter();
   // const fileInputRef = useRef<HTMLInputElement>(null);
 
