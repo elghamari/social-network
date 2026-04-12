@@ -5,14 +5,19 @@ import { redirect } from "next/navigation";
 
 import clientAPI from "./clientApi";
 
-import { FormData, FormErrors } from "./types/groups";
+import { State } from "./types/groups";
 
-export async function createGroup(data: FormData) {
-  const errors: FormErrors = {};
+export async function createGroup(prevState: State, fd: FormData) {
+  const state: State = {};
+
+  const data = {
+    title: String(fd.get("title")) || "",
+    description: String(fd.get("description")) || "",
+  };
 
   const title = data.title;
   if (!title || !(title.length >= 3 && title.length <= 100)) {
-    errors.title =
+    state.title =
       "Title cannot be empty and must be between 3 and 100 letters.";
   }
 
@@ -21,11 +26,11 @@ export async function createGroup(data: FormData) {
     !description ||
     !(description.length >= 10 && description.length <= 500)
   ) {
-    errors.description =
+    state.description =
       "Description cannot be empty and must be between 10 and 500 letters.";
   }
 
-  if (Object.keys(errors).length !== 0) return errors;
+  if (Object.keys(state).length !== 0) return state;
 
   const resp = await clientAPI.post("/groups/create", data);
   switch (resp.status) {
@@ -38,6 +43,12 @@ export async function createGroup(data: FormData) {
     case 400:
       return resp.fields;
   }
+
+  await new Promise<void>((res) => {
+    setTimeout(() => {
+      res();
+    }, 5000);
+  });
 
   revalidatePath("/groups");
   redirect("/groups");

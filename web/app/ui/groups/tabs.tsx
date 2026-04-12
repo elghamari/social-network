@@ -1,14 +1,12 @@
 import { Dispatch, SetStateAction } from "react";
-import { Tab } from "@/app/lib/types/groups";
-
-import "./tabs.css";
+import { GroupTab } from "@/app/lib/types/groups";
 
 export default function GroupTabs({
   activeTab,
   setActiveTab,
 }: {
-  activeTab: Tab;
-  setActiveTab: Dispatch<SetStateAction<Tab>>;
+  activeTab: GroupTab;
+  setActiveTab: Dispatch<SetStateAction<GroupTab>>;
 }) {
   return (
     <div className="groups-tabs">

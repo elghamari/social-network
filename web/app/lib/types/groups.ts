@@ -1,3 +1,5 @@
+export type Tab = "discover" | "joined" | "pending";
+
 export interface Group {
   id: string;
   title: string;
@@ -11,23 +13,21 @@ export interface Group {
   role?: "creator" | "member" | null;
 }
 
-export interface JoinRequest {
-  id: string;
-  groupId: string;
-  userId: string;
-  status: "pending" | "accepted" | "rejected";
-  createdAt: string;
-}
-
-export interface FormData {
-  title: string;
-  description: string;
-  // coverImage: string;
-}
-
-export interface FormErrors {
+export interface State {
   title?: string;
   description?: string;
 }
 
-export type Tab = "discover" | "joined" | "pending";
+// export interface JoinRequest {
+//   id: string;
+//   groupId: string;
+//   userId: string;
+//   status: "pending" | "accepted" | "rejected";
+//   createdAt: string;
+// }
+
+// export interface FormData {
+//   title: string;
+//   description: string;
+//   // coverImage: string;
+// }
