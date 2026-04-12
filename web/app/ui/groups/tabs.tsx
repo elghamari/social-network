@@ -1,13 +1,12 @@
-import { Dispatch, SetStateAction } from "react";
-import { GroupTab } from "@/app/lib/types/groups";
+"use client";
 
-export default function GroupTabs({
-  activeTab,
-  setActiveTab,
-}: {
-  activeTab: GroupTab;
-  setActiveTab: Dispatch<SetStateAction<GroupTab>>;
-}) {
+import { redirect } from "next/navigation";
+
+export default function Tabs({ activeTab }: { activeTab: string }) {
+  function setActiveTab(tab: string) {
+    redirect(`/groups?tab=${tab}`);
+  }
+
   return (
     <div className="groups-tabs">
       <button

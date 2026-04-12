@@ -1,17 +1,12 @@
-"use client";
-
 import "./page.css";
 
-import { useState, useMemo } from "react";
 import Link from "next/link";
-import { Tab } from "@/app/lib/types/groups";
-import { Group } from "@/app/lib/types/groups";
 
-import GroupTabs from "../ui/groups/tabs";
-import GroupList from "../ui/groups/list";
+import Tabs from "../ui/groups/tabs";
 import Search from "../ui/groups/search";
-import GroupCard from "@/app/ui/groups/card";
+import GroupsList from "../ui/groups/list";
 
+import { Group } from "@/app/lib/types/groups";
 import { PlusIcon } from "@/app/ui/icons";
 
 const mockGroups: Group[] = [
@@ -71,40 +66,17 @@ const mockGroups: Group[] = [
   // },
 ];
 
-export default function Page() {
-  const [activeTab, setActiveTab] = useState<Tab>("discover");
-  const [search, setSearch] = useState("");
-  const [groups, setGroups] = useState<Group[]>(mockGroups);
+export default async function Page(props: {
+  searchParams?: Promise<{
+    tab?: string;
+  }>;
+}) {
+  // Tabs Setup.
+  const searchParams = await props.searchParams;
+  let tab = searchParams?.tab || "discover";
+  if (!["discover", "joined", "pending"].includes(tab)) tab = "discover";
 
-  const handleRequestJoin = (groupId: string) => {
-    setGroups((prev) =>
-      prev.map((g) => (g.id === groupId ? { ...g, isPending: true } : g)),
-    );
-  };
-
-  const filteredGroups = useMemo(() => {
-    let result = groups;
-
-    if (activeTab === "joined") result = result.filter((g) => g.isJoined);
-    else if (activeTab === "pending")
-      result = result.filter((g) => g.isPending);
-
-    if (search) {
-      const q = search.toLowerCase();
-      result = result.filter(
-        (g) =>
-          g.title.toLowerCase().includes(q) ||
-          g.description.toLowerCase().includes(q),
-      );
-    }
-
-    return result;
-  }, [groups, activeTab, search]);
-
-  const counts = {
-    joined: groups.filter((g) => g.isJoined).length,
-    pending: groups.filter((g) => g.isPending).length,
-  };
+  // Search Setup.
 
   return (
     <div className="groups-page">
@@ -116,11 +88,9 @@ export default function Page() {
         </Link>
       </div>
 
-      <GroupTabs activeTab={activeTab} setActiveTab={setActiveTab} />
-
-      <Search search={search} setSearch={setSearch} />
-
-      {/* <GroupList groups={groups} activeTab={activeTab}  /> */}
+      <Tabs activeTab={tab} />
+      <Search tab={tab} />
+      <GroupsList groups={[]} tab={tab} />
     </div>
   );
 }
