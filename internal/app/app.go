@@ -15,32 +15,16 @@ import (
 )
 
 type App struct {
-	DB *sql.DB
-	// Repos    *repos.Repos
-	// Services *services.Services
-	Server *http.Server
+	DB       *sql.DB
+	Repos    *repos.Repos
+	Services *services.Services
+	Server   *http.Server
 }
 
 type Config struct {
 	DBPath         string
 	MigrationsPath string
 	Port           string
-}
-
-func enableCORS(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000") // frontend URL
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-
-		// Handle preflight request
-		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
 }
 
 func New(cfg *Config) (*App, error) {
@@ -64,7 +48,7 @@ func New(cfg *Config) (*App, error) {
 
 	server := &http.Server{
 		Addr:    ":" + cfg.Port,
-		Handler: enableCORS(handler),
+		Handler: handler,
 	}
 
 	return &App{
