@@ -1,0 +1,237 @@
+/* ===== Page ===== */
+.groups-page {
+  padding-right: 32px;
+}
+
+.groups-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+}
+
+.groups-page__title {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+/* ===== Tabs ===== */
+.groups-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.groups-tabs__tab {
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: all var(--transition-fast);
+}
+
+.groups-tabs__tab:hover {
+  color: var(--text-primary);
+}
+
+.groups-tabs__tab--active {
+  color: var(--accent-primary);
+  border-bottom-color: var(--accent-primary);
+}
+
+/* ===== Search ===== */
+.groups-search {
+  position: relative;
+  margin-bottom: 24px;
+  max-width: 400px;
+}
+
+.groups-search__icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+}
+
+.groups-search__input {
+  width: 100%;
+  padding: 12px 16px 12px 44px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: border-color var(--transition-fast);
+}
+
+.groups-search__input::placeholder {
+  color: var(--text-muted);
+}
+
+.groups-search__input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+/* ===== Grid ===== */
+.groups-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+/* ===== Empty ===== */
+.groups-empty {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--text-muted);
+}
+
+.groups-empty__title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.groups-empty__text {
+  font-size: 13px;
+}
+
+/* ===== Button ===== */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--accent-primary);
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  transition: opacity var(--transition-fast);
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .groups-page {
+    padding-right: 0;
+  }
+
+  .groups-page__header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .groups-search {
+    max-width: 100%;
+  }
+
+  .groups-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== Card ===== */
+.group-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: border-color var(--transition-fast);
+}
+
+.group-card:hover {
+  border-color: var(--border-default);
+}
+
+.group-card__cover {
+  height: 120px;
+  background: linear-gradient(
+    135deg,
+    rgba(6, 182, 212, 0.2),
+    rgba(139, 92, 246, 0.2)
+  );
+}
+
+.group-card__cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.group-card__content {
+  padding: 16px;
+}
+
+.group-card__title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.group-card__description {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 16px;
+  min-height: 40px;
+}
+
+.group-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.group-card__members {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.group-card__action {
+  padding: 6px 0;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  min-width: 80px;
+  text-align: center;
+}
+
+.group-card__action--request {
+  background: var(--accent-primary);
+  color: white;
+}
+
+.group-card__action--request:hover {
+  opacity: 0.9;
+}
+
+.group-card__action--pending {
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.group-card__action--member {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  cursor: default;
+}

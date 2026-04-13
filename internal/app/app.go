@@ -27,6 +27,22 @@ type Config struct {
 	Port           string
 }
 
+func enableCORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000") // frontend URL
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		// Handle preflight request
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 func New(cfg *Config) (*App, error) {
 
 	err := os.MkdirAll("data", 0755)
@@ -34,7 +50,7 @@ func New(cfg *Config) (*App, error) {
 		return nil, err
 	}
 
-	db, err := initDataBase(cfg.DBPath)
+	db, err := initDataBase(cfg.DBPath, cfg.MigrationsPath)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +64,7 @@ func New(cfg *Config) (*App, error) {
 
 	server := &http.Server{
 		Addr:    ":" + cfg.Port,
-		Handler: handler,
+		Handler: enableCORS(handler),
 	}
 
 	return &App{
@@ -56,7 +72,7 @@ func New(cfg *Config) (*App, error) {
 	}, nil
 }
 
-func initDataBase(dbPath string) (*sql.DB, error) {
+func initDataBase(dbPath, migrationsPath string) (*sql.DB, error) {
 	db, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
 		return nil, fmt.Errorf("initDataBase: Opening DB: %w", err)
@@ -68,7 +84,7 @@ func initDataBase(dbPath string) (*sql.DB, error) {
 		return nil, fmt.Errorf("initDataBase: Pinging: %w", err)
 	}
 
-	err = sqlite.RunMigrations(db)
+	err = sqlite.RunMigrations(db, migrationsPath)
 	if err != nil {
 		return nil, err
 	}

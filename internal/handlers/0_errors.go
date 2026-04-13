@@ -1,44 +1,27 @@
 package handlers
 
-// import (
-// 	"errors"
-// 	"rtf/internal/services"
-// )
+import (
+	"errors"
+	"log"
+	"net/http"
+	"soc-net/internal/types"
+	"soc-net/internal/utils"
+)
 
-// var codes = map[error]string{
-// 	// ===== Register =====
-// 	services.ErrFirstnameFormat: "FIRSTNAME_FORMAT",
-// 	services.ErrLastnameFormat:  "LASTNAME_FORMAT",
-// 	services.ErrEmailSize:       "EMAIL_SIZE",
-// 	services.ErrEmailFormat:     "EMAIL_FORMAT",
-// 	services.ErrEmailTaken:      "EMAIL_TAKEN",
-// 	services.ErrNicknameFormat:  "NICKNAME_FORMAT",
-// 	services.ErrNicknameTaken:   "NICKNAME_TAKEN",
-// 	services.ErrInvalidAge:      "INVALID_AGE",
-// 	services.ErrInvalidGender:   "INVALID_GENDER",
-// 	services.ErrPasswordFormat:  "PASSWORD_FORMAT",
+func HandleError(w http.ResponseWriter, err error) {
+	var ve types.ValidationError
 
-// 	// ===== Login =====
-// 	services.ErrInvalidCredentials: "INVALID_CREDENTIALS",
+	switch {
+	case errors.As(err, &ve):
+		utils.WriteJson(w, map[string]any{
+			"status": http.StatusBadRequest,
+			"fields": ve.Fields,
+		})
 
-// 	// ===== Feed =====
-// 	services.ErrInvalidTime: "INVALID_TIME",
-// 	//	Posts
-// 	services.ErrInvalidPostId:    "INVALID_POST_ID",
-// 	services.ErrInvalidCommentId: "INVALID_COMMENT_ID",
-// 	services.ErrInvalidContent:   "INVALID_CONTENT",
-// 	services.ErrInvalidCategory:  "INVALID_CATEGORY",
-// 	// Chat
-// 	services.ErrInvalidUserId:    "INVALID_USER_ID",
-// 	services.ErrInvalidMessageId: "INVALID_MESSAGE_ID",
-// 	services.ErrInvalidMessage:   "INVALID_MESSAGE",
-// }
-
-// func ErrorCode(e error) string {
-// 	for err, code := range codes {
-// 		if errors.Is(e, err) {
-// 			return code
-// 		}
-// 	}
-// 	return ""
-// }
+	default:
+		utils.WriteJson(w, map[string]any{
+			"status": http.StatusInternalServerError,
+		})
+		log.Println(err)
+	}
+}

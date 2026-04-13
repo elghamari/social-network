@@ -1,0 +1,77 @@
+/* app/error.css */
+
+.error-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.error-page__content {
+  text-align: center;
+  max-width: 400px;
+}
+
+.error-page__icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 24px;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ef4444;
+}
+
+.error-page__title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 24px;
+}
+
+.error-page__actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.error-page__btn {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.error-page__btn--primary {
+  background: var(--accent-primary);
+  color: white;
+}
+
+.error-page__btn--primary:hover {
+  opacity: 0.9;
+}
+
+.error-page__btn--secondary {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+}
+
+.error-page__btn--secondary:hover {
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}
+
+@media (max-width: 480px) {
+  .error-page__actions {
+    flex-direction: column;
+  }
+
+  .error-page__btn {
+    width: 100%;
+  }
+}
