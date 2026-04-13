@@ -5,8 +5,9 @@ import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { SearchIcon } from "../icons";
 import { useRef } from "react";
 import {} from "next/navigation";
+import { Tab } from "@/app/lib/types/groups";
 
-export default function Search({ tab }: { tab: string }) {
+export default function Search({ activeTab }: { activeTab: Tab }) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { replace } = useRouter();
@@ -18,7 +19,7 @@ export default function Search({ tab }: { tab: string }) {
     timeoutRef.current = setTimeout(() => {
       const params = new URLSearchParams();
 
-      params.set("tab", tab);
+      params.set("tab", activeTab);
       if (value) {
         params.set("query", value);
       } else {

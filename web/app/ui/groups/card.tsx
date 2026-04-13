@@ -3,7 +3,6 @@
 
 import Link from "next/link";
 import { Group } from "@/app/lib/types/groups";
-import "./card.css";
 
 interface GroupCardProps {
   group: Group;

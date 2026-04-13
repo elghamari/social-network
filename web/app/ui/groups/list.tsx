@@ -1,22 +1,21 @@
-import { Group } from "@/app/lib/types/groups";
+import { Group, Tab } from "@/app/lib/types/groups";
+import GroupCard from "./card";
 
 export default function GroupsList({
   groups,
-  tab,
+  activeTab,
 }: {
   groups: Group[];
-  tab?: string;
+  activeTab?: Tab;
 }) {
-  console.log(groups);
-
-  if (groups.length) {
+  if (groups.length === 0) {
     return (
       <div className="groups-empty">
         <p className="groups-empty__title">No groups found</p>
         <p className="groups-empty__text">
-          {tab === "joined"
+          {activeTab === "joined"
             ? "You haven't joined any groups yet"
-            : tab === "pending"
+            : activeTab === "pending"
               ? "No pending requests"
               : "Try a different search"}
         </p>
@@ -24,16 +23,15 @@ export default function GroupsList({
     );
   }
 
-  // return (
-  //   {filteredGroups.length > 0 ? (
-  //     <div className="groups-grid">
-  //     {filteredGroups.map((group) => (
-  //       <GroupCard
-  //       key={group.id}
-  //       group={group}
-  //       onRequestJoin={handleRequestJoin}
-  //       />
-  //     ))}
-  //     </div>
-  //   ) : })
+  return (
+    <div className="groups-grid">
+      {groups.map((group) => (
+        <GroupCard
+          key={group.id}
+          group={group}
+          // onRequestJoin={handleRequestJoin}
+        />
+      ))}
+    </div>
+  );
 }
