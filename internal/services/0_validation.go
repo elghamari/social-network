@@ -21,3 +21,11 @@ func ValidateGroupInput(input types.GroupInput) error {
 
 	return nil
 }
+
+func ValidateGroupsReq(tab, query string) error {
+	if !(tab == "discover" || tab == "joined" || tab == "pending") {
+		return ErrInvalidGroupTab
+	}
+
+	return nil
+}

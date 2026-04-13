@@ -15,6 +15,15 @@ func (h *Handler) Groups(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	tab := r.URL.Query().Get("tab")
+	query := r.URL.Query().Get("query")
+
+	groups, err := h.Services.Groups.FetchGroups(tab, query)
+	if err != nil {
+		HandleError(w, err)
+		return
+	}
+
 	utils.WriteJson(w, map[string]any{
 		"status": http.StatusOK,
 	})

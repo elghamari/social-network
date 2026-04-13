@@ -12,4 +12,6 @@ type Group struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	CreatedAt   string `json:"created_at"`
+	MembersCnt  int    `json:"members_cnt"`
+	// IsJoined    bool `json:""`
 }

@@ -54,22 +54,56 @@ func (s *GroupsService) CreateGroup(input types.GroupInput) (types.Group, error)
 	return group, nil
 }
 
-func (s *GroupsService) GetAll(strCursorId string) ([]types.Group, error) {
-	cursorId, err := strconv.Atoi(strCursorId)
-	if err != nil {
-		return nil, ErrInvalidGroupId
-	}
+func GetSearchQuery(tab, query string) {
+	query = `
+	SELECT 
+		g.id,
+		g.creator_id,
+		g.title,
+		g.description,
+		g.created_at,
 
-	lastGroupId, err := s.Groups.GetMaxGroupId()
+		(
+			SELECT COUNT(*) 
+			FROM group_members 
+			WHERE group_id = g.id
+		) AS members_cnt,
+
+		EXISTS(
+			SELECT 1 
+			FROM group_members
+			WHERE user_id = ? AND group_id = g.id
+		) AS is_joined
+
+	FROM groups g
+	WHERE g.title LIKE '%?%'
+`
+}
+
+func (s *GroupsService) FetchGroups(tab, query string) ([]types.Group, error) {
+	err := ValidateGroupsReq(tab, query)
 	if err != nil {
 		return nil, err
 	}
 
-	if cursorId > lastGroupId {
-		return nil, ErrInvalidGroupId
-	}
-
-	// s.Groups.GetAll(cursorId)
-
-	return []types.Group{}, nil
 }
+
+// func (s *GroupsService) GetAll(strCursorId string) ([]types.Group, error) {
+// 	cursorId, err := strconv.Atoi(strCursorId)
+// 	if err != nil {
+// 		return nil, ErrInvalidGroupId
+// 	}
+
+// 	lastGroupId, err := s.Groups.GetMaxGroupId()
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	if cursorId > lastGroupId {
+// 		return nil, ErrInvalidGroupId
+// 	}
+
+// 	// s.Groups.GetAll(cursorId)
+
+// 	return []types.Group{}, nil
+// }

@@ -2,13 +2,13 @@ import "./page.css";
 
 import Link from "next/link";
 
-import Tabs from "../ui/groups/tabs";
-import Search from "../ui/groups/search";
-import GroupsList from "../ui/groups/list";
+import Tabs from "@/app/ui/groups/tabs";
+import Search from "@/app/ui/groups/search";
+import GroupsList from "@/app/ui/groups/list";
 
 import { Group, Tab } from "@/app/lib/types/groups";
 import { PlusIcon } from "@/app/ui/icons";
-import { fetchGroups } from "../lib/data";
+import { fetchGroups } from "@/app/lib/services/groups";
 
 const mockGroups: Group[] = [
   {
@@ -83,6 +83,7 @@ export default async function Page(props: {
 
   // List Setup.
   const groups = await fetchGroups(activeTab, query);
+  console.log(groups);
 
   return (
     <div className="groups-page">

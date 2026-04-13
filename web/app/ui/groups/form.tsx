@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { redirect } from "next/navigation";
 
-import { createGroup } from "@/app/lib/actions";
+import { createGroup } from "@/app/lib/services/groups";
 import { State } from "@/app/lib/types/groups";
 import SubmitBtn from "./submit-btn";
 
