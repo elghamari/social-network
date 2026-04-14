@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"soc-net/internal/repositories"
 	"soc-net/internal/types"
-	"strconv"
 )
 
 type GroupsService struct {
@@ -54,8 +53,8 @@ func (s *GroupsService) CreateGroup(input types.GroupInput) (types.Group, error)
 	return group, nil
 }
 
-func GetSearchQuery(tab, query string) {
-	query = `
+func GetGroupsSqlParams(tab, search, userId string) (string, []any) {
+	query := `
 	SELECT 
 		g.id,
 		g.creator_id,
@@ -67,43 +66,57 @@ func GetSearchQuery(tab, query string) {
 			SELECT COUNT(*) 
 			FROM group_members 
 			WHERE group_id = g.id
-		) AS members_cnt,
-
-		EXISTS(
-			SELECT 1 
-			FROM group_members
-			WHERE user_id = ? AND group_id = g.id
-		) AS is_joined
+		) AS members_cnt
 
 	FROM groups g
-	WHERE g.title LIKE '%?%'
-`
+	WHERE 1=1
+	`
+
+	args := []any{}
+
+	if search != "" {
+		query += `AND g.title LIKE '%' || ? || '%'`
+		args = append(args, search)
+	}
+
+	switch tab {
+	case "joined":
+		query += `
+		AND 
+		EXISTS(
+	 		SELECT 1
+	 		FROM group_members gm
+	 		WHERE gm.user_id = ? AND gm.group_id = g.id
+	 	)
+		`
+		args = append(args, userId)
+	case "pending":
+		query += `
+		AND 
+		EXISTS(
+	 		SELECT 1
+	 		FROM group_join_requests gjr
+	 		WHERE gjr.user_id = ? AND gjr.group_id = g.id
+	 	)
+		`
+		args = append(args, userId)
+	}
+
+	return query, args
 }
 
-func (s *GroupsService) FetchGroups(tab, query string) ([]types.Group, error) {
-	err := ValidateGroupsReq(tab, query)
+func (s *GroupsService) FetchGroups(tab, search string) ([]types.Group, error) {
+	err := ValidateGroupsReq(tab, search)
 	if err != nil {
 		return nil, err
 	}
 
+	query, args := GetGroupsSqlParams(tab, search, "user")
+
+	groups, err := s.Groups.GetGroups(query, args)
+	if err != nil {
+		return nil, err
+	}
+
+	return groups, err
 }
-
-// func (s *GroupsService) GetAll(strCursorId string) ([]types.Group, error) {
-// 	cursorId, err := strconv.Atoi(strCursorId)
-// 	if err != nil {
-// 		return nil, ErrInvalidGroupId
-// 	}
-
-// 	lastGroupId, err := s.Groups.GetMaxGroupId()
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	if cursorId > lastGroupId {
-// 		return nil, ErrInvalidGroupId
-// 	}
-
-// 	// s.Groups.GetAll(cursorId)
-
-// 	return []types.Group{}, nil
-// }

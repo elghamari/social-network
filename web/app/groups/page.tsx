@@ -76,13 +76,14 @@ export default async function Page(props: {
   // Tabs Setup.
   const searchParams = await props.searchParams;
   let activeTab = searchParams?.tab || "discover";
+
   if (!["discover", "joined", "pending"].includes(activeTab))
     activeTab = "discover";
 
   const query = searchParams?.query || "";
 
   // List Setup.
-  const groups = await fetchGroups(activeTab, query);
+  const groups = (await fetchGroups(activeTab, query)) || [];
   console.log(groups);
 
   return (
@@ -97,7 +98,7 @@ export default async function Page(props: {
 
       <Tabs activeTab={activeTab} />
       <Search activeTab={activeTab} />
-      <GroupsList groups={mockGroups} activeTab={activeTab} />
+      <GroupsList groups={groups} activeTab={activeTab} />
     </div>
   );
 }

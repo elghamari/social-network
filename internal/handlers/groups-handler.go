@@ -26,6 +26,7 @@ func (h *Handler) Groups(w http.ResponseWriter, r *http.Request) {
 
 	utils.WriteJson(w, map[string]any{
 		"status": http.StatusOK,
+		"groups": groups,
 	})
 }
 

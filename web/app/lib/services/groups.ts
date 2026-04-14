@@ -49,12 +49,9 @@ export async function fetchGroups(activeTab: Tab, query: string) {
     case 401:
       redirect("/login");
 
-    case 500:
-      throw new Error("Internal Server Error");
-
-    case 400:
-      return resp.fields;
+    case 200:
+      return resp.groups;
   }
 
-  return resp.groups;
+  throw new Error("Internal Server Error");
 }

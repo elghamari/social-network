@@ -22,9 +22,17 @@ func ValidateGroupInput(input types.GroupInput) error {
 	return nil
 }
 
-func ValidateGroupsReq(tab, query string) error {
+func ValidateGroupsReq(tab, search string) error {
+	err := types.ValidationError{
+		Fields: make(map[string]string),
+	}
+
 	if !(tab == "discover" || tab == "joined" || tab == "pending") {
-		return ErrInvalidGroupTab
+		err.Fields["tab"] = "Not a valid tab Try: (discover || joined || pending)"
+	}
+
+	if len(err.Fields) > 0 {
+		return err
 	}
 
 	return nil

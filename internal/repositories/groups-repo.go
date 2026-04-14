@@ -66,15 +66,23 @@ func (r *GroupsRepo) GetMaxGroupId() (int, error) {
 	return id, err
 }
 
-func (r *GroupsRepo) GetGroups(query string) ([]types.Group, error) {
-	rows, err := r.DB.Query(query)
+func (r *GroupsRepo) GetGroups(query string, args []any) ([]types.Group, error) {
+	rows, err := r.DB.Query(query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("%s.GetGroups: Reading: %w", repo, err)
 	}
 	defer rows.Close()
 
+	groups := []types.Group{}
 	for rows.Next() {
-		// rows.Scan()
+		group := types.Group{}
+
+		err := rows.Scan(&group.Id, &group.CreatorId, &group.Title, &group.Description, &group.CreatedAt, &group.MembersCnt)
+		if err != nil {
+			return nil, fmt.Errorf("%s.GetGroups: Scanning: %w", repo, err)
+		}
+
+		groups = append(groups, group)
 	}
-	return []types.Group{}, nil
+	return groups, nil
 }

@@ -3,4 +3,6 @@ CREATE TABLE IF NOT EXISTS group_members (
     user_id TEXT NOT NULL,
     is_creator BOOLEAN NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 )
