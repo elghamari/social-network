@@ -18,7 +18,6 @@ var repo string = "groups-repo"
 
 // ===== Group repos
 func (r *GroupsRepo) CreateGroup(tx *sql.Tx, input types.GroupInput) (int, error) {
-	fmt.Println(input)
 	res, err := tx.Exec(`
 	INSERT INTO groups
 		(creator_id, title, description)
@@ -70,7 +69,7 @@ func (r *GroupsRepo) GetMaxGroupId() (int, error) {
 func (r *GroupsRepo) ListGroups(query string, args []any) ([]types.Group, error) {
 	rows, err := r.DB.Query(query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("%s.GetGroups: Reading: %w", repo, err)
+		return nil, fmt.Errorf("%s.ListGroups: Reading: %w", repo, err)
 	}
 	defer rows.Close()
 
@@ -80,7 +79,7 @@ func (r *GroupsRepo) ListGroups(query string, args []any) ([]types.Group, error)
 
 		err := rows.Scan(&group.Id, &group.CreatorId, &group.Title, &group.Description, &group.CreatedAt, &group.MembersCnt, &group.IsJoined, &group.IsPending)
 		if err != nil {
-			return nil, fmt.Errorf("%s.GetGroups: Scanning: %w", repo, err)
+			return nil, fmt.Errorf("%s.ListGroups: Scanning: %w", repo, err)
 		}
 
 		groups = append(groups, group)
@@ -103,6 +102,7 @@ func (r *GroupsRepo) ValidGroupId(groupId string) (bool, error) {
 }
 
 // ===== JoinRequest repos
+
 func (r *GroupsRepo) CreateJoinRequest(req types.JoinRequest) error {
 	_, err := r.DB.Exec(`
 	INSERT OR IGNORE INTO group_join_requests 

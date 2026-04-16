@@ -23,32 +23,30 @@ var srvs string = "groups-service"
 // ===== Group Services
 func (s *GroupsService) CreateGroup(input types.GroupInput) (types.Group, error) {
 
-	group := types.Group{}
-
 	err := ValidateGroupInput(input)
 	if err != nil {
-		return group, err
+		return types.Group{}, err
 	}
 
 	tx, err := s.Groups.DB.Begin()
 	if err != nil {
-		return group, fmt.Errorf("%s.AddGroup: Starting tx: %w", srvs, err)
+		return types.Group{}, fmt.Errorf("%s.CreateGroup: Starting tx: %w", srvs, err)
 	}
 	defer tx.Rollback()
 
 	groupId, err := s.Groups.CreateGroup(tx, input)
 	if err != nil {
-		return group, err
+		return types.Group{}, err
 	}
 
-	group, err = s.Groups.GetGroupById(tx, groupId)
+	group, err := s.Groups.GetGroupById(tx, groupId)
 	if err != nil {
-		return group, err
+		return types.Group{}, err
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return group, fmt.Errorf("%s.AddGroup: Commiting tx: %w", srvs, err)
+		return group, fmt.Errorf("%s.CreateGroup: Commiting tx: %w", srvs, err)
 	}
 
 	return group, nil
@@ -107,7 +105,7 @@ func GetGroupsSqlParams(tab, search, userId string) (string, []any) {
 }
 
 func (s *GroupsService) ListGroups(tab, search string) ([]types.Group, error) {
-	err := ValidateGroupsReq(tab, search)
+	err := ValidateTab(tab)
 	if err != nil {
 		return nil, err
 	}
@@ -129,17 +127,11 @@ func (s *GroupsService) RequestToJoinGroup(req types.JoinRequest) error {
 		return err
 	}
 
-	err = ValidateJoinRequest(exists)
-	if err != nil {
-		return err
+	if !exists {
+		return types.NewActionError("Group does not exist.")
 	}
 
-	err = s.Groups.CreateJoinRequest(req)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return s.Groups.CreateJoinRequest(req)
 }
 
 func (s *GroupsService) CancelToJoinGroup(req types.JoinRequest) error {
@@ -148,17 +140,9 @@ func (s *GroupsService) CancelToJoinGroup(req types.JoinRequest) error {
 		return err
 	}
 
-	err = ValidateJoinRequest(exists)
-	if err != nil {
-		return err
+	if !exists {
+		return types.NewActionError("Group does not exist.")
 	}
 
-	fmt.Println(req)
-
-	err = s.Groups.DeleteJoinRequest(req)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return s.Groups.DeleteJoinRequest(req)
 }

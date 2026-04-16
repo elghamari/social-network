@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"soc-net/internal/types"
 	"soc-net/internal/utils"
@@ -105,8 +104,6 @@ func (h *Handler) CreateJoinRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	req.UserId = "user"
-
-	fmt.Println(req)
 
 	err = h.Services.Groups.RequestToJoinGroup(req)
 	if err != nil {

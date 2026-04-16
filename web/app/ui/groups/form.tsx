@@ -1,16 +1,23 @@
 "use client";
 
-import { useActionState } from "react";
-import { redirect } from "next/navigation";
+import { useActionState, useEffect } from "react";
 
 import { createGroup } from "@/app/lib/services/groups";
 import { State } from "@/app/lib/types/groups";
 import SubmitBtn from "./submit-btn";
+import { useRouter } from "next/navigation";
 
 export default function Form() {
-  const initialState: State = {};
+  const router = useRouter();
 
+  const initialState: State = { success: false };
   const [state, formAction] = useActionState(createGroup, initialState);
+
+  useEffect(() => {
+    if (state.success) {
+      router.push("/groups");
+    }
+  }, [state.success]);
 
   return (
     <form action={formAction} className="group-form">
@@ -22,11 +29,12 @@ export default function Form() {
           id="title"
           type="text"
           name="title"
-          className={`group-form__input ${state.title ? "group-form__input--error" : ""}`}
+          defaultValue={state.values?.title ?? ""}
+          className={`group-form__input ${state.errors?.title ? "group-form__input--error" : ""}`}
           placeholder="Enter group title"
         />
-        {state.title && (
-          <span className="group-form__error">{state.title}</span>
+        {state.errors?.title && (
+          <span className="group-form__error">{state.errors?.title}</span>
         )}
       </div>
 
@@ -37,20 +45,25 @@ export default function Form() {
         <textarea
           id="description"
           name="description"
-          className={`group-form__input group-form__textarea ${state.description ? "group-form__input--error" : ""}`}
+          defaultValue={state.values?.description ?? ""}
+          className={`group-form__input group-form__textarea ${state.errors?.description ? "group-form__input--error" : ""}`}
           placeholder="What is this group about?"
         />
-        {state.description && (
-          <span className="group-form__error">{state.description}</span>
+        {state.errors?.description && (
+          <span className="group-form__error">{state.errors?.description}</span>
         )}
       </div>
+
+      {state.errors?.general && (
+        <div className="group-form__general-error">{state.errors.general}</div>
+      )}
 
       <div className="group-form__actions">
         <button
           type="button"
           className="group-form__btn group-form__btn--cancel"
           onClick={() => {
-            redirect("/groups");
+            router.push("/groups");
           }}
         >
           Cancel

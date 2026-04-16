@@ -6,10 +6,10 @@ import Tabs from "@/app/ui/groups/tabs";
 import Search from "@/app/ui/groups/search";
 import GroupsList from "@/app/ui/groups/list";
 
-import { Group, Tab } from "@/app/lib/types/groups";
+import { Tab } from "@/app/lib/types/groups";
 import { PlusIcon } from "@/app/ui/icons";
-import { fetchGroups } from "@/app/lib/services/groups";
-import { showToast } from "../ui/layout/toast-store";
+import { listGroups } from "@/app/lib/services/groups";
+import { showToast } from "@/app/ui/layout/toast-store";
 
 export default async function Page(props: {
   searchParams?: Promise<{
@@ -27,7 +27,7 @@ export default async function Page(props: {
   const query = searchParams?.query || "";
 
   // List Setup.
-  const groups = (await fetchGroups(activeTab, query)) || [];
+  const groups = (await listGroups(activeTab, query)) || [];
 
   return (
     <div className="groups-page">

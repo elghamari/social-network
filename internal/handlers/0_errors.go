@@ -9,7 +9,8 @@ import (
 )
 
 func HandleError(w http.ResponseWriter, err error) {
-	var ve types.ValidationError
+	var ve types.FormError
+	var ae types.ActionError
 
 	switch {
 	case errors.As(err, &ve):
@@ -18,10 +19,16 @@ func HandleError(w http.ResponseWriter, err error) {
 			"fields": ve.Fields,
 		})
 
+	case errors.As(err, &ae):
+		utils.WriteJson(w, map[string]any{
+			"status": http.StatusBadRequest,
+			"error":  ae.Message,
+		})
+
 	default:
+		log.Println(err)
 		utils.WriteJson(w, map[string]any{
 			"status": http.StatusInternalServerError,
 		})
-		log.Println(err)
 	}
 }

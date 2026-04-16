@@ -8,38 +8,45 @@ import { revalidatePath } from "next/cache";
 import { validateGroup } from "../utils/validators";
 import { showToast } from "@/app/ui/layout/toast-store";
 
-export async function createGroup(prevState: State, fd: FormData) {
+export async function createGroup(
+  prevState: State,
+  fd: FormData,
+): Promise<State> {
+  //
   const data = {
-    title: String(fd.get("title")) || "",
-    description: String(fd.get("description")) || "",
+    title: String(fd.get("title") ?? "").trim(),
+    description: String(fd.get("description") ?? "").trim(),
   };
 
-  const state = validateGroup(data);
-  if (state) return state;
+  const errors = validateGroup(data);
+  if (errors)
+    return {
+      success: false,
+      errors: errors,
+      values: data,
+    };
 
-  const resp = await clientAPI.post("/groups/create", data);
+  const resp = await clientAPI.post("/groups", data);
   switch (resp.status) {
     case 401:
       redirect("/login");
 
+    case 400:
+      return {
+        success: false,
+        errors: resp.fields,
+        values: data,
+      };
+
     case 500:
       throw new Error("Internal Server Error");
-
-    case 400:
-      return resp.fields;
   }
 
-  await new Promise<void>((res) => {
-    setTimeout(() => {
-      res();
-    }, 5000);
-  });
-
   revalidatePath("/groups");
-  redirect("/groups");
+  return { success: true };
 }
 
-export async function fetchGroups(activeTab: Tab, query: string) {
+export async function listGroups(activeTab: Tab, query: string) {
   const params = new URLSearchParams({
     tab: activeTab,
     query: query,
@@ -50,31 +57,34 @@ export async function fetchGroups(activeTab: Tab, query: string) {
     case 401:
       redirect("/login");
 
-    case 200:
-      return resp.groups;
+    case 500:
+      throw new Error("Internal Server Error");
   }
 
-  throw new Error("Internal Server Error");
+  return resp.groups;
 }
 
 export async function createJoinRequest(groupId: string) {
-  const resp = await clientAPI.post(`/groups/join`, {});
+  const resp = await clientAPI.post(`/groups/join`, {
+    groupId: groupId,
+  });
+
   switch (resp.status) {
     case 401:
       redirect("/login");
 
-    case 200:
-      revalidatePath("/groups");
-      return;
-
     case 400:
-      (Object.values(resp.fields ?? {}) as string[]).forEach((msg) => {
-        showToast(msg);
-      });
-      return;
+      const [key, value] = Object.entries(resp.fields ?? {})[0];
+      return {
+        success: false,
+        errors: { [key]: value },
+      };
+
+    case 500:
+      throw new Error("Internal Server Error");
   }
 
-  throw new Error("Internal Server Error");
+  revalidatePath("/groups");
 }
 
 export async function deleteJoinRequest(groupId: string) {
@@ -92,8 +102,8 @@ export async function deleteJoinRequest(groupId: string) {
       return;
 
     case 400:
-      resp.fields?.forEach((field: string) => {
-        showToast(field);
+      (Object.values(resp.fields ?? {}) as string[]).forEach((msg) => {
+        showToast(msg);
       });
       return;
   }

@@ -1,4 +1,3 @@
-// list.tsx
 "use client";
 
 import { Group, Tab } from "@/app/lib/types/groups";
