@@ -1,6 +1,6 @@
 export type Tab = "discover" | "joined" | "pending";
 
-export interface Group {
+export type Group = {
   id: string;
   title: string;
   description: string;
@@ -11,23 +11,21 @@ export interface Group {
   isJoined?: boolean;
   isPending?: boolean;
   role?: "creator" | "member" | null;
-}
+};
 
-export interface State {
+export type GroupData = {
+  title: string;
+  description: string;
+};
+
+export type GroupErrors = {
   title?: string;
   description?: string;
-}
+  general?: string;
+};
 
-// export interface JoinRequest {
-//   id: string;
-//   groupId: string;
-//   userId: string;
-//   status: "pending" | "accepted" | "rejected";
-//   createdAt: string;
-// }
-
-// export interface FormData {
-//   title: string;
-//   description: string;
-//   // coverImage: string;
-// }
+export type State = {
+  success: boolean;
+  errors?: GroupErrors;
+  values?: GroupData;
+};

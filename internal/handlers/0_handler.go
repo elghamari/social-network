@@ -37,9 +37,9 @@ func New(svcs *services.Services, port string) http.Handler {
 	}
 
 	authRoutes := map[string]http.HandlerFunc{
-		"/api/groups":        h.Groups,
-		"/api/groups/create": h.CreateGroup,
-	}
+		"/api/groups":      h.Groups,
+		"/api/groups/join": h.JoinRequest,
+	}	
 	for path, hand := range authRoutes {
 		// mux.Handle(path, middleware.AuthRequired(hand))
 		mux.Handle(path, hand)

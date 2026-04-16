@@ -40,4 +40,6 @@ var (
 	ErrInvalidGroupId          = errors.New("invalid groupId")
 	ErrInvalidGroupTitle       = errors.New("invalid group title")
 	ErrInvalidGroupDescription = errors.New("invalid group description")
+
+	ErrInvalidGroupTab = errors.New("invalid group tab")
 )
