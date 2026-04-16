@@ -16,7 +16,7 @@ import (
 
 type App struct {
 	DB       *sql.DB
-	Repos    *repos.Repos
+	Repos    *repositories.Repos
 	Services *services.Services
 	Server   *http.Server
 }
