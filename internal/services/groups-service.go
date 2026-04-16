@@ -20,6 +20,7 @@ func NewGroupsService(auth *repositories.AuthRepo, grps *repositories.GroupsRepo
 
 var srvs string = "groups-service"
 
+// ===== Group Services
 func (s *GroupsService) CreateGroup(input types.GroupInput) (types.Group, error) {
 
 	group := types.Group{}
@@ -35,7 +36,7 @@ func (s *GroupsService) CreateGroup(input types.GroupInput) (types.Group, error)
 	}
 	defer tx.Rollback()
 
-	groupId, err := s.Groups.Insert(tx, input)
+	groupId, err := s.Groups.CreateGroup(tx, input)
 	if err != nil {
 		return group, err
 	}
@@ -56,56 +57,56 @@ func (s *GroupsService) CreateGroup(input types.GroupInput) (types.Group, error)
 func GetGroupsSqlParams(tab, search, userId string) (string, []any) {
 	query := `
 	SELECT 
-		g.id,
-		g.creator_id,
-		g.title,
-		g.description,
-		g.created_at,
+		g.id, g.creator_id, g.title, g.description, g.created_at,
 
-		(
-			SELECT COUNT(*) 
-			FROM group_members 
-			WHERE group_id = g.id
-		) AS members_cnt
+		(SELECT COUNT(*) FROM group_members WHERE group_id = g.id) AS members_cnt,
+
+		EXISTS(
+			SELECT 1 
+			FROM group_members gm 
+			WHERE gm.user_id = ? AND gm.group_id = g.id
+		) AS is_joined,
+
+		EXISTS(
+			SELECT 1 
+			FROM group_join_requests gjr 
+			WHERE gjr.user_id = ? AND gjr.group_id = g.id
+		) AS is_pending
 
 	FROM groups g
 	WHERE 1=1
 	`
-
-	args := []any{}
+	args := []any{userId, userId}
 
 	if search != "" {
-		query += `AND g.title LIKE '%' || ? || '%'`
+		query += ` AND g.title LIKE '%' || ? || '%'`
 		args = append(args, search)
 	}
 
 	switch tab {
 	case "joined":
 		query += `
-		AND 
-		EXISTS(
-	 		SELECT 1
-	 		FROM group_members gm
-	 		WHERE gm.user_id = ? AND gm.group_id = g.id
-	 	)
-		`
+		AND EXISTS(
+			SELECT 1 
+			FROM group_members gm 
+			WHERE gm.user_id = ? AND gm.group_id = g.id
+		)`
 		args = append(args, userId)
+
 	case "pending":
 		query += `
-		AND 
-		EXISTS(
-	 		SELECT 1
-	 		FROM group_join_requests gjr
-	 		WHERE gjr.user_id = ? AND gjr.group_id = g.id
-	 	)
-		`
+		AND EXISTS(
+			SELECT 1 
+			FROM group_join_requests gjr 
+			WHERE gjr.user_id = ? AND gjr.group_id = g.id
+		)`
 		args = append(args, userId)
 	}
 
 	return query, args
 }
 
-func (s *GroupsService) FetchGroups(tab, search string) ([]types.Group, error) {
+func (s *GroupsService) ListGroups(tab, search string) ([]types.Group, error) {
 	err := ValidateGroupsReq(tab, search)
 	if err != nil {
 		return nil, err
@@ -113,10 +114,51 @@ func (s *GroupsService) FetchGroups(tab, search string) ([]types.Group, error) {
 
 	query, args := GetGroupsSqlParams(tab, search, "user")
 
-	groups, err := s.Groups.GetGroups(query, args)
+	groups, err := s.Groups.ListGroups(query, args)
 	if err != nil {
 		return nil, err
 	}
 
 	return groups, err
+}
+
+// ===== JoinRequest Handlers
+func (s *GroupsService) RequestToJoinGroup(req types.JoinRequest) error {
+	exists, err := s.Groups.ValidGroupId(req.GroupId)
+	if err != nil {
+		return err
+	}
+
+	err = ValidateJoinRequest(exists)
+	if err != nil {
+		return err
+	}
+
+	err = s.Groups.CreateJoinRequest(req)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *GroupsService) CancelToJoinGroup(req types.JoinRequest) error {
+	exists, err := s.Groups.ValidGroupId(req.GroupId)
+	if err != nil {
+		return err
+	}
+
+	err = ValidateJoinRequest(exists)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(req)
+
+	err = s.Groups.DeleteJoinRequest(req)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

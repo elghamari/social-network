@@ -16,7 +16,8 @@ func NewGroupsRepo(db *sql.DB) *GroupsRepo {
 
 var repo string = "groups-repo"
 
-func (r *GroupsRepo) Insert(tx *sql.Tx, input types.GroupInput) (int, error) {
+// ===== Group repos
+func (r *GroupsRepo) CreateGroup(tx *sql.Tx, input types.GroupInput) (int, error) {
 	fmt.Println(input)
 	res, err := tx.Exec(`
 	INSERT INTO groups
@@ -66,7 +67,7 @@ func (r *GroupsRepo) GetMaxGroupId() (int, error) {
 	return id, err
 }
 
-func (r *GroupsRepo) GetGroups(query string, args []any) ([]types.Group, error) {
+func (r *GroupsRepo) ListGroups(query string, args []any) ([]types.Group, error) {
 	rows, err := r.DB.Query(query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("%s.GetGroups: Reading: %w", repo, err)
@@ -77,7 +78,7 @@ func (r *GroupsRepo) GetGroups(query string, args []any) ([]types.Group, error) 
 	for rows.Next() {
 		group := types.Group{}
 
-		err := rows.Scan(&group.Id, &group.CreatorId, &group.Title, &group.Description, &group.CreatedAt, &group.MembersCnt)
+		err := rows.Scan(&group.Id, &group.CreatorId, &group.Title, &group.Description, &group.CreatedAt, &group.MembersCnt, &group.IsJoined, &group.IsPending)
 		if err != nil {
 			return nil, fmt.Errorf("%s.GetGroups: Scanning: %w", repo, err)
 		}
@@ -85,4 +86,42 @@ func (r *GroupsRepo) GetGroups(query string, args []any) ([]types.Group, error) 
 		groups = append(groups, group)
 	}
 	return groups, nil
+}
+
+func (r *GroupsRepo) ValidGroupId(groupId string) (bool, error) {
+	var exists bool
+	err := r.DB.QueryRow(`
+		SELECT EXISTS(
+			SELECT 1 FROM groups WHERE id = ?
+		)
+	`, groupId).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("%s.ValidGroupId: Scan: %w", repo, err)
+	}
+
+	return exists, nil
+}
+
+// ===== JoinRequest repos
+func (r *GroupsRepo) CreateJoinRequest(req types.JoinRequest) error {
+	_, err := r.DB.Exec(`
+	INSERT OR IGNORE INTO group_join_requests 
+	(group_id, user_id)
+	VALUES (?, ?)
+	`, req.GroupId, req.UserId)
+	if err != nil {
+		return fmt.Errorf("%s.CreateJoinRequest: %w", repo, err)
+	}
+	return nil
+}
+
+func (r *GroupsRepo) DeleteJoinRequest(req types.JoinRequest) error {
+	_, err := r.DB.Exec(`
+	DELETE FROM group_join_requests 
+	WHERE group_id = ? AND user_id = ?
+	`, req.GroupId, req.UserId)
+	if err != nil {
+		return fmt.Errorf("%s.DeleteJoinRequest: %w", repo, err)
+	}
+	return nil
 }

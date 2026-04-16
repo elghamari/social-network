@@ -39,6 +39,12 @@ class ClientApi {
       body: JSON.stringify(data),
     });
   }
+
+  delete(endPoint: string) {
+    return this.request(endPoint, {
+      method: "DELETE",
+    });
+  }
 }
 
 export default new ClientApi();

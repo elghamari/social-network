@@ -148,6 +148,7 @@
   border-radius: var(--radius-md);
   overflow: hidden;
   transition: border-color var(--transition-fast);
+  cursor: pointer; /* 👈 whole card is clickable */
 }
 
 .group-card:hover {
@@ -206,13 +207,14 @@
 }
 
 .group-card__action {
-  padding: 6px 0;
+  padding: 6px 12px;
   font-size: 12px;
   font-weight: 500;
   border-radius: var(--radius-sm);
   transition: all var(--transition-fast);
   min-width: 80px;
   text-align: center;
+  cursor: pointer; /* 👈 button is always clickable */
 }
 
 .group-card__action--request {
@@ -227,11 +229,19 @@
 .group-card__action--pending {
   background: var(--bg-elevated);
   color: var(--text-muted);
-  cursor: default;
+  border: 1px solid var(--border-subtle);
+}
+
+/* 👇 hover on pending shows cancel intent */
+.group-card__action--pending:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.3);
 }
 
 .group-card__action--member {
   background: rgba(16, 185, 129, 0.1);
   color: #10b981;
   cursor: default;
+  pointer-events: none; /* 👈 can't click "Joined" */
 }

@@ -37,3 +37,19 @@ func ValidateGroupsReq(tab, search string) error {
 
 	return nil
 }
+
+func ValidateJoinRequest(exists bool) error {
+	err := types.ValidationError{
+		Fields: make(map[string]string),
+	}
+
+	if !exists {
+		err.Fields["groupId"] = "Groups does not exist"
+	}
+
+	if len(err.Fields) > 0 {
+		return err
+	}
+
+	return nil
+}

@@ -25,9 +25,3 @@ export interface State {
 //   status: "pending" | "accepted" | "rejected";
 //   createdAt: string;
 // }
-
-// export interface FormData {
-//   title: string;
-//   description: string;
-//   // coverImage: string;
-// }

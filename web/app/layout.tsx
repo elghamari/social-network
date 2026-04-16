@@ -3,6 +3,7 @@ import { Josefin_Sans } from "next/font/google";
 import "./globals.css";
 import "./layout.css";
 import Sidenav from "./ui/layout/sidenav";
+import Toast from "./ui/layout/toast";
 
 const josefin = Josefin_Sans({
   subsets: ["latin"],
@@ -28,6 +29,7 @@ export default function RootLayout({
           <Sidenav />
           <main className="app__content">{children}</main>
         </div>
+        <Toast />
       </body>
     </html>
   );

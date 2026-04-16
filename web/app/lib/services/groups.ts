@@ -6,6 +6,7 @@ import { State, Tab } from "../types/groups";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { validateGroup } from "../utils/validators";
+import { showToast } from "@/app/ui/layout/toast-store";
 
 export async function createGroup(prevState: State, fd: FormData) {
   const data = {
@@ -51,6 +52,50 @@ export async function fetchGroups(activeTab: Tab, query: string) {
 
     case 200:
       return resp.groups;
+  }
+
+  throw new Error("Internal Server Error");
+}
+
+export async function createJoinRequest(groupId: string) {
+  const resp = await clientAPI.post(`/groups/join`, {});
+  switch (resp.status) {
+    case 401:
+      redirect("/login");
+
+    case 200:
+      revalidatePath("/groups");
+      return;
+
+    case 400:
+      (Object.values(resp.fields ?? {}) as string[]).forEach((msg) => {
+        showToast(msg);
+      });
+      return;
+  }
+
+  throw new Error("Internal Server Error");
+}
+
+export async function deleteJoinRequest(groupId: string) {
+  const params = new URLSearchParams({
+    groupId: groupId,
+  });
+
+  const resp = await clientAPI.delete(`/groups/join?${params.toString()}`);
+  switch (resp.status) {
+    case 401:
+      redirect("/login");
+
+    case 200:
+      revalidatePath("/groups");
+      return;
+
+    case 400:
+      resp.fields?.forEach((field: string) => {
+        showToast(field);
+      });
+      return;
   }
 
   throw new Error("Internal Server Error");

@@ -1,22 +1,37 @@
-// app/ui/groups/GroupCard.tsx
 "use client";
 
-import Link from "next/link";
+import { useState } from "react";
 import { Group } from "@/app/lib/types/groups";
+import {
+  createJoinRequest,
+  deleteJoinRequest,
+} from "@/app/lib/services/groups";
+import { useRouter } from "next/navigation";
 
-interface GroupCardProps {
-  group: Group;
-  onRequestJoin?: (groupId: string) => void;
-}
+export default function GroupCard({ group }: { group: Group }) {
+  const [isPending, setIsPending] = useState(false);
+  const router = useRouter();
 
-export default function GroupCard({ group, onRequestJoin }: GroupCardProps) {
   const handleRequest = (e: React.MouseEvent) => {
     e.preventDefault();
-    onRequestJoin?.(group.id);
+    e.stopPropagation();
+
+    if (isPending) {
+      deleteJoinRequest(group.id);
+      setIsPending(false);
+    } else {
+      createJoinRequest(group.id);
+      setIsPending(true);
+    }
   };
 
   return (
-    <Link href={`/groups/${group.id}`} className="group-card">
+    <div
+      className="group-card"
+      onClick={() => {
+        router.push(`/groups/${group.id}`);
+      }}
+    >
       <div className="group-card__cover">
         {group.coverImage && <img src={group.coverImage} alt="" />}
       </div>
@@ -34,20 +49,20 @@ export default function GroupCard({ group, onRequestJoin }: GroupCardProps) {
             <span className="group-card__action group-card__action--member">
               Joined
             </span>
-          ) : group.isPending ? (
-            <span className="group-card__action group-card__action--pending">
-              Pending
-            </span>
           ) : (
             <button
-              className="group-card__action group-card__action--request"
+              className={`group-card__action ${
+                isPending
+                  ? "group-card__action--pending"
+                  : "group-card__action--request"
+              }`}
               onClick={handleRequest}
             >
-              Request
+              {isPending ? "Pending" : "Request"}
             </button>
           )}
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
