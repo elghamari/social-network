@@ -208,3 +208,28 @@ func (r *PostsRepo) GetFeedPosts(userId string, cursor int) ([]types.PostRespons
 
 	return posts, nil
 }
+
+func (r *PostsRepo) CanUserInteractWithPost(postId int, userId string) (bool, bool, error) {
+	var postExists, canInteract bool
+
+	query := `
+        SELECT 
+            EXISTS(SELECT 1 FROM posts WHERE id = ?),
+            EXISTS(
+                SELECT 1 FROM posts p
+                WHERE p.id = ? AND (
+                    (p.user_id = ?) OR 
+                    (p.privacy = 'public' AND p.group_id IS NULL) OR 
+                    (p.group_id IN (SELECT group_id FROM group_members WHERE user_id = ?)) OR 
+                    (p.privacy = 'almost private' AND p.user_id IN (SELECT following_id FROM followers WHERE follower_id = ?)) OR 
+                    (p.id IN (SELECT post_id FROM post_private WHERE user_id = ?))
+                )
+            )
+    `
+	err := r.DB.QueryRow(query, postId, postId, userId, userId, userId, userId).Scan(&postExists, &canInteract)
+	if err != nil {
+		return false, false, fmt.Errorf("PostsRepo.CanUserInteractWithPost: %w", err)
+	}
+
+	return postExists, canInteract, nil
+}
