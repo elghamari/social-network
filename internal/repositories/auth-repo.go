@@ -141,3 +141,10 @@ func (r *AuthRepo) IsUserPublic(targetID string) (bool, error) {
 	}
 	return isPublic, nil
 }
+
+func (r *AuthRepo) CheckUserExists(id string) (bool, error) {
+	var exists bool
+	query := `SELECT EXISTS(SELECT 1 FROM users WHERE id = ?)`
+	err := r.DB.QueryRow(query, id).Scan(&exists)
+	return exists, err
+}
