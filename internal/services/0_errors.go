@@ -41,3 +41,12 @@ var (
 	ErrInvalidGroupTitle       = errors.New("invalid group title")
 	ErrInvalidGroupDescription = errors.New("invalid group description")
 )
+
+// ===== Feed =====
+var (
+	ErrGroupNotFound      = errors.New("the specified group does not exist")
+	ErrNotGroupMember     = errors.New("you are not a member of this group")
+	ErrUserNotFound       = errors.New("the specified user does not exist")
+	ErrPostNotFound       = errors.New("the specified post does not exist")
+	ErrUnauthorizedAccess = errors.New("you do not have permission to interact with this post")
+)
