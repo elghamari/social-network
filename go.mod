@@ -2,4 +2,7 @@ module soc-net
 
 go 1.26.1
 
-require github.com/mattn/go-sqlite3 v1.14.41 // indirect
+require (
+	github.com/mattn/go-sqlite3 v1.14.41
+	golang.org/x/crypto v0.50.0
+)
