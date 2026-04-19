@@ -15,14 +15,14 @@ var (
 	ErrInvalidImage          = errors.New("image url cannot be empty if provided")
 )
 
-func ValidatePostInput(input types.PostInput) error {
-	title := strings.TrimSpace(input.Title)
-	if title == "" || len(title) > 100 {
+func ValidatePostInput(input *types.PostInput) error {
+	input.Title = strings.TrimSpace(input.Title)
+	if input.Title == "" || len(input.Title) > 100 {
 		return ErrInvalidTitle
 	}
 
-	desc := strings.TrimSpace(input.Description)
-	if desc == "" || len(desc) > 800 {
+	input.Description = strings.TrimSpace(input.Description)
+	if input.Description == "" || len(input.Description) > 800 {
 		return ErrInvalidDescription
 	}
 
@@ -39,9 +39,9 @@ func ValidatePostInput(input types.PostInput) error {
 	return nil
 }
 
-func ValidateCommentInput(input types.CommentInput) error {
-	content := strings.TrimSpace(input.Content)
-	if content == "" || len(content) > 200 {
+func ValidateCommentInput(input *types.CommentInput) error {
+	input.Content = strings.TrimSpace(input.Content)
+	if input.Content == "" || len(input.Content) > 200 {
 		return ErrInvalidCommentContent
 	}
 
