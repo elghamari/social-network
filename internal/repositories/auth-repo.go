@@ -1,0 +1,143 @@
+package repositories
+
+import (
+	"database/sql"
+	"errors"
+	"fmt"
+	"soc-net/internal/types"
+)
+
+type AuthRepo struct {
+	DB *sql.DB
+}
+
+func NewAuthRepo(db *sql.DB) *AuthRepo {
+	return &AuthRepo{DB: db}
+}
+
+// ===== Session
+
+func (r *AuthRepo) GetUserBySessionId(sessionId string) (types.UserAuth, error) {
+	user := types.UserAuth{}
+	err := r.DB.QueryRow(`
+		SELECT id, session_time
+		FROM users
+		WHERE session_id = ?
+	`, sessionId).Scan(&user.Id, &user.SessionTime)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return types.UserAuth{}, nil
+		}
+		return user, fmt.Errorf("authRepo.GetUserBySessionId: %w", err)
+	}
+	return user, nil
+}
+
+func (r *AuthRepo) SetSession(userID, sessionID string) error {
+	_, err := r.DB.Exec(`
+		UPDATE users
+		SET session_id = ?, session_time = CURRENT_TIMESTAMP
+		WHERE id = ?
+	`, sessionID, userID)
+	if err != nil {
+		return fmt.Errorf("authRepo.SetSession: %w", err)
+	}
+	return nil
+}
+
+func (r *AuthRepo) ClearSession(sessionId string) error {
+	_, err := r.DB.Exec(`
+		UPDATE users
+		SET session_id = NULL, session_time = NULL
+		WHERE session_id = ?
+	`, sessionId)
+	if err != nil {
+		return fmt.Errorf("authRepo.ClearSession: %w", err)
+	}
+	return nil
+}
+
+// ===== Register / Login
+
+func (r *AuthRepo) CreateUser(input types.RegisterInput, hashedPassword, uuid string) error {
+	_, err := r.DB.Exec(`
+		INSERT INTO users (id, email, password, first_name, last_name, date_of_birth, nickname, avatar, about_me)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+	`, uuid, input.Email, hashedPassword, input.FirstName, input.LastName,
+		input.DateOfBirth, input.Nickname, input.Avatar, input.AboutMe)
+	if err != nil {
+		return fmt.Errorf("authRepo.CreateUser: %w", err)
+	}
+	return nil
+}
+
+func (r *AuthRepo) GetUserByEmail(email string) (types.User, error) {
+	var u types.User
+	var avatar, nickname, aboutMe sql.NullString
+
+	err := r.DB.QueryRow(`
+		SELECT id, email, password, first_name, last_name, date_of_birth,
+		       avatar, nickname, about_me, is_public, created_at
+		FROM users WHERE email = ?
+	`, email).Scan(
+		&u.ID, &u.Email, &u.Password, &u.FirstName, &u.LastName,
+		&u.DateOfBirth, &avatar, &nickname, &aboutMe, &u.IsPublic, &u.CreatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return types.User{}, fmt.Errorf("authRepo.GetUserByEmail: user not found")
+		}
+		return types.User{}, fmt.Errorf("authRepo.GetUserByEmail: %w", err)
+	}
+
+	if avatar.Valid {
+		u.Avatar = &avatar.String
+	}
+	if nickname.Valid {
+		u.Nickname = &nickname.String
+	}
+	if aboutMe.Valid {
+		u.AboutMe = &aboutMe.String
+	}
+	return u, nil
+}
+
+func (r *AuthRepo) GetUserById(id string) (types.User, error) {
+	var u types.User
+	var avatar, nickname, aboutMe sql.NullString
+
+	err := r.DB.QueryRow(`
+		SELECT id, email, first_name, last_name, date_of_birth,
+		       avatar, nickname, about_me, is_public, created_at
+		FROM users WHERE id = ?
+	`, id).Scan(
+		&u.ID, &u.Email, &u.FirstName, &u.LastName,
+		&u.DateOfBirth, &avatar, &nickname, &aboutMe, &u.IsPublic, &u.CreatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return types.User{}, fmt.Errorf("authRepo.GetUserById: user not found")
+		}
+		return types.User{}, fmt.Errorf("authRepo.GetUserById: %w", err)
+	}
+
+	if avatar.Valid {
+		u.Avatar = &avatar.String
+	}
+	if nickname.Valid {
+		u.Nickname = &nickname.String
+	}
+	if aboutMe.Valid {
+		u.AboutMe = &aboutMe.String
+	}
+	return u, nil
+}
+
+func (r *AuthRepo) IsUserPublic(targetID string) (bool, error) {
+	var isPublic bool
+	err := r.DB.QueryRow(`SELECT is_public FROM users WHERE id = ?`, targetID).Scan(&isPublic)
+	if err != nil {
+		return false, fmt.Errorf("authRepo.IsUserPublic: %w", err)
+	}
+	return isPublic, nil
+}
