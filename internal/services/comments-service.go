@@ -8,11 +8,6 @@ import (
 	"soc-net/internal/types"
 )
 
-var (
-	ErrPostNotFound       = errors.New("the specified post does not exist")
-	ErrUnauthorizedAccess = errors.New("you do not have permission to interact with this post")
-)
-
 type CommentsService struct {
 	Comments *repositories.CommentsRepo
 	Posts    *repositories.PostsRepo
@@ -28,7 +23,7 @@ func NewCommentsService(comments *repositories.CommentsRepo, posts *repositories
 func (s *CommentsService) CreateComment(currentUserId string, input types.CommentInput) (int64, error) {
 	input.UserId = currentUserId
 
-	if err := ValidateCommentInput(input); err != nil {
+	if err := ValidateCommentInput(&input); err != nil {
 		return 0, err
 	}
 
@@ -46,4 +41,25 @@ func (s *CommentsService) CreateComment(currentUserId string, input types.Commen
 	}
 
 	return s.Comments.InsertComment(input)
+}
+
+func (s *CommentsService) GetPostComments(currentUserId string, postId int, cursor int) ([]types.CommentResponse, error) {
+	if cursor < 0 {
+		return nil, errors.New("invalid cursor: must be zero or positive")
+	}
+
+	postExists, canInteract, err := s.Posts.CanUserInteractWithPost(postId, currentUserId)
+	if err != nil {
+		return nil, fmt.Errorf("CommentsService.GetPostComments (Check Access): %w", err)
+	}
+
+	if !postExists {
+		return nil, ErrPostNotFound
+	}
+
+	if !canInteract {
+		return nil, ErrUnauthorizedAccess
+	}
+
+	return s.Comments.GetPostComments(postId, cursor)
 }
