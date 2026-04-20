@@ -1,18 +1,9 @@
 package services
 
 import (
-	"errors"
 	"strings"
 
 	"soc-net/internal/types"
-)
-
-var (
-	ErrInvalidTitle          = errors.New("title is required and must be under 100 characters")
-	ErrInvalidDescription    = errors.New("description is required and must be under 800 characters")
-	ErrInvalidPrivacy        = errors.New("privacy must be public, private, or almost private")
-	ErrInvalidCommentContent = errors.New("comment content is required and must be under 200 characters")
-	ErrInvalidImage          = errors.New("image url cannot be empty if provided")
 )
 
 func ValidatePostInput(input *types.PostInput) error {
@@ -30,6 +21,20 @@ func ValidatePostInput(input *types.PostInput) error {
 		if input.Privacy != "public" && input.Privacy != "private" && input.Privacy != "almost private" {
 			return ErrInvalidPrivacy
 		}
+
+		if input.Privacy == "private" {
+			if len(input.PrivateUsers) < 1 {
+				return ErrEmptyPrivateUsers
+			}
+
+			uniqueUsersMap := make(map[string]bool)
+			for _, id := range input.PrivateUsers {
+				if uniqueUsersMap[id] {
+					return ErrDuplicatePrivateUsers
+				}
+				uniqueUsersMap[id] = true
+			}
+		}
 	}
 
 	if input.ImageUrl != nil && strings.TrimSpace(*input.ImageUrl) == "" {
@@ -40,6 +45,7 @@ func ValidatePostInput(input *types.PostInput) error {
 }
 
 func ValidateCommentInput(input *types.CommentInput) error {
+	
 	input.Content = strings.TrimSpace(input.Content)
 	if input.Content == "" || len(input.Content) > 200 {
 		return ErrInvalidCommentContent
