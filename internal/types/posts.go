@@ -56,17 +56,18 @@ type CommentResponse struct {
 }
 
 type PostInput struct {
-	UserId      string  `json:"user_id"`
-	GroupId     *int    `json:"group_id"`
-	Title       string  `json:"title"`
-	Description string  `json:"description"`
-	Privacy     string  `json:"privacy"`
-	ImageUrl    *string `json:"image_url"`
+	UserId       string
+	GroupId      *int
+	Title        string
+	Description  string
+	Privacy      string
+	ImageUrl     *string
+	PrivateUsers []string
 }
 
 type CommentInput struct {
-    UserId   string  `json:"user_id"`
-    PostId   int     `json:"post_id"`
-    Content  string  `json:"content"`
-    ImageUrl *string `json:"image_url"`
+	UserId   string
+	PostId   int
+	Content  string
+	ImageUrl *string
 }
