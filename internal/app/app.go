@@ -45,7 +45,7 @@ func enableCORS(next http.Handler) http.Handler {
 
 func New(cfg *Config) (*App, error) {
 
-	err := os.MkdirAll("data", 0755)
+	err := os.MkdirAll("data/uploads", 0755)
 	if err != nil {
 		return nil, err
 	}

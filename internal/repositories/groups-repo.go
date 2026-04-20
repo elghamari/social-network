@@ -17,22 +17,17 @@ func NewGroupsRepo(db *sql.DB) *GroupsRepo {
 var repo string = "groups-repo"
 
 // ===== Group repos
-func (r *GroupsRepo) CreateGroup(tx *sql.Tx, input types.GroupInput) (int, error) {
-	res, err := tx.Exec(`
+func (r *GroupsRepo) CreateGroup(input types.GroupInput, destPath string) error {
+	_, err := r.DB.Exec(`
 	INSERT INTO groups
-		(creator_id, title, description)
-	VALUES (?, ?, ?)
-	`, input.CreatorId, input.Title, input.Description)
+		(creator_id, title, description, cover_path)
+	VALUES (?, ?, ?, ?)
+	`, input.CreatorId, input.Title, input.Description, destPath)
 	if err != nil {
-		return 0, fmt.Errorf("%s.Insert: Inserting %w", repo, err)
+		return fmt.Errorf("%s.Insert: Inserting %w", repo, err)
 	}
 
-	groupId, err := res.LastInsertId()
-	if err != nil {
-		return 0, fmt.Errorf("%s.Insert: Last if fetch %w", repo, err)
-	}
-
-	return int(groupId), nil
+	return nil
 }
 
 func (r *GroupsRepo) GetGroupById(tx *sql.Tx, groupId int) (types.Group, error) {
@@ -77,7 +72,7 @@ func (r *GroupsRepo) ListGroups(query string, args []any) ([]types.Group, error)
 	for rows.Next() {
 		group := types.Group{}
 
-		err := rows.Scan(&group.Id, &group.CreatorId, &group.Title, &group.Description, &group.CreatedAt, &group.MembersCnt, &group.IsJoined, &group.IsPending)
+		err := rows.Scan(&group.Id, &group.CreatorId, &group.Title, &group.Description, &group.CoverPath, &group.CreatedAt, &group.MembersCnt, &group.IsJoined, &group.IsPending)
 		if err != nil {
 			return nil, fmt.Errorf("%s.ListGroups: Scanning: %w", repo, err)
 		}
@@ -99,6 +94,13 @@ func (r *GroupsRepo) ValidGroupId(groupId string) (bool, error) {
 	}
 
 	return exists, nil
+}
+
+func (r *GroupsRepo) GetGroup(groupId string) (types.Group, error) {
+	r.DB.QueryRow(`
+	SELECT
+
+	`)
 }
 
 // ===== JoinRequest repos

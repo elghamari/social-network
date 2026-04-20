@@ -2,31 +2,42 @@
 
 import clientAPI from "./client";
 
-import { State, Tab } from "../types/groups";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { validateGroup } from "../utils/validators";
-import { showToast } from "@/app/ui/layout/toast-store";
+import { Tab, GroupState, ActionResult } from "@/app/lib/types/groups";
+import { validateGroup } from "@/app/lib/utils/validators";
 
 export async function createGroup(
-  prevState: State,
+  prevState: GroupState,
   fd: FormData,
-): Promise<State> {
+): Promise<GroupState> {
   //
+  const file = fd.get("coverImage");
+
   const data = {
     title: String(fd.get("title") ?? "").trim(),
     description: String(fd.get("description") ?? "").trim(),
+    coverImage: file instanceof File ? file : null,
   };
 
   const errors = validateGroup(data);
-  if (errors)
+  if (errors) {
     return {
       success: false,
       errors: errors,
       values: data,
     };
+  }
 
-  const resp = await clientAPI.post("/groups", data);
+  const payload = new FormData();
+  payload.append("title", data.title);
+  payload.append("description", data.description);
+  if (data.coverImage) {
+    payload.append("coverImage", data.coverImage);
+  }
+
+  const resp = await clientAPI.postForm("/groups", payload);
+  console.log(resp);
   switch (resp.status) {
     case 401:
       redirect("/login");
@@ -64,7 +75,9 @@ export async function listGroups(activeTab: Tab, query: string) {
   return resp.groups;
 }
 
-export async function createJoinRequest(groupId: string) {
+export async function createJoinRequest(
+  groupId: string,
+): Promise<ActionResult> {
   const resp = await clientAPI.post(`/groups/join`, {
     groupId: groupId,
   });
@@ -74,10 +87,9 @@ export async function createJoinRequest(groupId: string) {
       redirect("/login");
 
     case 400:
-      const [key, value] = Object.entries(resp.fields ?? {})[0];
       return {
         success: false,
-        errors: { [key]: value },
+        error: resp.error,
       };
 
     case 500:
@@ -85,9 +97,12 @@ export async function createJoinRequest(groupId: string) {
   }
 
   revalidatePath("/groups");
+  return { success: true };
 }
 
-export async function deleteJoinRequest(groupId: string) {
+export async function deleteJoinRequest(
+  groupId: string,
+): Promise<ActionResult> {
   const params = new URLSearchParams({
     groupId: groupId,
   });
@@ -97,16 +112,21 @@ export async function deleteJoinRequest(groupId: string) {
     case 401:
       redirect("/login");
 
-    case 200:
-      revalidatePath("/groups");
-      return;
-
     case 400:
-      (Object.values(resp.fields ?? {}) as string[]).forEach((msg) => {
-        showToast(msg);
-      });
-      return;
+      return { success: false, error: resp.error };
+
+    case 500:
+      throw new Error("Internal Server Error");
   }
 
-  throw new Error("Internal Server Error");
+  revalidatePath("/groups");
+  return { success: true };
+}
+
+export async function getGroupById(groupId: string) {
+  const params = new URLSearchParams({
+    groupId: groupId
+  });
+  
+  clientAPI.get(`/groups`)
 }

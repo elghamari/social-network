@@ -1,28 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+
 import { Group } from "@/app/lib/types/groups";
+import { showToast } from "@/app/ui/layout/toast-store";
+import { BASE_URL } from "@/app/lib/services/client";
 import {
   createJoinRequest,
   deleteJoinRequest,
 } from "@/app/lib/services/groups";
-import { useRouter } from "next/navigation";
 
 export default function GroupCard({ group }: { group: Group }) {
-  const [isPending, setIsPending] = useState(false);
   const router = useRouter();
+  const [isLoading, startTransition] = useTransition();
+  const [isPending, setIsPending] = useState(group.isPending);
 
   const handleRequest = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    if (isPending) {
-      deleteJoinRequest(group.id);
-      setIsPending(false);
-    } else {
-      createJoinRequest(group.id);
-      setIsPending(true);
-    }
+    startTransition(async () => {
+      const action = isPending ? deleteJoinRequest : createJoinRequest;
+      const result = await action(group.id);
+
+      if (!result.success) {
+        showToast(result.error ?? "Something went wrong.");
+      } else {
+        setIsPending(!isPending);
+      }
+    });
   };
 
   return (
@@ -33,7 +40,7 @@ export default function GroupCard({ group }: { group: Group }) {
       }}
     >
       <div className="group-card__cover">
-        {group.coverImage && <img src={group.coverImage} alt="" />}
+        {group.coverPath && <img src={BASE_URL + group.coverPath} alt="" />}
       </div>
 
       <div className="group-card__content">
@@ -57,8 +64,9 @@ export default function GroupCard({ group }: { group: Group }) {
                   : "group-card__action--request"
               }`}
               onClick={handleRequest}
+              disabled={isLoading}
             >
-              {isPending ? "Pending" : "Request"}
+              {isLoading ? "..." : isPending ? "Pending" : "Request"}
             </button>
           )}
         </div>

@@ -4,28 +4,86 @@ export type Group = {
   id: string;
   title: string;
   description: string;
-  coverImage?: string;
+  coverPath?: string;
   createdAt: string;
   creatorId: string;
   memberCount: number;
   isJoined?: boolean;
   isPending?: boolean;
-  role?: "creator" | "member" | null;
 };
+
+// ── Detail page ──────────────────────────────────────────────
+
+export type GroupRole = "CREATOR" | "MEMBER";
+
+export type GroupDetail = {
+  id: string;
+  title: string;
+  description: string;
+  coverImage?: string;
+  createdAt: string;
+  creatorId: string;
+  membersCount: number;
+  isMember: boolean;
+  isPending: boolean;
+  role?: GroupRole;
+};
+
+export type GroupMember = {
+  id: string;
+  name: string;
+  avatarUrl?: string;
+  role: "CREATOR" | "MEMBER";
+  joinedAt: string;
+};
+
+export type GroupPost = {
+  id: string;
+  authorId: string;
+  authorName: string;
+  authorAvatarUrl?: string;
+  content: string;
+  imageUrl?: string;
+  createdAt: string;
+  likesCount: number;
+  commentsCount: number;
+};
+
+export type RSVPStatus = "going" | "not-going" | null;
+
+export type GroupEvent = {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  location: string;
+  attendeesCount: number;
+  rsvp: RSVPStatus;
+};
+
+export type GroupSection = "about" | "posts" | "members" | "events";
+
+// ── Form / action types ──────────────────────────────────────
 
 export type GroupData = {
   title: string;
   description: string;
+  coverImage?: File | null;
 };
 
 export type GroupErrors = {
   title?: string;
   description?: string;
-  general?: string;
+  coverImage?: string;
 };
 
-export type State = {
+export type GroupState = {
   success: boolean;
   errors?: GroupErrors;
   values?: GroupData;
 };
+
+export interface ActionResult {
+  success: boolean;
+  error?: string;
+}

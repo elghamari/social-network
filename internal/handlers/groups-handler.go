@@ -41,15 +41,8 @@ func (h *Handler) ListGroups(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) CreateGroup(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		utils.WriteJson(w, map[string]any{
-			"status": http.StatusMethodNotAllowed,
-		})
-		return
-	}
 
-	input := types.GroupInput{}
-	err := json.NewDecoder(r.Body).Decode(&input)
+	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
 		utils.WriteJson(w, map[string]any{
 			"status": http.StatusBadRequest,
@@ -57,10 +50,27 @@ func (h *Handler) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// input.CreatorId = utils.GetUserId(r)
-	input.CreatorId = "user"
+	file, fileHeader, err := r.FormFile("coverImage")
+	if err != nil {
+		if err == http.ErrMissingFile {
+			file = nil
+		} else {
+			utils.WriteJson(w, map[string]any{
+				"status": http.StatusBadRequest,
+			})
+			return
+		}
+	}
+	input := types.GroupInput{
+		CreatorId:   "user",
+		Title:       r.FormValue("title"),
+		Description: r.FormValue("description"),
 
-	group, err := h.Services.Groups.CreateGroup(input)
+		CoverImage:     file,
+		CoverImageName: fileHeader.Filename,
+	}
+
+	err = h.Services.Groups.CreateGroup(input)
 	if err != nil {
 		HandleError(w, err)
 		return
@@ -68,12 +78,27 @@ func (h *Handler) CreateGroup(w http.ResponseWriter, r *http.Request) {
 
 	utils.WriteJson(w, map[string]any{
 		"status": http.StatusOK,
-		"group":  group,
+	})
+}
+
+func (h *Handler) GetGroup(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.WriteJson(w, map[string]any{
+			"status": http.StatusMethodNotAllowed,
+		})
+		return
+	}
+
+	groupId := r.PathValue("id")
+
+	h.Services.Groups.
+
+	utils.WriteJson(w, map[string]any{
+		"status": http.StatusOK,
 	})
 }
 
 // ===== JoinRequest Handlers
-
 func (h *Handler) JoinRequest(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
@@ -91,14 +116,12 @@ func (h *Handler) JoinRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) CreateJoinRequest(w http.ResponseWriter, r *http.Request) {
+
 	req := types.JoinRequest{}
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		utils.WriteJson(w, map[string]any{
 			"status": http.StatusBadRequest,
-			"fields": map[string]string{
-				"input": "Invalid Input",
-			},
 		})
 		return
 	}

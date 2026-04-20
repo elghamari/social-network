@@ -9,8 +9,8 @@ import (
 )
 
 func HandleError(w http.ResponseWriter, err error) {
-	var ve types.FormError
-	var ae types.ActionError
+	var ve *types.FormError
+	var ae *types.ActionError
 
 	switch {
 	case errors.As(err, &ve):

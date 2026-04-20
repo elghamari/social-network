@@ -2,14 +2,13 @@ import "./page.css";
 
 import Link from "next/link";
 
-import Tabs from "@/app/ui/groups/tabs";
-import Search from "@/app/ui/groups/search";
-import GroupsList from "@/app/ui/groups/list";
+import GroupsTabs from "@/app/groups/_components/groups-tabs";
+import GroupsSearch from "@/app/groups/_components/groups-search";
+import GroupsList from "@/app/groups/_components/groups-list";
 
 import { Tab } from "@/app/lib/types/groups";
 import { PlusIcon } from "@/app/ui/icons";
 import { listGroups } from "@/app/lib/services/groups";
-import { showToast } from "@/app/ui/layout/toast-store";
 
 export default async function Page(props: {
   searchParams?: Promise<{
@@ -34,13 +33,13 @@ export default async function Page(props: {
       <div className="groups-page__header">
         <h1 className="groups-page__title">Groups</h1>
         <Link href="/groups/create" className="btn-primary">
-          <PlusIcon />
+          <PlusIcon size={16} />
           Create
         </Link>
       </div>
 
-      <Tabs activeTab={activeTab} />
-      <Search activeTab={activeTab} />
+      <GroupsTabs activeTab={activeTab} />
+      <GroupsSearch activeTab={activeTab} />
       <GroupsList groups={groups} activeTab={activeTab} />
     </div>
   );

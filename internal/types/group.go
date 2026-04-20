@@ -1,9 +1,14 @@
 package types
 
+import "io"
+
 type GroupInput struct {
-	CreatorId   string `json:"-"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
+	CreatorId   string
+	Title       string
+	Description string
+
+	CoverImage     io.Reader
+	CoverImageName string
 }
 
 type Group struct {
@@ -11,6 +16,7 @@ type Group struct {
 	CreatorId   string `json:"creatorId"`
 	Title       string `json:"title"`
 	Description string `json:"description"`
+	CoverPath   string `json:"coverPath"`
 	CreatedAt   string `json:"createdAt"`
 	MembersCnt  int    `json:"memberCount"`
 	IsJoined    bool   `json:"isJoined"`

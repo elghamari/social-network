@@ -18,7 +18,7 @@ func main() {
 	}
 	defer appStore.DB.Close()
 
-	log.Println("Server started")
+	log.Println("Server started on :" + config.Port)
 	log.Fatal(appStore.Start())
 
 }

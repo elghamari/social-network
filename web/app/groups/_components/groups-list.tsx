@@ -1,8 +1,7 @@
 "use client";
 
 import { Group, Tab } from "@/app/lib/types/groups";
-import GroupCard from "./card";
-import { showToast } from "../layout/toast-store";
+import GroupCard from "./group-card";
 
 export default function GroupsList({
   groups,

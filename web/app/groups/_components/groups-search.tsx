@@ -1,13 +1,12 @@
 "use client";
 
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
-
-import { SearchIcon } from "../icons";
 import { useRef } from "react";
-import {} from "next/navigation";
+
+import { SearchIcon } from "@/app/ui/icons";
 import { Tab } from "@/app/lib/types/groups";
 
-export default function Search({ activeTab }: { activeTab: Tab }) {
+export default function GroupsSearch({ activeTab }: { activeTab: Tab }) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { replace } = useRouter();
@@ -33,7 +32,7 @@ export default function Search({ activeTab }: { activeTab: Tab }) {
   return (
     <div className="groups-search">
       <span className="groups-search__icon">
-        <SearchIcon />
+        <SearchIcon size={14}/>
       </span>
       <input
         type="text"

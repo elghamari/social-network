@@ -9,7 +9,8 @@ import (
 type Handler struct {
 	Services *services.Services
 	// Hub      *Hub
-	Port string
+	Port        string
+	UploadsPath string
 }
 
 func NewHandler(svcs *services.Services, port string) *Handler {
@@ -39,11 +40,14 @@ func New(svcs *services.Services, port string) http.Handler {
 	authRoutes := map[string]http.HandlerFunc{
 		"/api/groups":      h.Groups,
 		"/api/groups/join": h.JoinRequest,
-	}	
+		"/api/groups/{id}": h.GetGroup,
+	}
 	for path, hand := range authRoutes {
 		// mux.Handle(path, middleware.AuthRequired(hand))
 		mux.Handle(path, hand)
 	}
+
+	mux.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("./data/uploads"))))
 
 	// return middleware.SessionLoader(svcs.Auth)(mux)
 	return mux

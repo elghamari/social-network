@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 
-export default function Tabs({ activeTab }: { activeTab: string }) {
+export default function GroupsTabs({ activeTab }: { activeTab: string }) {
   function setActiveTab(tab: string) {
     redirect(`/groups?tab=${tab}`);
   }
