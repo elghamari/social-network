@@ -3,12 +3,8 @@ package handlers
 import (
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strconv"
-	"time"
 
 	"soc-net/internal/services"
 	"soc-net/internal/types"
@@ -19,6 +15,7 @@ func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		utils.WriteJson(w, map[string]any{
 			"status": http.StatusMethodNotAllowed,
+			"error":  "method not allowed",
 		})
 		return
 	}
@@ -38,6 +35,7 @@ func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
 	description := r.FormValue("description")
 	privacy := r.FormValue("privacy")
 	groupIdStr := r.FormValue("groupId")
+	privateUsers := r.Form["privateUsers"]
 
 	var groupId *int
 	if groupIdStr != "" {
@@ -49,58 +47,31 @@ func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
 		groupId = &id
 	}
 
-	var imageUrl *string
-	file, header, err := r.FormFile("image")
-	if err == nil {
-		defer file.Close()
 
-		if !utils.IsImageExtension(header.Filename) {
-			utils.WriteJson(w, map[string]any{"status": http.StatusBadRequest, "error": "invalid image extension"})
-			return
-		}
-
-		isValidContent, err := utils.IsImageContent(file)
-		if err != nil || !isValidContent {
-			utils.WriteJson(w, map[string]any{"status": http.StatusBadRequest, "error": "invalid image content or fake file"})
-			return
-		}
-
-		fileName := fmt.Sprintf("%d%s", time.Now().UnixNano(), filepath.Ext(header.Filename))
-		savePath := filepath.Join("uploads", fileName)
-
-		outFile, err := os.Create(savePath)
-		if err != nil {
-			utils.WriteJson(w, map[string]any{"status": http.StatusInternalServerError, "error": "failed to save image to server"})
-			return
-		}
-		defer outFile.Close()
-
-		_, err = io.Copy(outFile, file)
-		if err != nil {
-			utils.WriteJson(w, map[string]any{"status": http.StatusInternalServerError, "error": "failed to write image to disk"})
-			return
-		}
-
-		path := "/uploads/" + fileName
-		imageUrl = &path
-
-	} else if err != http.ErrMissingFile {
-		utils.WriteJson(w, map[string]any{"status": http.StatusBadRequest, "error": "error processing image upload"})
+	imageUrl, err := utils.HandleImageUpload(r, "image")
+	if err != nil {
+		utils.WriteJson(w, map[string]any{
+			"status": http.StatusBadRequest,
+			"error":  err.Error(),
+		})
 		return
 	}
 
 	input := types.PostInput{
-		UserId:      userId,
-		Title:       title,
-		Description: description,
-		Privacy:     privacy,
-		GroupId:     groupId,
-		ImageUrl:    imageUrl,
+		UserId:       userId,
+		Title:        title,
+		Description:  description,
+		Privacy:      privacy,
+		GroupId:      groupId,
+		ImageUrl:     imageUrl,
+		PrivateUsers: privateUsers,
 	}
 
 	postId, err := h.Services.Posts.CreatePost(input)
 	if err != nil {
-		if errors.Is(err, services.ErrInvalidTitle) || errors.Is(err, services.ErrInvalidDescription) || errors.Is(err, services.ErrInvalidPrivacy) || errors.Is(err, services.ErrInvalidImage) {
+		if errors.Is(err, services.ErrInvalidTitle) || errors.Is(err, services.ErrInvalidDescription) || errors.Is(err, services.ErrInvalidPrivacy) ||
+			errors.Is(err, services.ErrInvalidImage) || errors.Is(err, services.ErrInvalidPrivateUsers) || errors.Is(err, services.ErrDuplicatePrivateUsers) ||
+			errors.Is(err, services.ErrEmptyPrivateUsers) {
 			utils.WriteJson(w, map[string]any{"status": http.StatusBadRequest, "error": err.Error()})
 			return
 		}
@@ -123,5 +94,144 @@ func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
 		"status":  http.StatusCreated,
 		"message": "Post created successfully",
 		"postId":  postId,
+	})
+}
+
+func (h *Handler) GetFeedPosts(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.WriteJson(w, map[string]any{"status": http.StatusMethodNotAllowed, "error": "method not allowed"})
+		return
+	}
+
+	userId := utils.GetUserId(r)
+
+	cursorStr := r.URL.Query().Get("cursor")
+	cursor := 0
+	var err error
+	if cursorStr != "" {
+		cursor, err = strconv.Atoi(cursorStr)
+		if err != nil {
+			utils.WriteJson(w, map[string]any{"status": http.StatusBadRequest, "error": "invalid cursor"})
+			return
+		}
+	}
+
+	posts, err := h.Services.Posts.GetFeedPosts(userId, cursor)
+	if err != nil {
+		fmt.Println("GetFeedPosts Error:", err)
+		utils.WriteJson(w, map[string]any{"status": http.StatusInternalServerError, "error": "internal server error"})
+		return
+	}
+
+	if posts == nil {
+		posts = []types.PostResponse{}
+	}
+
+	utils.WriteJson(w, map[string]any{
+		"status": http.StatusOK,
+		"posts":  posts,
+	})
+}
+
+func (h *Handler) GetProfilePosts(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.WriteJson(w, map[string]any{"status": http.StatusMethodNotAllowed, "error": "method not allowed"})
+		return
+	}
+
+	currentUserId := utils.GetUserId(r)
+
+	targetUserId := r.URL.Query().Get("targetUserId")
+	if targetUserId == "" {
+		utils.WriteJson(w, map[string]any{"status": http.StatusBadRequest, "error": "invalid targetUserId"})
+		return
+	}
+
+	cursorStr := r.URL.Query().Get("cursor")
+	cursor := 0
+	var err error
+	if cursorStr != "" {
+		cursor, err = strconv.Atoi(cursorStr)
+		if err != nil {
+			utils.WriteJson(w, map[string]any{"status": http.StatusBadRequest, "error": "invalid cursor"})
+			return
+		}
+	}
+
+	posts, err := h.Services.Posts.GetProfilePosts(currentUserId, targetUserId, cursor)
+	if err != nil {
+		if errors.Is(err, services.ErrUserNotFound) {
+			utils.WriteJson(w, map[string]any{"status": http.StatusNotFound, "error": err.Error()})
+			return
+		}
+
+		fmt.Println("GetProfilePosts Error:", err)
+		utils.WriteJson(w, map[string]any{"status": http.StatusInternalServerError, "error": "internal server error"})
+		return
+	}
+
+	if posts == nil {
+		posts = []types.PostResponse{}
+	}
+
+	utils.WriteJson(w, map[string]any{
+		"status": http.StatusOK,
+		"posts":  posts,
+	})
+}
+
+func (h *Handler) GetGroupPosts(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.WriteJson(w, map[string]any{"status": http.StatusMethodNotAllowed, "error": "method not allowed"})
+		return
+	}
+
+	currentUserId := utils.GetUserId(r)
+
+	groupIdStr := r.URL.Query().Get("groupId")
+	if groupIdStr == "" {
+		utils.WriteJson(w, map[string]any{"status": http.StatusBadRequest, "error": "group ID is required"})
+		return
+	}
+
+	groupId, err := strconv.Atoi(groupIdStr)
+	if err != nil {
+		utils.WriteJson(w, map[string]any{"status": http.StatusBadRequest, "error": "invalid group ID"})
+		return
+	}
+
+	cursorStr := r.URL.Query().Get("cursor")
+	cursor := 0
+	if cursorStr != "" {
+		cursor, err = strconv.Atoi(cursorStr)
+		if err != nil {
+			utils.WriteJson(w, map[string]any{"status": http.StatusBadRequest, "error": "invalid cursor"})
+			return
+		}
+	}
+
+	posts, err := h.Services.Posts.GetGroupPosts(groupId, currentUserId, cursor)
+	if err != nil {
+		if errors.Is(err, services.ErrGroupNotFound) {
+			utils.WriteJson(w, map[string]any{"status": http.StatusNotFound, "error": err.Error()})
+			return
+		}
+		if errors.Is(err, services.ErrNotGroupMember) {
+			utils.WriteJson(w, map[string]any{"status": http.StatusForbidden, "error": err.Error()})
+			return
+		}
+
+		fmt.Println("GetGroupPosts Error:", err)
+		utils.WriteJson(w, map[string]any{"status": http.StatusInternalServerError, "error": "internal server error"})
+		return
+	}
+
+	if posts == nil {
+		posts = []types.PostResponse{}
+	}
+
+	utils.WriteJson(w, map[string]any{
+		"status": http.StatusOK,
+		"posts":  posts,
 	})
 }
