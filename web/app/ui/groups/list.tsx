@@ -1,5 +1,8 @@
+"use client";
+
 import { Group, Tab } from "@/app/lib/types/groups";
 import GroupCard from "./card";
+import { showToast } from "../layout/toast-store";
 
 export default function GroupsList({
   groups,
@@ -26,11 +29,7 @@ export default function GroupsList({
   return (
     <div className="groups-grid">
       {groups.map((group) => (
-        <GroupCard
-          key={group.id}
-          group={group}
-          // onRequestJoin={handleRequestJoin}
-        />
+        <GroupCard key={group.id} group={group} />
       ))}
     </div>
   );

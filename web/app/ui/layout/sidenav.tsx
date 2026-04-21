@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { NavItem } from "@/app/lib/types/groups";
+import { NavItem } from "@/app/lib/types/layout";
 import "./sidenav.css";
 
 const navItems: NavItem[] = [

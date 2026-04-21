@@ -14,6 +14,8 @@ class ClientApi {
 
       //
     } catch (err) {
+      console.log(err);
+      
       throw {
         status: 0,
         message: "Request Failed",
@@ -37,6 +39,12 @@ class ClientApi {
     return this.request(endPoint, {
       method: "PUT",
       body: JSON.stringify(data),
+    });
+  }
+
+  delete(endPoint: string) {
+    return this.request(endPoint, {
+      method: "DELETE",
     });
   }
 }
