@@ -75,6 +75,8 @@ func (s *GroupsService) CreateGroup(input types.GroupInput) error {
 
 	formErr := ValidateGroupInput(input)
 
+	return types.FormError{}
+
 	destPath, err := s.SaveCoverImage(formErr, input.CoverImage, input.CoverImageName)
 	if err != nil {
 		return err
@@ -93,69 +95,13 @@ func (s *GroupsService) CreateGroup(input types.GroupInput) error {
 	return nil
 }
 
-func (s *GroupsService) GetGroupsSqlParams(tab, search, userId string) (string, []any) {
-	query := `
-	SELECT 
-		g.id, g.creator_id, g.title, g.description, cover_path, g.created_at,
-
-		(SELECT COUNT(*) FROM group_members WHERE group_id = g.id) AS members_cnt,
-
-		EXISTS(
-			SELECT 1 
-			FROM group_members gm 
-			WHERE gm.user_id = ? AND gm.group_id = g.id
-		) AS is_joined,
-
-		EXISTS(
-			SELECT 1 
-			FROM group_join_requests gjr 
-			WHERE gjr.user_id = ? AND gjr.group_id = g.id
-		) AS is_pending
-
-	FROM groups g
-	WHERE g.id = ?
-	OR
-	1=1
-	`
-	args := []any{userId, userId}
-
-	if search != "" {
-		query += ` AND g.title LIKE '%' || ? || '%'`
-		args = append(args, search)
-	}
-
-	switch tab {
-	case "joined":
-		query += `
-		AND EXISTS(
-			SELECT 1 
-			FROM group_members gm 
-			WHERE gm.user_id = ? AND gm.group_id = g.id
-		)`
-		args = append(args, userId)
-
-	case "pending":
-		query += `
-		AND EXISTS(
-			SELECT 1 
-			FROM group_join_requests gjr 
-			WHERE gjr.user_id = ? AND gjr.group_id = g.id
-		)`
-		args = append(args, userId)
-	}
-
-	return query, args
-}
-
-func (s *GroupsService) ListGroups(tab, search string) ([]types.Group, error) {
+func (s *GroupsService) ListGroups(userId, tab, search string) ([]types.Group, error) {
 	actionErr := ValidateTab(tab)
 	if actionErr.HasErrors() {
 		return nil, actionErr
 	}
 
-	query, args := s.GetGroupsSqlParams(tab, search, "user")
-
-	groups, err := s.Groups.ListGroups(query, args)
+	groups, err := s.Groups.ListGroups(userId, tab, search)
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +109,7 @@ func (s *GroupsService) ListGroups(tab, search string) ([]types.Group, error) {
 	return groups, err
 }
 
-func (s *GroupsService) GetGroup(groupId string) (types.Group, error) {
+func (s *GroupsService) GetGroup(userId, groupId string) (types.Group, error) {
 	exists, err := s.Groups.ValidGroupId(groupId)
 	if err != nil {
 		return types.Group{}, err
@@ -175,7 +121,7 @@ func (s *GroupsService) GetGroup(groupId string) (types.Group, error) {
 		return types.Group{}, actionErr
 	}
 
-	s.Groups.GetGroup()
+	return s.Groups.GetGroup(userId, groupId)
 }
 
 // ===== JoinRequest Handlers

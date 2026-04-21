@@ -28,7 +28,7 @@ func (h *Handler) ListGroups(w http.ResponseWriter, r *http.Request) {
 	tab := r.URL.Query().Get("tab")
 	query := r.URL.Query().Get("query")
 
-	groups, err := h.Services.Groups.ListGroups(tab, query)
+	groups, err := h.Services.Groups.ListGroups("user", tab, query)
 	if err != nil {
 		HandleError(w, err)
 		return
@@ -91,10 +91,15 @@ func (h *Handler) GetGroup(w http.ResponseWriter, r *http.Request) {
 
 	groupId := r.PathValue("id")
 
-	h.Services.Groups.
+	group, err := h.Services.Groups.GetGroup("user", groupId)
+	if err != nil {
+		HandleError(w, err)
+		return
+	}
 
 	utils.WriteJson(w, map[string]any{
 		"status": http.StatusOK,
+		"group":  group,
 	})
 }
 

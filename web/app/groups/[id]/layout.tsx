@@ -1,6 +1,7 @@
 import "./layout.css";
 import { notFound } from "next/navigation";
 import GroupTabs from "@/app/ui/groups/group-tabs";
+import { getGroupById } from "@/app/lib/services/groups";
 
 type GroupStatus = "discover" | "pending" | "joined" | "creator";
 
@@ -64,7 +65,7 @@ export default async function GroupLayout({
   children: React.ReactNode;
 }) {
   const { id } = await params;
-  const group = MOCK_GROUPS[id];
+  const group = getGroupById(id);
 
   if (!group) notFound();
 

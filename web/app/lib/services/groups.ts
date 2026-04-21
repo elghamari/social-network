@@ -123,10 +123,19 @@ export async function deleteJoinRequest(
   return { success: true };
 }
 
-export async function getGroupById(groupId: string) {
-  const params = new URLSearchParams({
-    groupId: groupId
-  });
-  
-  clientAPI.get(`/groups`)
+export async function getGroupById(groupId: string): Promise<ActionResult> {
+  const resp = await clientAPI.get(`/groups/${groupId}`);
+
+  switch (resp.status) {
+    case 401:
+      redirect("/login");
+
+    case 400:
+      return { success: false, error: resp.error };
+
+    case 500:
+      throw new Error("Internal Server Error");
+  }
+
+  return { success: true, group: resp.group };
 }

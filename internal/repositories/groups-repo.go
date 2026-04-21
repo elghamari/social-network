@@ -61,7 +61,65 @@ func (r *GroupsRepo) GetMaxGroupId() (int, error) {
 	return id, err
 }
 
-func (r *GroupsRepo) ListGroups(query string, args []any) ([]types.Group, error) {
+func (r *GroupsRepo) BaseGroupQuery() string {
+	return `
+	SELECT 
+		g.id, g.creator_id, g.title, g.description, cover_path, g.created_at,
+
+		(SELECT COUNT(*) FROM group_members WHERE group_id = g.id) AS members_cnt,
+
+		EXISTS(
+			SELECT 1 
+			FROM group_members gm 
+			WHERE gm.user_id = ? AND gm.group_id = g.id
+		) AS is_joined,
+
+		EXISTS(
+			SELECT 1 
+			FROM group_join_requests gjr 
+			WHERE gjr.user_id = ? AND gjr.group_id = g.id
+		) AS is_pending
+
+	FROM groups g
+	`
+}
+
+func (r *GroupsRepo) GetGroupsQuery(userId, tab, search string) (string, []any) {
+	query := r.BaseGroupQuery() + `WHERE 1=1`
+	args := []any{userId, userId}
+
+	if search != "" {
+		query += ` AND g.title LIKE '%' || ? || '%'`
+		args = append(args, search)
+	}
+
+	switch tab {
+	case "joined":
+		query += `
+		AND EXISTS(
+			SELECT 1 
+			FROM group_members gm 
+			WHERE gm.user_id = ? AND gm.group_id = g.id
+		)`
+		args = append(args, userId)
+
+	case "pending":
+		query += `
+		AND EXISTS(
+			SELECT 1 
+			FROM group_join_requests gjr 
+			WHERE gjr.user_id = ? AND gjr.group_id = g.id
+		)`
+		args = append(args, userId)
+	}
+
+	return query, args
+
+}
+
+func (r *GroupsRepo) ListGroups(userId, tab, search string) ([]types.Group, error) {
+	query, args := r.GetGroupsQuery(userId, tab, search)
+
 	rows, err := r.DB.Query(query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("%s.ListGroups: Reading: %w", repo, err)
@@ -96,11 +154,26 @@ func (r *GroupsRepo) ValidGroupId(groupId string) (bool, error) {
 	return exists, nil
 }
 
-func (r *GroupsRepo) GetGroup(groupId string) (types.Group, error) {
-	r.DB.QueryRow(`
-	SELECT
+func (r *GroupsRepo) GetGroupQuery(userId, groupId string) (string, []any) {
+	query := r.BaseGroupQuery() + `WHERE g.id = ?`
+	args := []any{userId, userId, groupId}
 
-	`)
+	return query, args
+
+}
+
+func (r *GroupsRepo) GetGroup(userId, groupId string) (types.Group, error) {
+	group := types.Group{}
+
+	query, args := r.GetGroupQuery(userId, groupId)
+	err := r.DB.QueryRow(query, args...).Scan(
+		&group.Id, &group.CreatorId, &group.Title, &group.Description, &group.CoverPath, &group.CreatedAt, &group.MembersCnt, &group.IsJoined, &group.IsPending,
+	)
+	if err != nil {
+		return types.Group{}, fmt.Errorf("%s.GetGroup: %w", repo, err)
+	}
+
+	return group, nil
 }
 
 // ===== JoinRequest repos
