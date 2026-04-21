@@ -42,6 +42,16 @@ func (s *PostsService) CreatePost(input types.PostInput) (int64, error) {
 		input.Privacy = "public"
 	}
 
+	if input.Privacy == "private" {
+		allExist, err := s.Groups.CheckAllUsersExist(input.PrivateUsers)
+		if err != nil {
+			return 0, fmt.Errorf("PostsService.CreatePost (Check All Users): %w", err)
+		}
+		if !allExist {
+			return 0, ErrInvalidPrivateUsers
+		}
+	}
+
 	return s.Posts.InsertPost(input)
 }
 

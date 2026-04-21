@@ -16,17 +16,43 @@ func NewPostsRepo(db *sql.DB) *PostsRepo {
 }
 
 func (r *PostsRepo) InsertPost(input types.PostInput) (int64, error) {
+	tx, err := r.DB.Begin()
+	if err != nil {
+		return 0, fmt.Errorf("PostsRepo.InsertPost (Begin): %w", err)
+	}
+	defer tx.Rollback()
+
 	queryInsert := `
-	INSERT INTO posts (user_id, group_id, title, description, privacy, image_url)
+    INSERT INTO posts (user_id, group_id, title, description, privacy, image_url)
     VALUES (?, ?, ?, ?, ?, ?)`
 
-	result, err := r.DB.Exec(queryInsert, input.UserId, input.GroupId, input.Title, input.Description, input.Privacy, input.ImageUrl)
+	result, err := tx.Exec(queryInsert, input.UserId, input.GroupId, input.Title, input.Description, input.Privacy, input.ImageUrl)
 	if err != nil {
 		return 0, fmt.Errorf("PostsRepo.InsertPost (Exec): %w", err)
 	}
+
 	lastPostId, err := result.LastInsertId()
 	if err != nil {
 		return 0, fmt.Errorf("PostsRepo.InsertPost (LastInsertId): %w", err)
+	}
+
+	if input.Privacy == "private" && len(input.PrivateUsers) > 0 {
+		stmt, err := tx.Prepare("INSERT INTO post_private (post_id, user_id) VALUES (?, ?)")
+		if err != nil {
+			return 0, fmt.Errorf("PostsRepo.InsertPost (Prepare Private): %w", err)
+		}
+		defer stmt.Close()
+
+		for _, pUserId := range input.PrivateUsers {
+			_, err = stmt.Exec(lastPostId, pUserId)
+			if err != nil {
+				return 0, fmt.Errorf("PostsRepo.InsertPost (Exec Private): %w", err)
+			}
+		}
+	}
+
+	if err = tx.Commit(); err != nil {
+		return 0, fmt.Errorf("PostsRepo.InsertPost (Commit): %w", err)
 	}
 
 	return lastPostId, nil
@@ -37,7 +63,7 @@ func (r *PostsRepo) GetProfilePosts(targetUserId string, currentUserId string, c
 
 	selectClause := `
         SELECT 
-            p.id, p.user_id, u.username, p.group_id, 
+            p.id, p.user_id, u.nickname, p.group_id, 
             p.title, p.description, p.privacy, p.image_url, p.created_at,
             (SELECT COUNT(*) FROM reactions WHERE post_id = p.id),
             (SELECT COUNT(*) FROM comments WHERE post_id = p.id),
@@ -104,7 +130,7 @@ func (r *PostsRepo) GetGroupPosts(groupId int, currentUserId string, cursor int)
 
 	selectClause := `
         SELECT 
-            p.id, p.user_id, u.username, p.group_id, 
+            p.id, p.user_id, u.nickname, p.group_id, 
             p.title, p.description, p.privacy, p.image_url, p.created_at,
             (SELECT COUNT(*) FROM reactions WHERE post_id = p.id),
             (SELECT COUNT(*) FROM comments WHERE post_id = p.id),
@@ -156,7 +182,7 @@ func (r *PostsRepo) GetFeedPosts(userId string, cursor int) ([]types.PostRespons
 
 	selectClause := `
         SELECT 
-            p.id, p.user_id, u.username, p.group_id, 
+            p.id, p.user_id, u.nickname, p.group_id, 
             p.title, p.description, p.privacy, p.image_url, p.created_at,
             (SELECT COUNT(*) FROM reactions WHERE post_id = p.id),
             (SELECT COUNT(*) FROM comments WHERE post_id = p.id),
