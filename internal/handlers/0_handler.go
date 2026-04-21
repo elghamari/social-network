@@ -22,10 +22,10 @@ func New(svcs *services.Services, port string) http.Handler {
 	mux := http.NewServeMux()
 	h := NewHandler(svcs, port)
 
-	// ===== Guest only (machi mlogin)
+	// ===== Guest only
 	guestRoutes := map[string]http.HandlerFunc{
-		"/api/auth/register": h.Register,
-		"/api/auth/login":    h.Login,
+		"/api/register": h.Register,
+		"/api/login":    h.Login,
 	}
 	for path, hand := range guestRoutes {
 		mux.Handle(path, middleware.GuestOnly(hand))

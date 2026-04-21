@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+
 	"soc-net/internal/types"
 	"soc-net/internal/utils"
 )
@@ -11,6 +13,7 @@ import (
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		utils.WriteJson(w, map[string]any{"status": http.StatusMethodNotAllowed})
+		fmt.Println("1111111111111111111111111111v")
 		return
 	}
 
@@ -20,6 +23,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 			"status": http.StatusBadRequest,
 			"error":  "invalid request body",
 		})
+		fmt.Println("2222222222222222222222222222")
 		return
 	}
 
@@ -28,9 +32,9 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 			"status": http.StatusBadRequest,
 			"error":  err.Error(),
 		})
+		fmt.Println(err)
 		return
 	}
-
 	utils.WriteJson(w, map[string]any{"status": http.StatusCreated})
 }
 
