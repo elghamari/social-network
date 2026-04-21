@@ -14,6 +14,8 @@ class ClientApi {
 
       //
     } catch (err) {
+      console.log(err);
+      
       throw {
         status: 0,
         message: "Request Failed",
