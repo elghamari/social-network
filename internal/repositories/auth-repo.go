@@ -66,7 +66,7 @@ func (r *AuthRepo) CreateUser(input types.RegisterInput, hashedPassword, uuid st
 	`, uuid, input.Email, hashedPassword, input.FirstName, input.LastName,
 		input.DateOfBirth, input.Nickname, input.Avatar, input.AboutMe)
 	if err != nil {
-		return fmt.Errorf("authRepo.CreateUser: %w", err)
+		return fmt.Errorf("Email already registered")
 	}
 	return nil
 }
