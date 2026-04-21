@@ -18,7 +18,7 @@ func (r *AuthRepo) GetUserBySessionId(sessionId string) (types.UserAuth, error) 
 	user := types.UserAuth{}
 
 	err := r.DB.QueryRow(`
-		SELECT user_id, session_time
+		SELECT id, session_time
 		FROM users
 		WHERE session_id = ?
 		`, sessionId).Scan(&user.Id, &user.SessionTime)

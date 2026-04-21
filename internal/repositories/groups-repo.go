@@ -3,6 +3,7 @@ package repositories
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"soc-net/internal/types"
 )
@@ -89,6 +90,7 @@ func (r *GroupsRepo) CheckGroupAndMembership(groupId int, userId string) (bool, 
 	return groupExists, isMember, nil
 }
 
+// TODO: Move to UsersRepo later
 func (r *GroupsRepo) UserExists(userId string) (bool, error) {
 	var exists bool
 
@@ -100,4 +102,29 @@ func (r *GroupsRepo) UserExists(userId string) (bool, error) {
 	}
 
 	return exists, nil
+}
+
+// TODO: Move to UsersRepo later
+func (r *GroupsRepo) CheckAllUsersExist(userIds []string) (bool, error) {
+	if len(userIds) == 0 {
+		return true, nil
+	}
+
+	placeholders := make([]string, len(userIds))
+	args := make([]interface{}, len(userIds))
+
+	for i, id := range userIds {
+		placeholders[i] = "?"
+		args[i] = id
+	}
+
+	query := fmt.Sprintf("SELECT COUNT(id) FROM users WHERE id IN (%s)", strings.Join(placeholders, ","))
+
+	var count int
+	err := r.DB.QueryRow(query, args...).Scan(&count)
+	if err != nil {
+		return false, fmt.Errorf("CheckAllUsersExist (QueryRow): %w", err)
+	}
+
+	return count == len(userIds), nil
 }
