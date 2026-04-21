@@ -31,13 +31,15 @@ func New(svcs *services.Services, port string) http.Handler {
 	// mux.HandleFunc("/api/auth", h.Auth)
 
 	guestRoutes := map[string]http.HandlerFunc{
-		// Routes dyal li mamlogich
+		"/api/register": h.Register,
+		"/api/login":    h.Login,
 	}
 	for path, hand := range guestRoutes {
 		mux.Handle(path, middleware.GuestOnly(hand))
 	}
 
 	authRoutes := map[string]http.HandlerFunc{
+		"/api/auth/logout":      h.Logout,
 		"/api/groups":           h.Groups,
 		"/api/groups/create":    h.CreateGroup,
 		"/api/posts/create":     h.CreatePost,
