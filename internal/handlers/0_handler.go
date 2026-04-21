@@ -38,15 +38,21 @@ func New(svcs *services.Services, port string) http.Handler {
 	}
 
 	authRoutes := map[string]http.HandlerFunc{
-		"/api/groups":        h.Groups,
-		"/api/groups/create": h.CreateGroup,
-		"/api/posts/create":  h.CreatePost,
+		"/api/groups":           h.Groups,
+		"/api/groups/create":    h.CreateGroup,
+		"/api/posts/create":     h.CreatePost,
+		"/api/posts/feed":       h.GetFeedPosts,
+		"/api/posts/profile":    h.GetProfilePosts,
+		"/api/posts/group":      h.GetGroupPosts,
+		"/api/comments/create":  h.CreateComment,
+		"/api/comments":         h.GetPostComments,
+		"/api/reactions/toggle": h.ToggleReaction,
 	}
 	for path, hand := range authRoutes {
-		// mux.Handle(path, middleware.AuthRequired(hand))
-		mux.Handle(path, hand)
+		mux.Handle(path, middleware.AuthRequired(hand))
+		// mux.Handle(path, hand)
 	}
 
-	// return middleware.SessionLoader(svcs.Auth)(mux)
-	return mux
+	return middleware.SessionLoader(svcs.Auth)(mux)
+	// return mux
 }
