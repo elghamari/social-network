@@ -91,7 +91,7 @@ func (h *Handler) GetGroup(w http.ResponseWriter, r *http.Request) {
 
 	groupId := r.PathValue("id")
 
-	group, err := h.Services.Groups.GetGroup("user", groupId)
+	group, err := h.Services.Groups.GetGroup("user1", groupId)
 	if err != nil {
 		HandleError(w, err)
 		return

@@ -137,5 +137,5 @@ export async function getGroupById(groupId: string): Promise<ActionResult> {
       throw new Error("Internal Server Error");
   }
 
-  return { success: true, group: resp.group };
+  return { success: true, data: resp.group };
 }

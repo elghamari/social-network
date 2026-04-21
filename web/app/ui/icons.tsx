@@ -97,3 +97,26 @@ export function ImageIcon({ size }: { size: number }) {
     </svg>
   );
 }
+
+export function LockIcon({ size }: { size: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path
+        d="M7 10V7a5 5 0 0 1 10 0v3"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <rect
+        x="5"
+        y="10"
+        width="14"
+        height="10"
+        rx="3"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+      <circle cx="12" cy="15" r="1.5" fill="currentColor" />
+    </svg>
+  );
+}

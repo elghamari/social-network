@@ -19,13 +19,10 @@ export default function GroupTabs({
     { label: "Events", href: `/groups/${groupId}/events` },
   ];
 
-  if (isMember) {
-    tabs.push({ label: "Chat", href: `/groups/${groupId}/chat` });
-    tabs.push({
-      label: isCreator ? "Manage" : "Invite",
-      href: `/groups/${groupId}/manage`,
-    });
-  }
+  if (isMember) tabs.push({ label: "Chat", href: `/groups/${groupId}/chat` });
+
+  if (isCreator)
+    tabs.push({ label: "Manage", href: `/groups/${groupId}/manage` });
 
   return (
     <nav className="gd__tabs">

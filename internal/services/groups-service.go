@@ -75,8 +75,6 @@ func (s *GroupsService) CreateGroup(input types.GroupInput) error {
 
 	formErr := ValidateGroupInput(input)
 
-	return types.FormError{}
-
 	destPath, err := s.SaveCoverImage(formErr, input.CoverImage, input.CoverImageName)
 	if err != nil {
 		return err
@@ -87,7 +85,12 @@ func (s *GroupsService) CreateGroup(input types.GroupInput) error {
 		return formErr
 	}
 
-	err = s.Groups.CreateGroup(input, destPath)
+	groupId, err := s.Groups.CreateGroup(input, destPath)
+	if err != nil {
+		return err
+	}
+
+	err = s.Groups.InsertMember(input.CreatorId, groupId, true)
 	if err != nil {
 		return err
 	}

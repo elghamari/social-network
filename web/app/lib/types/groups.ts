@@ -8,26 +8,11 @@ export type Group = {
   createdAt: string;
   creatorId: string;
   memberCount: number;
-  isJoined?: boolean;
-  isPending?: boolean;
+  role: string;
 };
 
 // ── Detail page ──────────────────────────────────────────────
-
 export type GroupRole = "CREATOR" | "MEMBER";
-
-export type GroupDetail = {
-  id: string;
-  title: string;
-  description: string;
-  coverImage?: string;
-  createdAt: string;
-  creatorId: string;
-  membersCount: number;
-  isMember: boolean;
-  isPending: boolean;
-  role?: GroupRole;
-};
 
 export type GroupMember = {
   id: string;
@@ -64,7 +49,6 @@ export type GroupEvent = {
 export type GroupSection = "about" | "posts" | "members" | "events";
 
 // ── Form / action types ──────────────────────────────────────
-
 export type GroupData = {
   title: string;
   description: string;
@@ -86,4 +70,5 @@ export type GroupState = {
 export interface ActionResult {
   success: boolean;
   error?: string;
+  data?: any;
 }

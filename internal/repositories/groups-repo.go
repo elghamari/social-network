@@ -17,16 +17,33 @@ func NewGroupsRepo(db *sql.DB) *GroupsRepo {
 var repo string = "groups-repo"
 
 // ===== Group repos
-func (r *GroupsRepo) CreateGroup(input types.GroupInput, destPath string) error {
-	_, err := r.DB.Exec(`
+func (r *GroupsRepo) CreateGroup(input types.GroupInput, destPath string) (int, error) {
+	res, err := r.DB.Exec(`
 	INSERT INTO groups
 		(creator_id, title, description, cover_path)
 	VALUES (?, ?, ?, ?)
 	`, input.CreatorId, input.Title, input.Description, destPath)
 	if err != nil {
-		return fmt.Errorf("%s.Insert: Inserting %w", repo, err)
+		return 0, fmt.Errorf("%s.CreateGroup: Inserting %w", repo, err)
 	}
 
+	groupId, err := res.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("%s.CreateGroup: LastInsertId %w", repo, err)
+	}
+
+	return int(groupId), nil
+}
+
+func (r *GroupsRepo) InsertMember(userId string, groupId int, isCreator bool) error {
+	_, err := r.DB.Exec(`
+	INSERT OR IGNORE INTO group_members 
+	(group_id, user_id, is_creator)
+	VALUES (?, ?, ?)
+	`, groupId, userId, isCreator)
+	if err != nil {
+		return fmt.Errorf("%s.InsertMember: %w", repo, err)
+	}
 	return nil
 }
 
@@ -68,25 +85,33 @@ func (r *GroupsRepo) BaseGroupQuery() string {
 
 		(SELECT COUNT(*) FROM group_members WHERE group_id = g.id) AS members_cnt,
 
-		EXISTS(
-			SELECT 1 
-			FROM group_members gm 
-			WHERE gm.user_id = ? AND gm.group_id = g.id
-		) AS is_joined,
+		CASE
+			WHEN EXISTS(
+				SELECT 1 FROM group_members gm 
+				WHERE gm.group_id = g.id AND gm.user_id = ?
+				AND gm.is_creator = 1
+			) THEN 'CREATOR'
 
-		EXISTS(
-			SELECT 1 
-			FROM group_join_requests gjr 
-			WHERE gjr.user_id = ? AND gjr.group_id = g.id
-		) AS is_pending
+			WHEN EXISTS (
+            SELECT 1 FROM group_members gm
+        	    WHERE gm.group_id = g.id AND gm.user_id = ?
+        	) THEN 'MEMBER'
 
+        	WHEN EXISTS (
+          		SELECT 1 FROM group_join_requests gjr
+            	WHERE gjr.group_id = g.id AND gjr.user_id = ?
+        	) THEN 'PENDING'
+
+			ELSE 'NONE'
+		END AS role
+	
 	FROM groups g
 	`
 }
 
 func (r *GroupsRepo) GetGroupsQuery(userId, tab, search string) (string, []any) {
 	query := r.BaseGroupQuery() + `WHERE 1=1`
-	args := []any{userId, userId}
+	args := []any{userId, userId, userId}
 
 	if search != "" {
 		query += ` AND g.title LIKE '%' || ? || '%'`
@@ -130,7 +155,7 @@ func (r *GroupsRepo) ListGroups(userId, tab, search string) ([]types.Group, erro
 	for rows.Next() {
 		group := types.Group{}
 
-		err := rows.Scan(&group.Id, &group.CreatorId, &group.Title, &group.Description, &group.CoverPath, &group.CreatedAt, &group.MembersCnt, &group.IsJoined, &group.IsPending)
+		err := rows.Scan(&group.Id, &group.CreatorId, &group.Title, &group.Description, &group.CoverPath, &group.CreatedAt, &group.MembersCnt, &group.Role)
 		if err != nil {
 			return nil, fmt.Errorf("%s.ListGroups: Scanning: %w", repo, err)
 		}
@@ -156,10 +181,9 @@ func (r *GroupsRepo) ValidGroupId(groupId string) (bool, error) {
 
 func (r *GroupsRepo) GetGroupQuery(userId, groupId string) (string, []any) {
 	query := r.BaseGroupQuery() + `WHERE g.id = ?`
-	args := []any{userId, userId, groupId}
+	args := []any{userId, userId, userId, groupId}
 
 	return query, args
-
 }
 
 func (r *GroupsRepo) GetGroup(userId, groupId string) (types.Group, error) {
@@ -167,7 +191,7 @@ func (r *GroupsRepo) GetGroup(userId, groupId string) (types.Group, error) {
 
 	query, args := r.GetGroupQuery(userId, groupId)
 	err := r.DB.QueryRow(query, args...).Scan(
-		&group.Id, &group.CreatorId, &group.Title, &group.Description, &group.CoverPath, &group.CreatedAt, &group.MembersCnt, &group.IsJoined, &group.IsPending,
+		&group.Id, &group.CreatorId, &group.Title, &group.Description, &group.CoverPath, &group.CreatedAt, &group.MembersCnt, &group.Role,
 	)
 	if err != nil {
 		return types.Group{}, fmt.Errorf("%s.GetGroup: %w", repo, err)

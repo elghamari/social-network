@@ -12,9 +12,13 @@ import {
 } from "@/app/lib/services/groups";
 
 export default function GroupCard({ group }: { group: Group }) {
+  console.log(group);
+
+  const isMember = group.role === "CREATOR" || group.role === "MEMBER";
+
   const router = useRouter();
   const [isLoading, startTransition] = useTransition();
-  const [isPending, setIsPending] = useState(group.isPending);
+  const [isPending, setIsPending] = useState(group.role === "PENDING");
 
   const handleRequest = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -52,7 +56,7 @@ export default function GroupCard({ group }: { group: Group }) {
             {group.memberCount} members
           </span>
 
-          {group.isJoined ? (
+          {isMember ? (
             <span className="group-card__action group-card__action--member">
               Joined
             </span>
