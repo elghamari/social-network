@@ -1,6 +1,10 @@
 package services
 
-import "soc-net/internal/types"
+import (
+	"strings"
+
+	"soc-net/internal/types"
+)
 
 func ValidateGroupInput(input types.GroupInput) error {
 	err := types.NewFormError()
@@ -21,11 +25,21 @@ func ValidateGroupInput(input types.GroupInput) error {
 }
 
 func ValidateTab(tab string) error {
-
 	validTabs := map[string]bool{"discover": true, "joined": true, "pending": true}
 
 	if !validTabs[tab] {
 		return types.NewActionError("Not a valid tab Try: (discover || joined || pending)")
+	}
+
+	return nil
+}
+
+func ValidateIncomingMessage(input *types.IncomingMessage) error {
+	input.Content = strings.TrimSpace(input.Content)
+	contentLen := len([]rune(input.Content))
+
+	if contentLen == 0 || contentLen > 500 {
+		return ErrInvalidMessageContent
 	}
 
 	return nil
