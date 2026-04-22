@@ -91,7 +91,7 @@ func (h *Handler) GetGroup(w http.ResponseWriter, r *http.Request) {
 
 	groupId := r.PathValue("id")
 
-	group, err := h.Services.Groups.GetGroup("user1", groupId)
+	group, err := h.Services.Groups.GetGroup("user", groupId)
 	if err != nil {
 		HandleError(w, err)
 		return
@@ -160,4 +160,9 @@ func (h *Handler) DeleteJoinRequest(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJson(w, map[string]any{
 		"status": http.StatusOK,
 	})
+}
+
+// ===== Group Manage
+func (h *Handler) ListNonMembers(w http.ResponseWriter, r *http.Request) {
+
 }

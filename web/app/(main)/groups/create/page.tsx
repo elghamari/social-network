@@ -2,7 +2,7 @@ import Link from "next/link";
 import "./page.css";
 
 import { LeftArrowIcon } from "@/app/ui/icons";
-import GroupForm from "@/app/groups/create/_components/group-form";
+import GroupForm from "@/app/(main)/groups/create/_components/group-form";
 
 export default function Page() {
   return (

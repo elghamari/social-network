@@ -76,24 +76,9 @@ const MOCK_REQUESTS = [
   },
 ];
 
-const GROUP_STATUS = "creator";
-const IS_MEMBER = GROUP_STATUS === "creator" || GROUP_STATUS === "joined";
-const IS_CREATOR = GROUP_STATUS === "creator";
-
 export default function ManagePage() {
-  if (!IS_MEMBER) {
-    return (
-      <div className="gd-locked">
-        <p className="gd-locked__title">Members only</p>
-        <p className="gd-locked__text">
-          You must be a member to manage this group.
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <div className={`gd-manage ${IS_CREATOR ? "gd-manage--split" : ""}`}>
+    <div className={`gd-manage gd-manage--split`}>
       {/* Invite */}
       <section className="gd-manage__panel">
         <div className="gd-manage__panel-header">
@@ -129,7 +114,7 @@ export default function ManagePage() {
       </section>
 
       {/* Requests — creator only */}
-      {IS_CREATOR && (
+      {/* {IS_CREATOR && (
         <section className="gd-manage__panel">
           <div className="gd-manage__panel-header">
             <h2 className="gd-manage__heading">Join Requests</h2>
@@ -161,8 +146,8 @@ export default function ManagePage() {
               ))}
             </div>
           )}
-        </section>
-      )}
+        </section> */}
+      {/* )} */}
     </div>
   );
 }

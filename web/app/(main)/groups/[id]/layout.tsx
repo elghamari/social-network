@@ -1,49 +1,10 @@
 import "./layout.css";
 import { notFound } from "next/navigation";
-import GroupTabs from "@/app/groups/[id]/_components/group-tabs";
+import GroupTabs from "@/app/(main)/groups/[id]/_components/group-tabs";
 import { getGroupById } from "@/app/lib/services/groups";
 import { showToast } from "@/app/ui/layout/toast-store";
 import { BASE_URL } from "@/app/lib/services/client";
 import { LockIcon } from "@/app/ui/icons";
-
-const MOCK_GROUPS: Record<
-  string,
-  {
-    id: string;
-    title: string;
-    description: string;
-    memberCount: number;
-    status: GroupStatus;
-    cover?: string;
-  }
-> = {
-  "1": {
-    id: "1",
-    title: "Design Collective",
-    description:
-      "A space for product designers, UI explorers, and creative builders to share ideas, feedback, and inspiration.",
-    memberCount: 128,
-    status: "creator",
-    cover:
-      "http://localhost:8080/uploads/65b664c5-5d9b-44cf-b1be-9b46a8241602.jpeg",
-  },
-  "2": {
-    id: "2",
-    title: "Frontend Lab",
-    description:
-      "For developers building polished interfaces with React, Next.js, animation, and clean component systems.",
-    memberCount: 84,
-    status: "pending",
-  },
-  "3": {
-    id: "3",
-    title: "Startup Circle",
-    description:
-      "Founders and early builders sharing launches, growth ideas, product feedback, and event meetups.",
-    memberCount: 203,
-    status: "discover",
-  },
-};
 
 function actionLabel(role: string) {
   if (role === "CREATOR") return "Creator";
@@ -77,8 +38,8 @@ export default async function GroupLayout({
 
   if (!group) notFound();
 
-  const isMember = group.role === "creator" || group.status === "joined";
-  const isCreator = group.role === "creator";
+  const isMember = group.role === "CREATOR" || group.role === "MEMBER";
+  const isCreator = group.role === "CREATOR";
 
   return (
     <div className="gd">

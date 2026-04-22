@@ -19,7 +19,6 @@ type Group struct {
 	CoverPath   string `json:"coverPath"`
 	CreatedAt   string `json:"createdAt"`
 	MembersCnt  int    `json:"memberCount"`
-	IsPending   bool   `json:"isPending"`
 	Role        string `json:"role"`
 }
 

@@ -18,5 +18,22 @@ export function validateGroup(data: GroupData): GroupErrors | null {
       "Description cannot be empty and must be between 10 and 500 letters.";
   }
 
+  const file = data.coverImage;
+  const MAX_SIZE = 2 * 1024 * 1024;
+
+  console.log(file);
+
+  if (file && file.size > MAX_SIZE) {
+    errors.coverImage = "Image size must not exceed 2MB";
+  }
+
+  if (
+    file &&
+    file.size !== 0 &&
+    !["image/png", "image/jpg", "image/jpeg", "image/webp"].includes(file.type)
+  ) {
+    errors.coverImage = "Invalid image type";
+  }
+
   return Object.keys(errors).length > 0 ? errors : null;
 }

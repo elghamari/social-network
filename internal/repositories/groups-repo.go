@@ -190,12 +190,15 @@ func (r *GroupsRepo) GetGroup(userId, groupId string) (types.Group, error) {
 	group := types.Group{}
 
 	query, args := r.GetGroupQuery(userId, groupId)
+
 	err := r.DB.QueryRow(query, args...).Scan(
 		&group.Id, &group.CreatorId, &group.Title, &group.Description, &group.CoverPath, &group.CreatedAt, &group.MembersCnt, &group.Role,
 	)
 	if err != nil {
 		return types.Group{}, fmt.Errorf("%s.GetGroup: %w", repo, err)
 	}
+
+	fmt.Println(group.Role)
 
 	return group, nil
 }

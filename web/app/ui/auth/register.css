@@ -1,0 +1,104 @@
+/* Container لي غيشد الشاشة كاملة ويجيب الفورم فالوسط */
+.auth-page-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #050505; /* لون الخلفية الكحلة لي فالتصويرة */
+    padding: 20px;
+}
+
+/* الكارطة ديال الفورم */
+.nexus-register-card {
+    background-color: #12131a; /* لون الكارطة */
+    padding: 40px;
+    border-radius: 12px;
+    border: 1px solid #1f212e;
+    width: 100%;
+    max-width: 480px; /* باش مايفوتش هاد العبار ويجي مجموع */
+}
+
+/* باقي الستيل */
+.nexus-title {
+    color: #ffffff;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.nexus-subtitle {
+    color: #8b949e;
+    font-size: 13px;
+    margin-bottom: 25px;
+}
+
+.nexus-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.nexus-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.nexus-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.nexus-label {
+    color: #c9d1d9;
+    font-size: 12px;
+}
+
+.nexus-input {
+    background-color: #1a1b26;
+    border: 1px solid #2d313e;
+    border-radius: 6px;
+    padding: 10px 14px;
+    color: #ffffff;
+    font-size: 13px;
+    outline: none;
+}
+
+.nexus-input:focus {
+    border-color: #635bff; /* اللون الموف ديال البوطونة */
+}
+
+.nexus-divider {
+    display: flex;
+    align-items: center;
+    color: #4b5563;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 10px 0;
+}
+
+.nexus-divider::before, .nexus-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #1f212e;
+    margin: 0 10px;
+}
+
+.nexus-btn {
+    background-color: #635bff; /* اللون الموف لي فالتصويرة */
+    color: white;
+    padding: 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    margin-top: 15px;
+}
+
+.nexus-btn:hover {
+    background-color: #534be5;
+}

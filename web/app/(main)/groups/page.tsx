@@ -2,9 +2,9 @@ import "./page.css";
 
 import Link from "next/link";
 
-import GroupsTabs from "@/app/groups/_components/groups-tabs";
-import GroupsSearch from "@/app/groups/_components/groups-search";
-import GroupsList from "@/app/groups/_components/groups-list";
+import GroupsTabs from "@/app/(main)/groups/_components/groups-tabs";
+import GroupsSearch from "@/app/(main)/groups/_components/groups-search";
+import GroupsList from "@/app/(main)/groups/_components/groups-list";
 
 import { Tab } from "@/app/lib/types/groups";
 import { PlusIcon } from "@/app/ui/icons";
