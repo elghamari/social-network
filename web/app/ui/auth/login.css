@@ -1,0 +1,127 @@
+/* app/ui/auth/login.css */
+
+.auth-page-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #050505;
+    padding: 20px;
+}
+
+.nexus-login-card {
+    background-color: #12131a;
+    padding: 40px;
+    border-radius: 12px;
+    border: 1px solid #1f212e;
+    width: 100%;
+    max-width: 400px; /* اللوجين كيكون صغر من التسجيل */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.nexus-title {
+    color: #ffffff;
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.nexus-subtitle {
+    color: #8b949e;
+    font-size: 14px;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.nexus-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.nexus-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.nexus-label {
+    color: #c9d1d9;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.nexus-input {
+    background-color: #1a1b26;
+    border: 1px solid #2d313e;
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: #ffffff;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.nexus-input:focus {
+    border-color: #635bff;
+}
+
+.nexus-input::placeholder {
+    color: #4b5563;
+}
+
+.nexus-btn {
+    background-color: #635bff;
+    color: white;
+    padding: 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 15px;
+    border: none;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.2s;
+}
+
+.nexus-btn:hover {
+    background-color: #534be5;
+}
+
+.nexus-btn:disabled {
+    background-color: #3b3599;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.nexus-error {
+    background-color: rgba(239, 68, 68, 0.1);
+    border-left: 4px solid #ef4444;
+    color: #f87171;
+    padding: 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    margin-bottom: 20px;
+}
+
+.nexus-link {
+    color: #635bff;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.nexus-link:hover {
+    text-decoration: underline;
+}
+
+.nexus-footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 13px;
+    color: #8b949e;
+}

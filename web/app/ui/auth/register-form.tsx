@@ -48,6 +48,7 @@ export function RegisterForm() {
   };
 
   return (
+     <div className="register-page">
     <div className="nexus-register-card">
       <h1 className="nexus-title">Join Nexus</h1>
       <p className="nexus-subtitle">Create your account to start connecting.</p>
@@ -99,6 +100,7 @@ export function RegisterForm() {
           {loading ? "Processing..." : "Create Account"}
         </button>
       </form>
+    </div>
     </div>
   );
 }

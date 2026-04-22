@@ -15,7 +15,6 @@ export const metadata: Metadata = {
   description: "Connect with your network",
 };
 
-
 export default function RootLayout({
   children,
 }: {
@@ -23,7 +22,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={josefin.variable}>
-      <body suppressHydrationWarning>
+      <body>
         {children}
         <Toast />
       </body>
