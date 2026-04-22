@@ -8,17 +8,17 @@ import (
 
 type Handler struct {
 	Services *services.Services
-	// Hub      *Hub
+	Hub      *Hub
 	Port string
 }
 
 func NewHandler(svcs *services.Services, port string) *Handler {
-	// hub := NewHub(svcs.Chat)
-	// go hub.Start()
+	 hub := NewHub(svcs.Chat)
+	 go hub.Start()
 
 	return &Handler{
 		Services: svcs,
-		// Hub:      hub,
+		Hub:      hub,
 		Port: port,
 	}
 }
@@ -39,6 +39,13 @@ func New(svcs *services.Services, port string) http.Handler {
 	authRoutes := map[string]http.HandlerFunc{
 		"/api/groups":      h.Groups,
 		"/api/groups/join": h.JoinRequest,
+		"/api/ws/chat":     h.ServeWs,
+		"/api/chat/contacts":        h.GetRecentContacts,
+		"/api/chat/users":           h.GetAvailableChatUsers,
+		"/api/chat/history/private": h.GetPrivateHistory,
+		"/api/chat/history/group":   h.GetGroupHistory,
+		"/api/chat/read/private":    h.MarkAsRead,
+		"/api/chat/read/group":      h.MarkGroupAsRead,
 	}	
 	for path, hand := range authRoutes {
 		// mux.Handle(path, middleware.AuthRequired(hand))
