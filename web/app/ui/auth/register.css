@@ -13,7 +13,13 @@
     font-weight: 700;
     margin-bottom: 8px;
 }
-
+.register-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
 .nexus-subtitle {
     color: #94a3b8;
     font-size: 14px;
