@@ -103,3 +103,20 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 
 	utils.WriteJson(w, map[string]any{"status": http.StatusOK})
 }
+func (h *Handler) CheckSession(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("sessionId")
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	userID, isValid := h.Services.Auth.ValidateSession(cookie.Value)
+
+	if !isValid {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	utils.WriteJson(w, map[string]any{
+		"status": http.StatusOK,
+		"userId": userID,
+	})
+}

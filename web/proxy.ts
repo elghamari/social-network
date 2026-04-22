@@ -15,7 +15,7 @@ export async function proxy(request: NextRequest) {
     }
 
     try {
-      const res = await fetch('http://localhost:8080/api/auth/check', {
+      const res = await fetch('http://localhost:8080/auth/check', {
         headers: {
           Cookie: `sessionId=${sessionId}`,
         },

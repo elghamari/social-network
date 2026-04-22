@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
+
 	"soc-net/internal/types"
 )
 
@@ -20,7 +22,7 @@ func NewAuthRepo(db *sql.DB) *AuthRepo {
 func (r *AuthRepo) GetUserBySessionId(sessionId string) (types.UserAuth, error) {
 	user := types.UserAuth{}
 	err := r.DB.QueryRow(`
-		SELECT id, session_time
+		SELECT id, session_time 
 		FROM users
 		WHERE session_id = ?
 	`, sessionId).Scan(&user.Id, &user.SessionTime)
@@ -30,6 +32,14 @@ func (r *AuthRepo) GetUserBySessionId(sessionId string) (types.UserAuth, error) 
 		}
 		return user, fmt.Errorf("authRepo.GetUserBySessionId: %w", err)
 	}
+	nickname, err := r.GetUserNicknameById(user.Id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return types.UserAuth{}, nil
+		}
+		return user, fmt.Errorf("authRepo.GetUserBySessionId: %w", err)
+	}
+	user.Nickname = nickname
 	return user, nil
 }
 
@@ -102,6 +112,25 @@ func (r *AuthRepo) GetUserByEmail(email string) (types.User, error) {
 	return u, nil
 }
 
+func (r *AuthRepo) GetUserNicknameById(id string) (string, error) {
+	var nickname sql.NullString
+
+	err := r.DB.QueryRow(`
+		SELECT nickname
+		FROM users WHERE id = ?
+	`, id).Scan(&nickname)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", fmt.Errorf("authRepo.GetUserNicknameById: user not found")
+		}
+		return "", fmt.Errorf("authRepo.GetUserNicknameById: %w", err)
+	}
+	if nickname.Valid {
+		return nickname.String, nil
+	}
+	return "", nil
+}
+
 func (r *AuthRepo) GetUserById(id string) (types.User, error) {
 	var u types.User
 	var avatar, nickname, aboutMe sql.NullString
@@ -147,4 +176,20 @@ func (r *AuthRepo) CheckUserExists(id string) (bool, error) {
 	query := `SELECT EXISTS(SELECT 1 FROM users WHERE id = ?)`
 	err := r.DB.QueryRow(query, id).Scan(&exists)
 	return exists, err
+}
+
+func (s *AuthRepo) ValidateSession(sessionID string) (string, bool) {
+	var userID string
+	var sessionTime time.Time
+
+	query := `SELECT id, session_time FROM users WHERE session_id = ?`
+	err := s.DB.QueryRow(query, sessionID).Scan(&userID, &sessionTime)
+	if err != nil {
+		return "", false
+	}
+	if time.Now().After(sessionTime) {
+		s.DB.Exec(`UPDATE users SET session_id = NULL, session_time = NULL WHERE id = ?`, userID)
+		return "", false
+	}
+	return userID, true
 }

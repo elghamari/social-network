@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+
 	"soc-net/internal/middleware"
 	"soc-net/internal/services"
 )
@@ -21,7 +22,7 @@ func NewHandler(svcs *services.Services, port string) *Handler {
 func New(svcs *services.Services, port string) http.Handler {
 	mux := http.NewServeMux()
 	h := NewHandler(svcs, port)
-
+	mux.HandleFunc("/auth/check", h.CheckSession)
 	// ===== Guest only
 	guestRoutes := map[string]http.HandlerFunc{
 		"/api/register": h.Register,
@@ -33,15 +34,15 @@ func New(svcs *services.Services, port string) http.Handler {
 
 	// ===== Auth required
 	authRoutes := map[string]http.HandlerFunc{
-		"/api/auth/logout":      h.Logout,
-		"/api/me":               h.GetMe,
-		"/api/profile":          h.GetProfile,
-		"/api/groups":           h.Groups,
-		"/api/groups/join":      h.JoinRequest,
-		"/api/follow":           h.FollowUser,
-		"/api/follow/accept":    h.AcceptFollowRequest,
-		"/api/follow/decline":   h.DeclineFollowRequest,
-		"/api/unfollow":         h.UnfollowUser,
+		"/api/auth/logout":    h.Logout,
+		"/api/me":             h.GetMe,
+		"/api/profile":        h.GetProfile,
+		"/api/groups":         h.Groups,
+		"/api/groups/join":    h.JoinRequest,
+		"/api/follow":         h.FollowUser,
+		"/api/follow/accept":  h.AcceptFollowRequest,
+		"/api/follow/decline": h.DeclineFollowRequest,
+		"/api/unfollow":       h.UnfollowUser,
 	}
 	for path, hand := range authRoutes {
 		mux.Handle(path, middleware.AuthRequired(hand))

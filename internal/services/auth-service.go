@@ -9,9 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"golang.org/x/crypto/bcrypt"
 	"soc-net/internal/repositories"
 	"soc-net/internal/types"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthService struct {
@@ -108,4 +109,8 @@ func generateUUID() string {
 	b := make([]byte, 16)
 	rand.Read(b)
 	return hex.EncodeToString(b)
+}
+
+func (s *AuthService) ValidateSession(sessionID string) (string, bool) {
+	return s.Auth.ValidateSession(sessionID)
 }

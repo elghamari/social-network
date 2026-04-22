@@ -4,16 +4,14 @@ import (
 	"context"
 	"log"
 	"net/http"
+
 	"soc-net/internal/services"
 	"soc-net/internal/utils"
 )
 
 func SessionLoader(authService *services.AuthService) func(http.Handler) http.Handler {
-
 	return func(next http.Handler) http.Handler {
-
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 			cookie, err := r.Cookie("sessionId")
 			if err != nil {
 				next.ServeHTTP(w, r)
@@ -43,15 +41,14 @@ func SessionLoader(authService *services.AuthService) func(http.Handler) http.Ha
 			}
 
 			ctx := context.WithValue(r.Context(), "userId", user.Id)
+			ctx = context.WithValue(r.Context(), "nickname", user.Nickname)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }
 
 func GuestOnly(next http.Handler) http.Handler {
-
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 		userID := utils.GetUserId(r)
 		if userID != "" {
 			utils.WriteJson(w, map[string]any{
@@ -61,14 +58,11 @@ func GuestOnly(next http.Handler) http.Handler {
 			return
 		}
 		next.ServeHTTP(w, r)
-
 	})
 }
 
 func AuthRequired(next http.Handler) http.Handler {
-
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 		userID := utils.GetUserId(r)
 		if userID == "" {
 			utils.WriteJson(w, map[string]any{
@@ -78,6 +72,5 @@ func AuthRequired(next http.Handler) http.Handler {
 			return
 		}
 		next.ServeHTTP(w, r)
-
 	})
 }

@@ -23,3 +23,11 @@ func GetUserId(r *http.Request) string {
 	}
 	return userID
 }
+func GetNickname(r *http.Request) string {
+	value := r.Context().Value("nickname")
+	nickname, ok := value.(string)
+	if !ok {
+		return ""
+	}
+	return nickname
+}
