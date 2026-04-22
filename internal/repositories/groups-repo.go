@@ -125,3 +125,32 @@ func (r *GroupsRepo) DeleteJoinRequest(req types.JoinRequest) error {
 	}
 	return nil
 }
+
+func (r *GroupsRepo) CheckGroupAndMembership(groupId int, userId string) (bool, bool, error) {
+	var groupExists, isMember bool
+
+	query := `
+        SELECT 
+            EXISTS(SELECT 1 FROM groups WHERE id = ?),
+            EXISTS(SELECT 1 FROM group_members WHERE group_id = ? AND user_id = ?)
+    `
+	err := r.DB.QueryRow(query, groupId, groupId, userId).Scan(&groupExists, &isMember)
+	if err != nil {
+		return false, false, fmt.Errorf("GroupsRepo.CheckGroupAndMembership: %w", err)
+	}
+
+	return groupExists, isMember, nil
+}
+
+func (r *GroupsRepo) UserExists(userId string) (bool, error) {
+	var exists bool
+
+	query := `SELECT EXISTS(SELECT 1 FROM users WHERE id = ?)`
+
+	err := r.DB.QueryRow(query, userId).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("UsersRepo.UserExists: %w", err)
+	}
+
+	return exists, nil
+}
