@@ -44,11 +44,14 @@ func (r *AuthRepo) GetUserBySessionId(sessionId string) (types.UserAuth, error) 
 }
 
 func (r *AuthRepo) SetSession(userID, sessionID string) error {
+	expiresAt := time.Now().Add(24 * time.Hour)
+
 	_, err := r.DB.Exec(`
 		UPDATE users
-		SET session_id = ?, session_time = CURRENT_TIMESTAMP
+		SET session_id = ?, session_time = ?
 		WHERE id = ?
-	`, sessionID, userID)
+	`, sessionID, expiresAt, userID)
+	
 	if err != nil {
 		return fmt.Errorf("authRepo.SetSession: %w", err)
 	}
