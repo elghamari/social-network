@@ -19,20 +19,12 @@ var (
 // ===== Login =====
 // var ErrInvalidCredentials = errors.New("invalid credentials.")
 
-// ===== Feed =====
+
+// ===== Chat =====
 var (
-// ErrInvalidUserId = errors.New("invalid user_id")
-// ErrInvalidTime   = errors.New("invalid time")
-
-// // Posts
-// ErrInvalidPostId    = errors.New("invalid post_id")
-// ErrInvalidCommentId = errors.New("invalid comment_id")
-// ErrInvalidContent   = errors.New("invalid content")
-// ErrInvalidCategory  = errors.New("invalid category")
-
-// // Chat
-// ErrInvalidMessageId = errors.New("invalid message_id")
-// ErrInvalidMessage   = errors.New("invalid message")
+    ErrInvalidMessageContent = errors.New("message content is required and must be between 1 and 500 characters")
+    ErrChatPermissionDenied  = errors.New("you do not have permission to message this user")
+    ErrSelfChat  = errors.New("you cannot send a message to yourself")
 )
 
 // ===== Groups =====
