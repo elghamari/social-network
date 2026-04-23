@@ -178,14 +178,11 @@ func (r *ChatRepo) CheckUserPrivacy(userID string) (bool, error) {
 func (r *ChatRepo) AreConnected(userA, userB string) (bool, error) {
 	var count int
 	query := `
-		SELECT COUNT(*) 
-		FROM users u
-		LEFT JOIN followers f ON (f.follower_id = ? AND f.following_id = ?) 
-		                      OR (f.follower_id = ? AND following_id = ?)
-		WHERE u.id IN (?, ?) AND (u.is_public = 1 OR f.follower_id IS NOT NULL)
+		SELECT COUNT(*) FROM followers 
+		WHERE (follower_id = ? AND following_id = ?) 
+		   OR (follower_id = ? AND following_id = ?)
 	`
-	
-	err := r.DB.QueryRow(query, userA, userB, userB, userA, userA, userB).Scan(&count)
+	err := r.DB.QueryRow(query, userA, userB, userB, userA).Scan(&count)
 	return count > 0, err
 }
 
@@ -203,9 +200,9 @@ func (r *ChatRepo) GetAvailableChatUsers(userID string) ([]types.Contact, error)
 			COALESCE(u.nickname, u.first_name || ' ' || u.last_name) AS nickname,
 			COALESCE(u.avatar, '') AS avatar
 		FROM users u
-		LEFT JOIN followers f ON (f.follower_id = ? AND f.following_id = u.id) 
-		                      OR (f.follower_id = u.id AND f.following_id = ?)
-		WHERE u.id != ? AND (u.is_public = 1 OR f.follower_id IS NOT NULL)
+		INNER JOIN followers f ON (f.follower_id = ? AND f.following_id = u.id) 
+		                       OR (f.follower_id = u.id AND f.following_id = ?)
+		WHERE u.id != ?
 	`
 
 	rows, err := r.DB.Query(query, userID, userID, userID)
