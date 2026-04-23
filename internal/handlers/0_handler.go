@@ -10,6 +10,7 @@ import (
 type Handler struct {
 	Services *services.Services
 	// Hub      *Hub
+	mid  *middleware.Mid
 	Port string
 }
 
@@ -19,7 +20,8 @@ func NewHandler(svcs *services.Services, port string) *Handler {
 
 	return &Handler{
 		Services: svcs,
-		// Hub:      hub,
+		// Hub:      Hub
+		mid:  middleware.NewMid(svcs.Auth),
 		Port: port,
 	}
 }
@@ -27,15 +29,18 @@ func NewHandler(svcs *services.Services, port string) *Handler {
 func New(svcs *services.Services, port string) http.Handler {
 	mux := http.NewServeMux()
 	h := NewHandler(svcs, port)
-
-	// mux.HandleFunc("/api/auth", h.Auth)
+	middleware.EnableCORS(mux)
 
 	guestRoutes := map[string]http.HandlerFunc{
 		"/api/register": h.Register,
 		"/api/login":    h.Login,
 	}
+
+	// 1. Guest Routes: SessionLoader -> GuestOnly -> Handler
 	for path, hand := range guestRoutes {
-		mux.Handle(path, middleware.GuestOnly(hand))
+		// Chaining middlewares
+		finalHandler := h.mid.SessionLoader(middleware.GuestOnly(hand))
+		mux.Handle(path, finalHandler)
 	}
 
 	authRoutes := map[string]http.HandlerFunc{
@@ -49,12 +54,15 @@ func New(svcs *services.Services, port string) http.Handler {
 		"/api/comments/create":  h.CreateComment,
 		"/api/comments":         h.GetPostComments,
 		"/api/reactions/toggle": h.ToggleReaction,
-	}
-	for path, hand := range authRoutes {
-		mux.Handle(path, middleware.AuthRequired(hand))
-		// mux.Handle(path, hand)
+		"/api/me":               h.GetMe,
 	}
 
-	return middleware.SessionLoader(svcs.Auth)(mux)
-	// return mux
+	// 2. Auth Routes: SessionLoader -> AuthRequired -> Handler
+	for path, hand := range authRoutes {
+		// Chaining middlewares
+		finalHandler := h.mid.SessionLoader(middleware.AuthRequired(hand))
+		mux.Handle(path, finalHandler)
+	}
+
+	return mux
 }

@@ -2,25 +2,24 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
-	"soc-net/internal/services"
+
 	"soc-net/internal/utils"
 )
 
-func SessionLoader(authService *services.AuthService) func(http.Handler) http.Handler {
-
-	return func(next http.Handler) http.Handler {
-
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
+func (a *Mid) SessionLoader(next http.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		
 			cookie, err := r.Cookie("sessionId")
 			if err != nil {
 				next.ServeHTTP(w, r)
 				return
 			}
+			fmt.Println("aaaaaaaaaaaaaaaaaaaaaaaaa")
 
-			user, err := authService.GetUser(cookie.Value)
+			user, err := a.AuthService.GetUser(cookie.Value)
 			if err != nil {
 				utils.WriteJson(w, map[string]any{
 					"ok":     false,
@@ -31,7 +30,8 @@ func SessionLoader(authService *services.AuthService) func(http.Handler) http.Ha
 			}
 
 			if user.Id == "" {
-				_ = authService.Logout(cookie.Value)
+				fmt.Println("sssssssssssssssss")
+				_ = a.AuthService.Logout(cookie.Value)
 
 				http.SetCookie(w, &http.Cookie{
 					Name:   "sessionId",
@@ -43,15 +43,14 @@ func SessionLoader(authService *services.AuthService) func(http.Handler) http.Ha
 			}
 
 			ctx := context.WithValue(r.Context(), "userId", user.Id)
+			fmt.Println(user.Id)
 			next.ServeHTTP(w, r.WithContext(ctx))
-		})
+		
 	}
 }
 
 func GuestOnly(next http.Handler) http.Handler {
-
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 		userID := utils.GetUserId(r)
 		if userID != "" {
 			utils.WriteJson(w, map[string]any{
@@ -61,14 +60,11 @@ func GuestOnly(next http.Handler) http.Handler {
 			return
 		}
 		next.ServeHTTP(w, r)
-
 	})
 }
 
 func AuthRequired(next http.Handler) http.Handler {
-
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 		userID := utils.GetUserId(r)
 		if userID == "" {
 			utils.WriteJson(w, map[string]any{
@@ -78,6 +74,5 @@ func AuthRequired(next http.Handler) http.Handler {
 			return
 		}
 		next.ServeHTTP(w, r)
-
 	})
 }

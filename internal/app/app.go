@@ -48,7 +48,7 @@ func New(cfg *Config) (*App, error) {
 
 	server := &http.Server{
 		Addr:    ":" + cfg.Port,
-		Handler: handler,
+		Handler: middleware.EnableCORS(handler),
 	}
 
 	return &App{
