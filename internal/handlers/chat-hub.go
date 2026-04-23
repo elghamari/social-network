@@ -201,8 +201,10 @@ func (h *Hub) onMessage(senderID string, payload []byte) error {
 		Data: savedMsg,
 	})
 
-	canReceive, _ := h.chatService.CanReceiveLive(in.ReceiverID, senderID)
-	if canReceive {
+	canReceive, err := h.chatService.CanReceiveLive(in.ReceiverID, senderID)
+	if err != nil {
+		log.Println("Error checking live receive permission:", err)
+	} else if canReceive {
 		h.sendToUser(in.ReceiverID, raw)
 	}
 
