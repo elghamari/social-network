@@ -4,9 +4,9 @@ import Link from "next/link";
 
 import { PlusIcon } from "@/app/ui/icons";
 
-import Tabs from "./_components/tabs";
-import Search from "./_components/search";
-import GroupsList from "./_components/groups-list";
+import GroupTabs from "./_components/group-tabs";
+import GroupSearch from "./_components/group-search";
+import GroupList from "./_components/group-list";
 
 export default function Page() {
   return (
@@ -19,9 +19,9 @@ export default function Page() {
         </Link>
       </div>
 
-      <Tabs />
-      <Search />
-      <GroupsList />
+      <GroupTabs />
+      <GroupSearch />
+      <GroupList />
     </div>
   );
 }

@@ -3,11 +3,12 @@
 import "./layout.css";
 import { notFound, useParams } from "next/navigation";
 
-import Sections from "./_components/sections";
+import GroupSections from "./_components/group-sections";
 import { LockIcon } from "@/app/ui/icons";
-import { useGroup } from "./_hooks/useGroup";
-import Header from "./_components/header";
-import LayoutSkeleton from "./_components/layout-skeleton";
+import { useGroupDetail } from "./_hooks/use-group-detail";
+import GroupHeader from "./_components/group-header";
+import GroupLayoutSkeleton from "./_components/group-layout-skeleton";
+import GroupProvider from "./_context/group-context";
 
 export default function GroupLayout({
   children,
@@ -17,9 +18,9 @@ export default function GroupLayout({
   const params = useParams();
   const id = params.id as string;
 
-  const { group, loading } = useGroup(id);
+  const { group, loading } = useGroupDetail(id);
 
-  if (loading) return <LayoutSkeleton />;
+  if (loading) return <GroupLayoutSkeleton />;
   if (!group) notFound();
 
   const isMember = group.role === "CREATOR" || group.role === "MEMBER";
@@ -27,12 +28,18 @@ export default function GroupLayout({
 
   return (
     <div className="gd">
-      <Header group={group} isMember={isMember} />
+      <GroupHeader group={group} isMember={isMember} />
 
       {isMember ? (
         <>
-          <Sections groupId={id} isMember={isMember} isCreator={isCreator} />
-          <div className="gd__content">{children}</div>
+          <GroupSections
+            groupId={id}
+            isMember={isMember}
+            isCreator={isCreator}
+          />
+          <div className="gd__content">
+            <GroupProvider group={group}>{children}</GroupProvider>
+          </div>
         </>
       ) : (
         <div className="gd__restricted">
