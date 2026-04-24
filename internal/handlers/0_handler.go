@@ -42,7 +42,7 @@ func New(svcs *services.Services, port string) http.Handler {
 		finalHandler := h.mid.SessionLoader(middleware.GuestOnly(hand))
 		mux.Handle(path, finalHandler)
 	}
-
+	mux.HandleFunc("/auth/check", h.CheckSession)
 	authRoutes := map[string]http.HandlerFunc{
 		"/api/auth/logout":      h.Logout,
 		"/api/groups":           h.Groups,
@@ -54,7 +54,7 @@ func New(svcs *services.Services, port string) http.Handler {
 		"/api/comments/create":  h.CreateComment,
 		"/api/comments":         h.GetPostComments,
 		"/api/reactions/toggle": h.ToggleReaction,
-		"/api/me":               h.GetMe,
+		"/api/auth/me":               h.GetMe,
 	}
 
 	// 2. Auth Routes: SessionLoader -> AuthRequired -> Handler
