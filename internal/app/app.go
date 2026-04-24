@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+
 	"soc-net/internal/db/sqlite"
 	"soc-net/internal/handlers"
 	"soc-net/internal/middleware"
@@ -15,9 +16,7 @@ import (
 )
 
 type App struct {
-	DB *sql.DB
-	// Repos    *repos.Repos
-	// Services *services.Services
+	DB     *sql.DB
 	Server *http.Server
 }
 
@@ -27,10 +26,8 @@ type Config struct {
 	Port           string
 }
 
-
 func New(cfg *Config) (*App, error) {
-
-	err := os.MkdirAll("data", 0755)
+	err := os.MkdirAll("data", 0o755)
 	if err != nil {
 		return nil, err
 	}

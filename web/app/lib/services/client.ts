@@ -1,14 +1,16 @@
+// client.ts
 const API_BASE = "http://localhost:8080/api";
 
 class ClientApi {
-  async request(endPoint: string, options: RequestInit = {}) {
+  async request(endPoint: string, options: RequestInit = {}, extraHeaders: Record<string, string> = {}) {
     const config: RequestInit = {
       ...options,
-      headers: { 
+      headers: {
         "Content-type": "application/json",
-        ...options.headers 
+        ...extraHeaders,
+        ...options.headers,
       },
-      credentials: "include", 
+      credentials: "include",
     };
 
     try {
@@ -26,7 +28,7 @@ class ClientApi {
 
     } catch (err: any) {
       console.log("ClientApi Error:", err);
-      
+
       if (err.status) throw err;
       throw {
         status: 0,
@@ -36,28 +38,28 @@ class ClientApi {
     }
   }
 
-  get(endPoint: string) {
-    return this.request(endPoint);
+  get(endPoint: string, extraHeaders?: Record<string, string>) {
+    return this.request(endPoint, {}, extraHeaders);
   }
 
-  post(endPoint: string, data: any) {
+  post(endPoint: string, data: any, extraHeaders?: Record<string, string>) {
     return this.request(endPoint, {
       method: "POST",
       body: JSON.stringify(data),
-    });
+    }, extraHeaders);
   }
 
-  put(endPoint: string, data: any) {
+  put(endPoint: string, data: any, extraHeaders?: Record<string, string>) {
     return this.request(endPoint, {
       method: "PUT",
       body: JSON.stringify(data),
-    });
+    }, extraHeaders);
   }
 
-  delete(endPoint: string) {
+  delete(endPoint: string, extraHeaders?: Record<string, string>) {
     return this.request(endPoint, {
       method: "DELETE",
-    });
+    }, extraHeaders);
   }
 }
 

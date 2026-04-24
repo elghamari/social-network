@@ -10,12 +10,14 @@ import (
 type Handler struct {
 	Services *services.Services
 	Port     string
+	mid      *middleware.Mid
 }
 
 func NewHandler(svcs *services.Services, port string) *Handler {
 	return &Handler{
 		Services: svcs,
 		Port:     port,
+		mid:      middleware.NewMid(svcs.Auth),
 	}
 }
 
@@ -29,13 +31,14 @@ func New(svcs *services.Services, port string) http.Handler {
 		"/api/login":    h.Login,
 	}
 	for path, hand := range guestRoutes {
-		mux.Handle(path, middleware.GuestOnly(hand))
+		finalHandler := h.mid.SessionLoader(h.mid.GuestOnly(hand))
+		mux.Handle(path, finalHandler)
 	}
 
 	// ===== Auth required
 	authRoutes := map[string]http.HandlerFunc{
 		"/api/auth/logout":    h.Logout,
-		"/api/me":             h.GetMe,
+		"/api/auth/me":        h.GetMe,
 		"/api/profile":        h.GetProfile,
 		"/api/groups":         h.Groups,
 		"/api/groups/join":    h.JoinRequest,
@@ -45,8 +48,9 @@ func New(svcs *services.Services, port string) http.Handler {
 		"/api/unfollow":       h.UnfollowUser,
 	}
 	for path, hand := range authRoutes {
-		mux.Handle(path, middleware.AuthRequired(hand))
+		finalHandler := h.mid.SessionLoader(h.mid.AuthRequired(hand))
+		mux.Handle(path, finalHandler)
 	}
 
-	return middleware.SessionLoader(svcs.Auth)(mux)
+	return mux
 }

@@ -10,6 +10,7 @@ import { Tab } from "@/app/lib/types/groups";
 import { PlusIcon } from "@/app/ui/icons";
 import { listGroups } from "@/app/lib/services/groups";
 import { showToast } from "@/app/ui/layout/toast-store";
+import { useAuth } from "@/app/context/AuthContext";
 
 export default async function Page(props: {
   searchParams?: Promise<{

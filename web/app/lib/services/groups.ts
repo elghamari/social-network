@@ -1,6 +1,7 @@
 "use server";
 
 import clientAPI from "./client";
+import { headers } from "next/headers";
 
 import { State, Tab } from "../types/groups";
 import { redirect } from "next/navigation";
@@ -8,11 +9,16 @@ import { revalidatePath } from "next/cache";
 import { validateGroup } from "../utils/validators";
 import { showToast } from "@/app/ui/layout/toast-store";
 
+async function getAuthHeader(): Promise<Record<string, string>> {
+  const headersList = await headers();
+  const cookie = headersList.get("cookie");
+  return cookie ? { Cookie: cookie } : {};
+}
+
 export async function createGroup(
   prevState: State,
   fd: FormData,
 ): Promise<State> {
-  //
   const data = {
     title: String(fd.get("title") ?? "").trim(),
     description: String(fd.get("description") ?? "").trim(),
@@ -26,7 +32,8 @@ export async function createGroup(
       values: data,
     };
 
-  const resp = await clientAPI.post("/groups", data);
+  const authHeader = await getAuthHeader();
+  const resp = await clientAPI.post("/groups", data, authHeader);
   switch (resp.status) {
     case 401:
       redirect("/login");
@@ -52,7 +59,8 @@ export async function listGroups(activeTab: Tab, query: string) {
     query: query,
   });
 
-  const resp = await clientAPI.get(`/groups?${params.toString()}`);
+  const authHeader = await getAuthHeader();
+  const resp = await clientAPI.get(`/groups?${params.toString()}`, authHeader);
   switch (resp.status) {
     case 401:
       redirect("/login");
@@ -65,9 +73,8 @@ export async function listGroups(activeTab: Tab, query: string) {
 }
 
 export async function createJoinRequest(groupId: string) {
-  const resp = await clientAPI.post(`/groups/join`, {
-    groupId: groupId,
-  });
+  const authHeader = await getAuthHeader();
+  const resp = await clientAPI.post(`/groups/join`, { groupId }, authHeader);
 
   switch (resp.status) {
     case 401:
@@ -88,11 +95,10 @@ export async function createJoinRequest(groupId: string) {
 }
 
 export async function deleteJoinRequest(groupId: string) {
-  const params = new URLSearchParams({
-    groupId: groupId,
-  });
+  const params = new URLSearchParams({ groupId });
 
-  const resp = await clientAPI.delete(`/groups/join?${params.toString()}`);
+  const authHeader = await getAuthHeader();
+  const resp = await clientAPI.delete(`/groups/join?${params.toString()}`, authHeader);
   switch (resp.status) {
     case 401:
       redirect("/login");

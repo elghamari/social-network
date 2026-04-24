@@ -1,6 +1,7 @@
 "use client";
 import { createContext, useContext, useState, useEffect } from "react";
 import { authService } from "@/app/lib/services/auth";
+import { log } from "node:console";
 
 type AuthContextType = {
   user: any | null;
@@ -15,8 +16,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchUser = async () => {
     try {
       const res = await authService.getMe();
+      console.log(res);
+      
       if (res.status === 200) setUser(res.user);
     } catch (err) {
+      console.log("err468888888888888888888",err);
       setUser(null);
     }
   };

@@ -2,9 +2,10 @@ package middleware
 
 import (
 	"net/http"
-	"soc-net/internal/utils"
 	"sync"
 	"time"
+
+	"soc-net/internal/utils"
 )
 
 type Visitor struct {
@@ -53,7 +54,6 @@ func (ls *LimiterStore) Cleanup() {
 
 func RateLimit(ls *LimiterStore, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 		key := GetVisitorKey(r)
 
 		if !ls.Allow(key) {

@@ -6,24 +6,22 @@ export async function proxy(request: NextRequest) {
   const sessionId = request.cookies.get('sessionId')?.value;
   const path = request.nextUrl.pathname;
 
-  const isProtectedRoute = path === '/' || path.startsWith('/profile');
+  const isProtectedRoute = path === '/' || path.startsWith('/profile') || path.startsWith('/groups');
   const isAuthRoute = path === '/login' || path === '/register';
 
   if (isProtectedRoute) {
     if (!sessionId) {
       return NextResponse.redirect(new URL('/login', request.url));
     }
-
     try {
       const res = await fetch('http://localhost:8080/auth/check', {
         headers: {
           Cookie: `sessionId=${sessionId}`,
         },
       });
-
       if (!res.ok) {
         const response = NextResponse.redirect(new URL('/login', request.url));
-        response.cookies.delete('sessionId'); 
+        response.cookies.delete('sessionId');
         return response;
       }
     } catch (err) {
@@ -40,6 +38,8 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
+    "/groups",
+    "/groups/:path*",
     '/',
     '/profile/:path*',
     '/login',

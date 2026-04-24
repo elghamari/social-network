@@ -3,6 +3,7 @@ package repositories
 import (
 	"database/sql"
 	"fmt"
+
 	"soc-net/internal/types"
 )
 
@@ -24,8 +25,14 @@ func (f *FollowRepo) getUsersByQuery(query, userID string) ([]types.FollowerInfo
 	list := []types.FollowerInfo{}
 	for rows.Next() {
 		var info types.FollowerInfo
-		if err := rows.Scan(&info.ID, &info.FirstName, &info.LastName); err != nil {
+		var avatar sql.NullString
+		if err := rows.Scan(&info.ID, &info.FirstName, &info.LastName, &avatar); err != nil {
 			return nil, err
+		}
+		if avatar.Valid {
+			info.Avatar = avatar.String
+		} else {
+			info.Avatar = ""
 		}
 		list = append(list, info)
 	}
@@ -33,21 +40,21 @@ func (f *FollowRepo) getUsersByQuery(query, userID string) ([]types.FollowerInfo
 }
 
 func (f *FollowRepo) GetFollowers(userID string) ([]types.FollowerInfo, error) {
-	q := `SELECT u.id, u.first_name, u.last_name
+	q := `SELECT u.id, u.first_name, u.last_name , u.avatar
 	      FROM followers fl JOIN users u ON fl.follower_id = u.id
 	      WHERE fl.following_id = ?`
 	return f.getUsersByQuery(q, userID)
 }
 
 func (f *FollowRepo) GetFollowing(userID string) ([]types.FollowerInfo, error) {
-	q := `SELECT u.id, u.first_name, u.last_name
+	q := `SELECT u.id, u.first_name, u.last_name  , u.avatar
 	      FROM followers fl JOIN users u ON fl.following_id = u.id
 	      WHERE fl.follower_id = ?`
 	return f.getUsersByQuery(q, userID)
 }
 
 func (f *FollowRepo) GetPendingRequests(userID string) ([]types.FollowerInfo, error) {
-	q := `SELECT u.id, u.first_name, u.last_name
+	q := `SELECT u.id, u.first_name, u.last_name  , u.avatar
 	      FROM follow_requests fr JOIN users u ON fr.sender_id = u.id
 	      WHERE fr.receiver_id = ?`
 	return f.getUsersByQuery(q, userID)
