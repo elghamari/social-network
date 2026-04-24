@@ -81,7 +81,7 @@ func (r *GroupsRepo) GetMaxGroupId() (int, error) {
 func (r *GroupsRepo) BaseGroupQuery() string {
 	return `
 	SELECT 
-		g.id, g.creator_id, g.title, g.description, cover_path, g.created_at,
+		g.id, g.creator_id, g.title, g.description, g.cover_path, g.created_at,
 
 		(SELECT COUNT(*) FROM group_members WHERE group_id = g.id) AS members_cnt,
 
@@ -198,13 +198,10 @@ func (r *GroupsRepo) GetGroup(userId, groupId string) (types.Group, error) {
 		return types.Group{}, fmt.Errorf("%s.GetGroup: %w", repo, err)
 	}
 
-	fmt.Println(group.Role)
-
 	return group, nil
 }
 
 // ===== JoinRequest repos
-
 func (r *GroupsRepo) CreateJoinRequest(req types.JoinRequest) error {
 	_, err := r.DB.Exec(`
 	INSERT OR IGNORE INTO group_join_requests 
@@ -226,4 +223,37 @@ func (r *GroupsRepo) DeleteJoinRequest(req types.JoinRequest) error {
 		return fmt.Errorf("%s.DeleteJoinRequest: %w", repo, err)
 	}
 	return nil
+}
+
+// ===== Group Manage repos
+func (r *GroupsRepo) GetInvitableUsers(userId, groupId string) ([]types.InvitableUser, error) {
+	rows, err := r.DB.Query(`
+		SELECT u.id, u.first_name, u.last_name,
+		EXISTS(SELECT 1 FROM group_invitations WHERE group_id = ? AND user_id = u.id)
+
+		FROM users u
+		WHERE
+		NOT EXISTS(
+			SELECT 1 FROM group_members WHERE group_id = ? AND user_id = u.id 
+		)
+		AND u.id != ?
+	`, groupId, groupId, userId)
+	if err != nil {
+		return nil, fmt.Errorf("%s.GetInvitableUsers: Reading: %w")
+	}
+
+	invitableUsers := []types.InvitableUser{}
+
+	for rows.Next() {
+		iu := types.InvitableUser{}
+
+		err := rows.Scan(&iu.Id, &iu.FirstName, &iu.LastName, &iu.IsInvited)
+		if err != nil {
+			return nil, fmt.Errorf("%s.GetInvitableUsers: Scan: %w")
+		}
+
+		invitableUsers = append(invitableUsers, iu)
+	}
+
+	return invitableUsers, nil
 }

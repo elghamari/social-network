@@ -81,7 +81,6 @@ func (s *GroupsService) CreateGroup(input types.GroupInput) error {
 	}
 
 	if formErr.HasErrors() {
-		fmt.Println(formErr.Fields)
 		return formErr
 	}
 
@@ -127,7 +126,7 @@ func (s *GroupsService) GetGroup(userId, groupId string) (types.Group, error) {
 	return s.Groups.GetGroup(userId, groupId)
 }
 
-// ===== JoinRequest Handlers
+// ===== JoinRequest Services
 func (s *GroupsService) RequestToJoinGroup(req types.JoinRequest) error {
 	exists, err := s.Groups.ValidGroupId(req.GroupId)
 	if err != nil {
@@ -156,4 +155,25 @@ func (s *GroupsService) CancelToJoinGroup(req types.JoinRequest) error {
 	}
 
 	return s.Groups.DeleteJoinRequest(req)
+}
+
+// ===== Group Manage Services
+func (s *GroupsService) ListInvitableUsers(userId, groupId string) ([]types.InvitableUser, error) {
+	exists, err := s.Groups.ValidGroupId(groupId)
+	if err != nil {
+		return nil, err
+	}
+
+	if !exists {
+		actionErr := types.NewActionError()
+		actionErr.Message = "Group does not exist."
+		return nil, actionErr
+	}
+
+	list, err := s.Groups.GetInvitableUsers(userId, groupId)
+	if err != nil {
+		return nil, err
+	}
+
+	return list, nil
 }

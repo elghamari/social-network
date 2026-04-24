@@ -1,15 +1,26 @@
 "use client";
 
-import { Group, Tab } from "@/app/lib/types/groups";
+import { useSearchParams } from "next/navigation";
+
+import { useGroups } from "../_hooks/useGroups";
+
+import GroupListSkeleton from "./groups-list-skeleton";
 import GroupCard from "./group-card";
 
-export default function GroupsList({
-  groups,
-  activeTab,
-}: {
-  groups: Group[];
-  activeTab?: Tab;
-}) {
+import { Tab } from "@/app/lib/types/groups";
+
+export default function GroupsList() {
+  const searchParams = useSearchParams();
+
+  const activeTab = (searchParams.get("tab") as Tab) || "discover";
+  const query = searchParams.get("query") || "";
+
+  const { groups, loading } = useGroups(activeTab, query);
+
+  if (loading) {
+    return <GroupListSkeleton />;
+  }
+
   if (groups.length === 0) {
     return (
       <div className="groups-empty">

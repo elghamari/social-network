@@ -1,3 +1,7 @@
+/* ===================================================
+   GROUPS LISTING PAGE — /groups
+   =================================================== */
+
 /* ===== Page ===== */
 .groups-page {
   padding-right: 32px;
@@ -120,27 +124,6 @@
   opacity: 0.9;
 }
 
-/* ===== Responsive ===== */
-@media (max-width: 768px) {
-  .groups-page {
-    padding-right: 0;
-  }
-
-  .groups-page__header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 16px;
-  }
-
-  .groups-search {
-    max-width: 100%;
-  }
-
-  .groups-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
 /* ===== Card ===== */
 .group-card {
   background: var(--bg-surface);
@@ -148,7 +131,7 @@
   border-radius: var(--radius-md);
   overflow: hidden;
   transition: border-color var(--transition-fast);
-  cursor: pointer; /* 👈 whole card is clickable */
+  cursor: pointer;
 }
 
 .group-card:hover {
@@ -206,41 +189,123 @@
   color: var(--text-muted);
 }
 
-.group-card__action {
+/* ===== Card badge ===== */
+.group-card__badge {
   padding: 6px 12px;
   font-size: 12px;
   font-weight: 500;
   border-radius: var(--radius-sm);
-  transition: all var(--transition-fast);
   min-width: 80px;
   text-align: center;
-  cursor: pointer; /* 👈 button is always clickable */
 }
 
-.group-card__action--request {
+.group-card__badge--request {
   background: var(--accent-primary);
-  color: white;
+  color: #fff;
 }
 
-.group-card__action--request:hover {
-  opacity: 0.9;
+.group-card__badge--request:hover:not(:disabled) {
+  opacity: 0.88;
 }
 
-.group-card__action--pending {
+.group-card__badge--pending {
   background: var(--bg-elevated);
   color: var(--text-muted);
   border: 1px solid var(--border-subtle);
 }
 
-.group-card__action--pending:hover {
+.group-card__badge--pending:hover:not(:disabled) {
   background: rgba(239, 68, 68, 0.1);
   color: #ef4444;
   border-color: rgba(239, 68, 68, 0.3);
 }
 
-.group-card__action--member {
-  background: rgba(16, 185, 129, 0.1);
+.group-card__badge--member {
+  background: rgba(16, 185, 129, 0.12);
   color: #10b981;
-  cursor: default;
+}
+
+.group-card__badge:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===== Card skeleton ===== */
+@keyframes shimmer {
+  0% {
+    background-position: -600px 0;
+  }
+  100% {
+    background-position: 600px 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-elevated) 25%,
+    var(--bg-surface) 50%,
+    var(--bg-elevated) 75%
+  );
+  background-size: 600px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: var(--radius-sm);
+}
+
+.group-card--skeleton {
   pointer-events: none;
+}
+
+.skeleton.group-card__cover {
+  height: 120px;
+  border-radius: 0;
+}
+
+.skeleton--title {
+  height: 15px;
+  width: 60%;
+  margin-bottom: 10px;
+}
+
+.skeleton--line {
+  height: 12px;
+  width: 100%;
+  margin-bottom: 6px;
+}
+
+.skeleton--line-short {
+  width: 70%;
+  margin-bottom: 16px;
+}
+
+.skeleton--badge {
+  height: 12px;
+  width: 60px;
+}
+
+.skeleton--btn {
+  height: 28px;
+  width: 80px;
+  border-radius: var(--radius-sm);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .groups-page {
+    padding-right: 0;
+  }
+
+  .groups-page__header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .groups-search {
+    max-width: 100%;
+  }
+
+  .groups-grid {
+    grid-template-columns: 1fr;
+  }
 }

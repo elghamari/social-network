@@ -26,3 +26,10 @@ type JoinRequest struct {
 	UserId  string `json:"-"`
 	GroupId string `json:"groupId"`
 }
+
+type InvitableUser struct {
+	Id        string `json:"id"`
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+	IsInvited string `json:"isInvited"`
+}

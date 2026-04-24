@@ -1,11 +1,7 @@
 import { ImageIcon, XCancelIcon } from "@/app/ui/icons";
 import { useRef, useState } from "react";
 
-type GroupImageUploadProps = {
-  error: string;
-};
-
-export default function GroupImageUpload({ error }: GroupImageUploadProps) {
+export default function FormImageUpload({ error }: { error: string }) {
   const [imagePreview, setImagePreview] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 

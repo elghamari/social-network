@@ -1,41 +1,25 @@
+"use client";
+
 import "./layout.css";
-import { notFound } from "next/navigation";
-import GroupTabs from "@/app/(main)/groups/[id]/_components/group-tabs";
-import { getGroupById } from "@/app/lib/services/groups";
-import { showToast } from "@/app/ui/layout/toast-store";
-import { BASE_URL } from "@/app/lib/services/client";
+import { notFound, useParams } from "next/navigation";
+
+import Sections from "./_components/sections";
 import { LockIcon } from "@/app/ui/icons";
+import { useGroup } from "./_hooks/useGroup";
+import Header from "./_components/header";
+import LayoutSkeleton from "./_components/layout-skeleton";
 
-function actionLabel(role: string) {
-  if (role === "CREATOR") return "Creator";
-  if (role === "MEMBER") return "Joined";
-  if (role === "PENDING") return "Pending";
-  return "Request";
-}
-
-function actionClass(role: string) {
-  if (role === "CREATOR" || role === "MEMBER") return "gd-action--member";
-  if (role === "PENDING") return "gd-action--pending";
-  return "gd-action--request";
-}
-
-export default async function GroupLayout({
-  params,
+export default function GroupLayout({
   children,
 }: {
-  params: Promise<{ id: string }>;
   children: React.ReactNode;
 }) {
-  const { id } = await params;
-  const result = await getGroupById(id);
+  const params = useParams();
+  const id = params.id as string;
 
-  if (!result.success) {
-    showToast(result.error ?? "Something went wrong.");
-    return;
-  }
+  const { group, loading } = useGroup(id);
 
-  const group = result.data;
-
+  if (loading) return <LayoutSkeleton />;
   if (!group) notFound();
 
   const isMember = group.role === "CREATOR" || group.role === "MEMBER";
@@ -43,38 +27,11 @@ export default async function GroupLayout({
 
   return (
     <div className="gd">
-      {/* Cover */}
-      <div className={`gd__cover ${group.coverPath ? "" : "gd__cover--empty"}`}>
-        {group.coverPath && (
-          <img
-            src={BASE_URL + group.coverPath}
-            alt={`${group.title} cover`}
-            className="gd__cover-img"
-          />
-        )}
-      </div>
-
-      {/* Header */}
-      <div className="gd__header">
-        <div className="gd__header-text">
-          <h1 className="gd__title">{group.title}</h1>
-          <p className="gd__description">{group.description}</p>
-          <span className="gd__count">
-            {group.memberCount} {group.memberCount === 1 ? "member" : "members"}
-          </span>
-        </div>
-
-        <button
-          className={`gd-action ${actionClass(group.role)}`}
-          disabled={isMember}
-        >
-          {actionLabel(group.role)}
-        </button>
-      </div>
+      <Header group={group} isMember={isMember} />
 
       {isMember ? (
         <>
-          <GroupTabs groupId={id} isMember={isMember} isCreator={isCreator} />
+          <Sections groupId={id} isMember={isMember} isCreator={isCreator} />
           <div className="gd__content">{children}</div>
         </>
       ) : (

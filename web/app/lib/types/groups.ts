@@ -1,3 +1,4 @@
+// ===== Groups
 export type Tab = "discover" | "joined" | "pending";
 
 export type Group = {
@@ -11,8 +12,22 @@ export type Group = {
   role: string;
 };
 
-// ── Detail page ──────────────────────────────────────────────
-export type GroupRole = "CREATOR" | "MEMBER";
+// ===== Form
+export type GroupData = {
+  title: string;
+  description: string;
+  coverImage?: File | null;
+};
+
+export type GroupErrors = {
+  title?: string;
+  description?: string;
+  coverImage?: string;
+};
+
+// ===== Details
+
+export type Section = "posts" | "events" | "chat" | "invite";
 
 export type GroupMember = {
   id: string;
@@ -45,30 +60,3 @@ export type GroupEvent = {
   attendeesCount: number;
   rsvp: RSVPStatus;
 };
-
-export type GroupSection = "about" | "posts" | "members" | "events";
-
-// ── Form / action types ──────────────────────────────────────
-export type GroupData = {
-  title: string;
-  description: string;
-  coverImage?: File | null;
-};
-
-export type GroupErrors = {
-  title?: string;
-  description?: string;
-  coverImage?: string;
-};
-
-export type GroupState = {
-  success: boolean;
-  errors?: GroupErrors;
-  values?: GroupData;
-};
-
-export interface ActionResult {
-  success: boolean;
-  error?: string;
-  data?: any;
-}

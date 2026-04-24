@@ -25,10 +25,12 @@ func (h *Handler) Groups(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) ListGroups(w http.ResponseWriter, r *http.Request) {
 
+	userId := utils.GetUserId(r)
+
 	tab := r.URL.Query().Get("tab")
 	query := r.URL.Query().Get("query")
 
-	groups, err := h.Services.Groups.ListGroups("user", tab, query)
+	groups, err := h.Services.Groups.ListGroups(userId, tab, query)
 	if err != nil {
 		HandleError(w, err)
 		return
@@ -42,6 +44,8 @@ func (h *Handler) ListGroups(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) CreateGroup(w http.ResponseWriter, r *http.Request) {
 
+	userId := utils.GetUserId(r)
+
 	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
 		utils.WriteJson(w, map[string]any{
@@ -50,24 +54,27 @@ func (h *Handler) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var fileName string
+
 	file, fileHeader, err := r.FormFile("coverImage")
 	if err != nil {
-		if err == http.ErrMissingFile {
-			file = nil
-		} else {
+		if err != http.ErrMissingFile {
 			utils.WriteJson(w, map[string]any{
 				"status": http.StatusBadRequest,
 			})
 			return
 		}
+	} else {
+		fileName = fileHeader.Filename
 	}
+
 	input := types.GroupInput{
-		CreatorId:   "user",
+		CreatorId:   userId,
 		Title:       r.FormValue("title"),
 		Description: r.FormValue("description"),
 
 		CoverImage:     file,
-		CoverImageName: fileHeader.Filename,
+		CoverImageName: fileName,
 	}
 
 	err = h.Services.Groups.CreateGroup(input)
@@ -89,9 +96,10 @@ func (h *Handler) GetGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userId := utils.GetUserId(r)
 	groupId := r.PathValue("id")
 
-	group, err := h.Services.Groups.GetGroup("user", groupId)
+	group, err := h.Services.Groups.GetGroup(userId, groupId)
 	if err != nil {
 		HandleError(w, err)
 		return
@@ -122,6 +130,8 @@ func (h *Handler) JoinRequest(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) CreateJoinRequest(w http.ResponseWriter, r *http.Request) {
 
+	userId := utils.GetUserId(r)
+
 	req := types.JoinRequest{}
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
@@ -131,7 +141,7 @@ func (h *Handler) CreateJoinRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req.UserId = "user"
+	req.UserId = userId
 
 	err = h.Services.Groups.RequestToJoinGroup(req)
 	if err != nil {
@@ -146,9 +156,12 @@ func (h *Handler) CreateJoinRequest(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) DeleteJoinRequest(w http.ResponseWriter, r *http.Request) {
 
+	userId := utils.GetUserId(r)
+	groupId := r.URL.Query().Get("groupId")
+
 	req := types.JoinRequest{
-		UserId:  "user",
-		GroupId: r.URL.Query().Get("groupId"),
+		UserId:  userId,
+		GroupId: groupId,
 	}
 
 	err := h.Services.Groups.CancelToJoinGroup(req)
@@ -162,7 +175,26 @@ func (h *Handler) DeleteJoinRequest(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// ===== Group Manage
-func (h *Handler) ListNonMembers(w http.ResponseWriter, r *http.Request) {
+// ===== Group Manage Handler
+func (h *Handler) ListInvitableUsers(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.WriteJson(w, map[string]any{
+			"status": http.StatusMethodNotAllowed,
+		})
+		return
+	}
 
+	userId := utils.GetUserId(r)
+	groupId := r.URL.Query().Get("groupId")
+
+	list, err := h.Services.Groups.ListInvitableUsers(userId, groupId)
+	if err != nil {
+		HandleError(w, err)
+		return
+	}
+
+	utils.WriteJson(w, map[string]any{
+		"status": http.StatusOK,
+		"list":   list,
+	})
 }
