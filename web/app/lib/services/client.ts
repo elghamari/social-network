@@ -2,13 +2,21 @@ const API_BASE = "http://localhost:8080/api";
 
 class ClientApi {
   async request(endPoint: string, options: RequestInit = {}) {
+
+    const isFormData = options.body instanceof FormData;
+
+    const headers: any = {
+      ...options.headers,
+    };
+
+    if (!isFormData) {
+      headers["Content-Type"] = "application/json";
+    }
+
     const config: RequestInit = {
       ...options,
-      headers: { 
-        "Content-type": "application/json",
-        ...options.headers 
-      },
-      credentials: "include", 
+      headers,
+      credentials: "include",
     };
 
     try {
@@ -44,6 +52,13 @@ class ClientApi {
     return this.request(endPoint, {
       method: "POST",
       body: JSON.stringify(data),
+    });
+  }
+
+  postForm(endPoint: string, formData: FormData) {
+    return this.request(endPoint, {
+      method: "POST",
+      body: formData,
     });
   }
 
