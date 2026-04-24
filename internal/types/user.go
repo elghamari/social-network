@@ -6,6 +6,7 @@ import "time"
 
 type UserAuth struct {
 	Id          string
+	Nickname    string
 	SessionTime time.Time
 }
 

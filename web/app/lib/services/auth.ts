@@ -10,5 +10,9 @@ export const authService = {
   },
   logout: async () => {
     return await client.post("/logout", {});
+  },
+ getMe: async () => {
+    const res = await client.get("/auth/me");
+    return res;
   }
 };
