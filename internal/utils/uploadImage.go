@@ -29,6 +29,11 @@ func HandleImageUpload(r *http.Request, fieldName string) (*string, error) {
 		return nil, errors.New("invalid image content or fake file")
 	}
 
+	const maxSize = 2 * 1024 * 1024
+	if header.Size > maxSize {
+		return nil, errors.New("The image is greater than 2 MB.")
+	}
+
 	fileName := fmt.Sprintf("%d%s", time.Now().UnixNano(), filepath.Ext(header.Filename))
 	savePath := filepath.Join("uploads", fileName)
 
