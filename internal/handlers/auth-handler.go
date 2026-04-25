@@ -13,7 +13,6 @@ import (
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		utils.WriteJson(w, map[string]any{"status": http.StatusMethodNotAllowed})
-		fmt.Println("1111111111111111111111111111v")
 		return
 	}
 
@@ -23,7 +22,6 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 			"status": http.StatusBadRequest,
 			"error":  "invalid request body",
 		})
-		fmt.Println("2222222222222222222222222222")
 		return
 	}
 
@@ -56,7 +54,6 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 
 	user, sessionID, err := h.Services.Auth.Login(input)
 	if err != nil {
-		fmt.Println("44444444444444444444444444444444444444444444444444444444444")
 		utils.WriteJson(w, map[string]any{
 			"status": http.StatusUnauthorized,
 			"error":  "invalid credentials",
@@ -104,18 +101,15 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 
 	utils.WriteJson(w, map[string]any{"status": http.StatusOK})
 }
-
 func (h *Handler) CheckSession(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("sessionId")
 	if err != nil {
-		fmt.Println("2222222222222222222222222222222222222222222222222")
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 	userID, isValid := h.Services.Auth.ValidateSession(cookie.Value)
 
 	if !isValid {
-		fmt.Println("3333333333333333333333333333333333333333333333333")
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}

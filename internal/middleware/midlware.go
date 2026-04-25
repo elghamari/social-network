@@ -7,5 +7,5 @@ type Mid struct {
 }
 
 func NewMid(auth *services.AuthService) *Mid {
-	return  &Mid{AuthService: auth}
+	return &Mid{AuthService: auth}
 }
