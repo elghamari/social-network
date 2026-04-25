@@ -28,7 +28,8 @@ export function LoginForm() {
 
     try {
       const res = await authService.login(input);
-      
+      router.push("/");
+router.refresh();
       if (res.status === 200) {
         router.push("/");
       } else {
