@@ -43,6 +43,7 @@ export const config = {
     '/',
     '/profile/:path*',
     '/login',
-    '/register'
+    '/register',
+    '/posts/create'
   ],
 };
