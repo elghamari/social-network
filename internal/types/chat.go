@@ -23,10 +23,12 @@ type Message struct {
 }
 
 type Contact struct {
-	UserID      string `json:"user_id"`
-	Nickname    string `json:"nickname"`
-	Avatar      string `json:"avatar"`
-	LastMessage string `json:"last_message"`
-	LastTime    string `json:"last_time"`
-	UnreadCount int    `json:"unread_count"`
+    UserID      string `json:"id"` 
+    FirstName   string `json:"firstName"` 
+    LastName    string `json:"lastName"`  
+    Nickname    string `json:"nickName,omitempty"`
+    Avatar      string `json:"avatar,omitempty"`
+    LastMessage string `json:"lastMessage"`
+    LastTime    string `json:"lastTime"`
+    UnreadCount int    `json:"unreadCount"`
 }
