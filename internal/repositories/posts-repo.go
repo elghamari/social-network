@@ -58,19 +58,20 @@ func (r *PostsRepo) InsertPost(input types.PostInput) (int64, error) {
 	return lastPostId, nil
 }
 
-func (r *PostsRepo) GetProfilePosts(targetUserId string, currentUserId string, cursor int) ([]types.PostResponse, error) {
-	posts := []types.PostResponse{}
-
-	selectClause := `
+var selectClause = `
         SELECT 
-            p.id, p.user_id, u.nickname, p.group_id, 
-            p.title, p.description, p.privacy, p.image_url, p.created_at,
+            p.id, p.user_id, u.nickname, u.first_name, u.last_name, u.avatar,
+			p.group_id, p.title, p.description, p.privacy, p.image_url, p.created_at,
+            EXISTS(SELECT 1 FROM reactions WHERE post_id = p.id AND user_id = ?),
             (SELECT COUNT(*) FROM reactions WHERE post_id = p.id),
-            (SELECT COUNT(*) FROM comments WHERE post_id = p.id),
-            EXISTS(SELECT 1 FROM reactions WHERE post_id = p.id AND user_id = ?)
+            (SELECT COUNT(*) FROM comments WHERE post_id = p.id)
         FROM posts as p
         INNER JOIN users as u ON p.user_id = u.id
     `
+
+func (r *PostsRepo) GetProfilePosts(targetUserId string, currentUserId string, cursor int) ([]types.PostResponse, error) {
+	posts := []types.PostResponse{}
+
 	var whereClause string
 	var args []interface{}
 
@@ -104,10 +105,11 @@ func (r *PostsRepo) GetProfilePosts(targetUserId string, currentUserId string, c
 	for rows.Next() {
 		var p types.PostResponse
 		err := rows.Scan(
-			&p.Id, &p.User.Id, &p.User.Username,
+			&p.Id, &p.User.Id, &p.User.Nickname,
+			&p.User.FirstName, &p.User.LastName, &p.User.Avatar,
 			&p.GroupId, &p.Title, &p.Description,
 			&p.Privacy, &p.ImageUrl, &p.CreatedAt,
-			&p.TotalLikes, &p.TotalComments, &p.IsLiked,
+			&p.IsLiked, &p.TotalLikes, &p.TotalComments,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("PostsRepo.GetProfilePosts (Scan): %w", err)
@@ -128,16 +130,6 @@ func (r *PostsRepo) GetGroupPosts(groupId int, currentUserId string, cursor int)
 	var query string
 	var args []interface{}
 
-	selectClause := `
-        SELECT 
-            p.id, p.user_id, u.nickname, p.group_id, 
-            p.title, p.description, p.privacy, p.image_url, p.created_at,
-            (SELECT COUNT(*) FROM reactions WHERE post_id = p.id),
-            (SELECT COUNT(*) FROM comments WHERE post_id = p.id),
-            EXISTS(SELECT 1 FROM reactions WHERE post_id = p.id AND user_id = ?)
-        FROM posts as p
-        INNER JOIN users as u ON p.user_id = u.id
-    	`
 	if cursor == 0 {
 		query = selectClause + " WHERE p.group_id = ? ORDER BY p.id DESC LIMIT 20 "
 		args = []interface{}{currentUserId, groupId}
@@ -156,10 +148,11 @@ func (r *PostsRepo) GetGroupPosts(groupId int, currentUserId string, cursor int)
 		var p types.PostResponse
 
 		err := rows.Scan(
-			&p.Id, &p.User.Id, &p.User.Username,
+			&p.Id, &p.User.Id, &p.User.Nickname,
+			&p.User.FirstName, &p.User.LastName, &p.User.Avatar,
 			&p.GroupId, &p.Title, &p.Description,
 			&p.Privacy, &p.ImageUrl, &p.CreatedAt,
-			&p.TotalLikes, &p.TotalComments, &p.IsLiked,
+			&p.IsLiked, &p.TotalLikes, &p.TotalComments,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("PostsRepo.GetGroupPosts (Scan): %w", err)
@@ -180,16 +173,6 @@ func (r *PostsRepo) GetFeedPosts(userId string, cursor int) ([]types.PostRespons
 	var query string
 	var args []interface{}
 
-	selectClause := `
-        SELECT 
-            p.id, p.user_id, u.nickname, p.group_id, 
-            p.title, p.description, p.privacy, p.image_url, p.created_at,
-            (SELECT COUNT(*) FROM reactions WHERE post_id = p.id),
-            (SELECT COUNT(*) FROM comments WHERE post_id = p.id),
-            EXISTS(SELECT 1 FROM reactions WHERE post_id = p.id AND user_id = ?)
-        FROM posts p
-        INNER JOIN users u ON p.user_id = u.id
-    	`
 	whereClause := `
         (
             (p.privacy = 'public' AND p.group_id IS NULL) OR
@@ -217,10 +200,11 @@ func (r *PostsRepo) GetFeedPosts(userId string, cursor int) ([]types.PostRespons
 		var p types.PostResponse
 
 		err := rows.Scan(
-			&p.Id, &p.User.Id, &p.User.Username,
+			&p.Id, &p.User.Id, &p.User.Nickname,
+			&p.User.FirstName, &p.User.LastName, &p.User.Avatar,
 			&p.GroupId, &p.Title, &p.Description,
 			&p.Privacy, &p.ImageUrl, &p.CreatedAt,
-			&p.TotalLikes, &p.TotalComments, &p.IsLiked,
+			&p.IsLiked, &p.TotalLikes, &p.TotalComments,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("PostsRepo.GetFeedPosts (Scan): %w", err)

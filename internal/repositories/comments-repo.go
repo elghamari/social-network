@@ -41,7 +41,7 @@ func (r *CommentsRepo) GetPostComments(postId int, cursor int) ([]types.CommentR
 
 	if cursor == 0 {
 		query = `
-        SELECT c.id, c.post_id, u.id, u.nickname, 
+        SELECT c.id, c.post_id, u.id, u.nickname, u.first_name, u.last_name, u.avatar, 
 		c.content, c.image_url, c.created_at
         FROM comments c
         INNER JOIN users u ON c.user_id = u.id
@@ -51,7 +51,7 @@ func (r *CommentsRepo) GetPostComments(postId int, cursor int) ([]types.CommentR
 		args = []interface{}{postId}
 	} else {
 		query = `
-        SELECT c.id, c.post_id, u.id, u.nickname,
+        SELECT c.id, c.post_id, u.id, u.f,
 		c.content, c.image_url, c.created_at
         FROM comments c
         INNER JOIN users u ON c.user_id = u.id
@@ -72,7 +72,7 @@ func (r *CommentsRepo) GetPostComments(postId int, cursor int) ([]types.CommentR
 
 		err := rows.Scan(
 			&c.Id, &c.PostId,
-			&c.User.Id, &c.User.Username,
+			&c.User.Id, &c.User.Nickname, &c.User.FirstName, &c.User.LastName, &c.User.Avatar,
 			&c.Content, &c.ImageUrl, &c.CreatedAt,
 		)
 		if err != nil {
