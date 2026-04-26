@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"soc-net/internal/types"
@@ -39,6 +40,7 @@ func (h *Handler) GetMe(w http.ResponseWriter, r *http.Request) {
 		},
 	})
 }
+
 // GET /api/profile?profile_id=<id>
 func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	viewerID := utils.GetUserId(r)
@@ -63,7 +65,7 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 
 	followStatus, _ := h.Services.Follow.GetFollowStatus(viewerID, targetID)
 	isOwner := viewerID == targetID
-	
+
 	if isOwner {
 		followStatus = "owner"
 	}
@@ -91,5 +93,34 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 			Following:       following,
 			PendingRequests: pending,
 		},
+	})
+}
+
+// PUT /api/profile/privacy
+func (h *Handler) TogglePrivacy(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPut {
+		utils.WriteJson(w, map[string]any{"status": http.StatusMethodNotAllowed})
+		return
+	}
+
+	var payload struct {
+		IsPublic bool `json:"is_public"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		utils.WriteJson(w, map[string]any{"status": http.StatusBadRequest, "error": "Invalid payload"})
+		return
+	}
+	defer r.Body.Close()
+
+	userID := utils.GetUserId(r)
+
+	if err := h.Services.Auth.UpdatePrivacy(userID, payload.IsPublic); err != nil {
+		utils.WriteJson(w, map[string]any{"status": http.StatusInternalServerError, "error": "Update failed"})
+		return
+	}
+
+	utils.WriteJson(w, map[string]any{
+		"status":    http.StatusOK,
+		"is_public": payload.IsPublic,
 	})
 }

@@ -48,7 +48,7 @@ func New(svcs *services.Services, port string) http.Handler {
 		"/api/follow/decline": h.DeclineFollowRequest,
 		"/api/unfollow":       h.UnfollowUser,
 		"/api/search":         h.Search,
-		// "/api/profile/privacy":
+		"/api/profile/privacy":h.TogglePrivacy,
 	}
 	for path, hand := range authRoutes {
 		finalHandler := h.mid.SessionLoader(h.mid.AuthRequired(hand))

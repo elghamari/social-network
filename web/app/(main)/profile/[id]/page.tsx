@@ -25,7 +25,7 @@ export default function UserProfilePage() {
           setProfile(res.user);
         }
       } catch (err) {
-        console.error("Error fetching profile:", err);
+        console.log("Error fetching profile:", err);
       } finally {
         setLoading(false);
       }
@@ -52,7 +52,7 @@ export default function UserProfilePage() {
         }
       }
     } catch (err) {
-      console.error("Follow toggle error:", err);
+      console.log("Follow toggle error:", err);
     }
   };
 
@@ -72,7 +72,7 @@ export default function UserProfilePage() {
         });
       }
     } catch (err) {
-      console.error("Accept error:", err);
+      console.log("Accept error:", err);
     }
   };
 
@@ -86,7 +86,7 @@ export default function UserProfilePage() {
         }));
       }
     } catch (err) {
-      console.error("Decline error:", err);
+      console.log("Decline error:", err);
     }
   };
 

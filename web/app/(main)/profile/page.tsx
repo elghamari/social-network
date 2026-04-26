@@ -4,16 +4,34 @@ import { useAuth } from "../../context/AuthContext";
 import ProfileHeader from "@/app/ui/profile/ProfileHeader";
 import ProfileStats from "@/app/ui/profile/ProfileStats";
 import FollowModal from "@/app/ui/profile/FollowModal";
+import client from "@/app/lib/services/client"; // ضروري تزيد هادي
 import "./profile.css";
 
 export default function ProfilePage() {
   const { user } = useAuth();
 
   const [modalType, setModalType] = useState<"followers" | "following" | null>(null);
+  
+  const [isPublic, setIsPublic] = useState<boolean>(user?.is_public ?? true);
 
   if (!user) {
     return <div className="profile-loading">Loading...</div>;
   }
+
+  const handlePrivacyToggle = async () => {
+    const newStatus = !isPublic;
+    setIsPublic(newStatus);
+
+    try {
+      const res = await client.put('/profile/privacy', { is_public: newStatus });
+      if (res.status !== 200) {
+        setIsPublic(!newStatus); 
+      }
+    } catch (err) {
+      console.log("Privacy toggle error:", err);
+      setIsPublic(!newStatus);
+    }
+  };
 
   return (
     <div className="profile-page">
@@ -25,9 +43,21 @@ export default function ProfilePage() {
         bio={user.about_me}
         avatar={user.avatar}
       >
-        <button className="profile-btn profile-btn--edit">
-          Edit Profile
-        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
+          <button className="profile-btn profile-btn--edit">
+            Edit Profile
+          </button>
+          
+          <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "14px", color: "#ccc" }}>
+            <input
+              type="checkbox"
+              checked={isPublic}
+              onChange={handlePrivacyToggle}
+              style={{ cursor: "pointer" }}
+            />
+            Public Account
+          </label>
+        </div>
       </ProfileHeader>
 
       <ProfileStats

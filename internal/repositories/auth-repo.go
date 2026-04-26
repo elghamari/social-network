@@ -195,3 +195,9 @@ func (s *AuthRepo) ValidateSession(sessionID string) (string, bool) {
 	}
 	return userID, true
 }
+
+func (r *AuthRepo) UpdatePrivacy(userID string, isPublic bool) error {
+	query := `UPDATE users SET is_public = ? WHERE id = ?`
+	_, err := r.DB.Exec(query, isPublic, userID)
+	return err
+}

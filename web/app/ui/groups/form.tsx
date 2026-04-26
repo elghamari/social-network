@@ -126,7 +126,7 @@ export default function Form() {
 //     console.log("Creating group:", formData);
 //     router.push("/groups");
 //   } catch (error) {
-//     console.error("Failed to create group:", error);
+//     console.log("Failed to create group:", error);
 //   } finally {
 //     setIsSubmitting(false);
 //   }

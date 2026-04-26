@@ -127,3 +127,7 @@ func generateUUID() string {
 func (s *AuthService) ValidateSession(sessionID string) (string, bool) {
 	return s.Auth.ValidateSession(sessionID)
 }
+
+func (s *AuthService) UpdatePrivacy(userID string, isPublic bool) error {
+	return s.Auth.UpdatePrivacy(userID, isPublic)
+}

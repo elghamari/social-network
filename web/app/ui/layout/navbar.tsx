@@ -24,7 +24,7 @@ export default function NavBar() {
           setResults(res.users || []);
         }
       } catch (err) {
-        console.error("Search error", err);
+        console.log("Search error", err);
       }
     }, 300);
 
