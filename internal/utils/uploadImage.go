@@ -38,7 +38,7 @@ func HandleImageUpload(r *http.Request, fieldName string) (*string, error) {
 	}
 
 	fileName := fmt.Sprintf("%d%s", time.Now().UnixNano(), filepath.Ext(header.Filename))
-	savePath := filepath.Join("uploads", fileName)
+	savePath := filepath.Join("web/public/uploads", fileName)
 
 	outFile, err := os.Create(savePath)
 	if err != nil {
