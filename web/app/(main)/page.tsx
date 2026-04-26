@@ -1,25 +1,19 @@
 "use client";
 import CreatePostForm from "@/app/ui/posts/create-form";
-import {GetFeedPosts} from "../lib/services/feed";
-import { useEffect } from "react";
 import PostList from "../ui/posts/post-list";
+import { useState } from "react";
 
-export default  function HomePage() {
+export default function HomePage() {
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  useEffect( ()=>{
+  const handlePostCreated = () => {
+    setRefreshKey((prev) => prev + 1);
+  };
 
-    (async ()=>{
-      const post = await GetFeedPosts()
-      console.log(post);
-
-    })()
-  },[])
-  
   return (
-
     <div>
-      <CreatePostForm />
-      <PostList />
-      </div>
+      <CreatePostForm onPostCreated={handlePostCreated}/>
+      <PostList refreshKey={refreshKey}/>
+    </div>
   );
 }
