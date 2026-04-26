@@ -8,6 +8,11 @@ export interface FormState {
 
 export interface PostFormProps {
   onCancel: () => void;
+  onPostCreated?: () => void;
+}
+
+export interface CreatePostFormProps {
+  onPostCreated?: () => void;
 }
 
 export interface followingUsers {
@@ -27,20 +32,24 @@ export type PostErrors = {
   description?: string;
   privacy?: string;
   privateUsers?: string;
-}
+};
 
 export interface PostType {
-  id: string;
+  id: number;
   author: {
-    name: string;
-    username: string;
-    initials: string;
+    id: string;
+    nickname: string;
+    fistname: string;
+    lastname: string;
+    avatar: string;
   };
-  timeAgo: string;
-  privacy: string;
+  group_id?: number;
   title: string;
   description: string;
-  imageUrl?: string; 
-  likesCount: number;
-  commentsCount: number;
+  privacy: string;
+  image_url?: string;
+  created_at: string;
+  is_liked: boolean;
+  total_likes: number;
+  total_comments: number;
 }
