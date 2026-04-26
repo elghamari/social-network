@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import type { JoinRequestItem } from "@/app/lib/types/group";
-import { listJoinRequests } from "@/app/lib/services/group";
 import { showToast } from "@/app/ui/layout/toast-store";
+import { listJoinRequests } from "@/app/lib/services/group";
+import { JoinRequestItem } from "@/app/lib/types/group";
 
-export function useGroupJoinRequestList(groupId: string) {
+export function useJoinRequestList(groupId: string) {
   const router = useRouter();
 
   const [loading, setLoading] = useState(true);
@@ -36,7 +36,7 @@ export function useGroupJoinRequestList(groupId: string) {
       .finally(() => {
         setLoading(false);
       });
-  }, [groupId]);
+  }, []);
 
   function removeJoinRequest(userId: string) {
     setList((prev) => prev?.filter((r) => r.userId !== userId) ?? null);

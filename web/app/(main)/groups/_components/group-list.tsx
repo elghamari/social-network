@@ -2,9 +2,8 @@
 
 import { useSearchParams } from "next/navigation";
 
-import { useGroupList } from "../_hooks/use-group-list";
+import { useGroupList } from "../_hooks/use-groups-list";
 
-import GroupListSkeleton from "./group-list-skeleton";
 import GroupCard from "./group-card";
 
 import type { GroupTab } from "@/app/lib/types/group";
@@ -18,7 +17,7 @@ export default function GroupList() {
   const { groups, loading } = useGroupList(activeTab, query);
 
   if (loading) {
-    return <GroupListSkeleton />;
+    return <Skeleton />;
   }
 
   if (groups.length === 0) {
@@ -40,6 +39,27 @@ export default function GroupList() {
     <div className="groups-grid">
       {groups.map((group) => (
         <GroupCard key={group.id} group={group} />
+      ))}
+    </div>
+  );
+}
+
+function Skeleton() {
+  return (
+    <div className="groups-grid">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="group-card group-card--skeleton">
+          <div className="skeleton group-card__cover" />
+          <div className="group-card__content">
+            <div className="skeleton skeleton--title" />
+            <div className="skeleton skeleton--line" />
+            <div className="skeleton skeleton--line skeleton--line-short" />
+            <div className="group-card__footer">
+              <div className="skeleton skeleton--badge" />
+              <div className="skeleton skeleton--btn" />
+            </div>
+          </div>
+        </div>
       ))}
     </div>
   );

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-export default async function Page({
+export default async function GroupDetailsPage({
   params,
 }: {
   params: Promise<{ id: string }>;

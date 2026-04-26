@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { useGroupInviteList } from "../_hooks/use-group-invite-list";
+import { useInviteList } from "../_hooks/use-invite-list";
 
 import {
   createGroupInvitation,
@@ -13,8 +13,8 @@ import { showToast } from "@/app/ui/layout/toast-store";
 
 export default function GroupInviteList({ groupId }: { groupId: string }) {
   const router = useRouter();
-  const { list, loading, search, setInvite } = useGroupInviteList(groupId);
 
+  const { list, loading, search, setInvite } = useInviteList(groupId);
   const [pendingId, setPendingId] = useState<string | null>(null);
 
   async function handleInvite(userId: string) {
@@ -64,7 +64,7 @@ export default function GroupInviteList({ groupId }: { groupId: string }) {
 
       <div className="gd-manage__list">
         {loading ? (
-          <ListSkeleton />
+          <Skeleton />
         ) : !list || list.length === 0 ? (
           <div className="gd-manage__empty">
             {!list ? "No users match your search." : "No users to invite."}
@@ -115,7 +115,7 @@ export default function GroupInviteList({ groupId }: { groupId: string }) {
   );
 }
 
-function ListSkeleton() {
+function Skeleton() {
   return (
     <>
       {Array.from({ length: 5 }).map((_, i) => (

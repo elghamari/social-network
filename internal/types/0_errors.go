@@ -22,8 +22,8 @@ type ActionError struct {
 	Message string
 }
 
-func NewActionError() *ActionError {
-	return &ActionError{}
+func NewActionError(msg string) *ActionError {
+	return &ActionError{Message: msg}
 }
 
 func (e ActionError) Error() string {

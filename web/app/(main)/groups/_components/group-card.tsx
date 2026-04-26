@@ -2,9 +2,9 @@
 
 import { useRouter } from "next/navigation";
 
-import { Group } from "@/app/lib/types/groups";
-
 import JoinButton from "./join-button";
+
+import { Group } from "@/app/lib/types/group";
 
 export default function GroupCard({ group }: { group: Group }) {
   const isMember = group.role === "CREATOR" || group.role === "MEMBER";

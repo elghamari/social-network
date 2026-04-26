@@ -3,10 +3,7 @@
 import { useState } from "react";
 
 import { showToast } from "@/app/ui/layout/toast-store";
-import {
-  createJoinRequest,
-  deleteJoinRequest,
-} from "@/app/lib/services/groups";
+import { cancelJoinRequest, submitJoinRequest } from "@/app/lib/services/group";
 import { useRouter } from "next/navigation";
 
 const styles = {
@@ -20,17 +17,17 @@ const styles = {
   },
 };
 
-type JoinButtonProps = {
+type GroupJoinButtonProps = {
   groupId: string;
   groupRole: string;
   type: "card" | "header";
 };
 
-export default function JoinButton({
+export default function GroupJoinButton({
   groupId,
   groupRole,
   type,
-}: JoinButtonProps) {
+}: GroupJoinButtonProps) {
   const router = useRouter();
 
   const [isPending, setIsPending] = useState(groupRole === "PENDING");
@@ -41,7 +38,7 @@ export default function JoinButton({
     e.stopPropagation();
 
     setLoading(true);
-    const action = isPending ? deleteJoinRequest : createJoinRequest;
+    const action = isPending ? cancelJoinRequest : submitJoinRequest;
 
     const resp = await action(groupId);
     setLoading(false);

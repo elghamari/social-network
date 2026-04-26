@@ -2,11 +2,7 @@
 
 import { useRouter } from "next/navigation";
 
-export default function GroupCreateFormActions({
-  loading,
-}: {
-  loading: boolean;
-}) {
+export default function GroupFormActions({ loading }: { loading: boolean }) {
   const router = useRouter();
 
   return (

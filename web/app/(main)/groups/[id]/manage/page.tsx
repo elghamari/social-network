@@ -2,11 +2,11 @@
 
 import "./page.css";
 
-import GroupInviteList from "./_components/group-invite-list";
-import { useGroupContext } from "../_context/group-context";
-import GroupJoinRequestList from "./_components/group-join-request-list";
+import GroupInviteList from "./_components/invite-list";
+import { useGroupContext } from "../_context/context";
+import GroupJoinRequestList from "./_components/join-request-list";
 
-export default function Manage() {
+export default function ManagePage() {
   const { id, role } = useGroupContext();
 
   const isCreator = role === "CREATOR";

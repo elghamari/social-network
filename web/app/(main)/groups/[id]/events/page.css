@@ -38,7 +38,7 @@
   margin-bottom: 10px;
 }
 
-.gd-event__time {
+.gd-event__date {
   font-size: 12px;
   color: var(--text-muted);
 }
@@ -68,12 +68,12 @@
   color: var(--text-muted);
 }
 
-.gd-event__rsvp {
+.gd-event__status {
   display: flex;
   gap: 8px;
 }
 
-.gd-rsvp {
+.gd-status {
   padding: 6px 14px;
   font-size: 12px;
   font-weight: 500;
@@ -84,18 +84,18 @@
   transition: all var(--transition-fast);
 }
 
-.gd-rsvp:hover {
+.gd-status:hover {
   border-color: var(--border-default);
   color: var(--text-primary);
 }
 
-.gd-rsvp--active-going {
+.gd-status--active-going {
   background: rgba(16, 185, 129, 0.12);
   color: #10b981;
   border-color: rgba(16, 185, 129, 0.3);
 }
 
-.gd-rsvp--active-not {
+.gd-status--active-not {
   background: rgba(239, 68, 68, 0.1);
   color: #ef4444;
   border-color: rgba(239, 68, 68, 0.3);
@@ -109,4 +109,148 @@
   .gd-event__side {
     align-items: flex-start;
   }
+}
+
+/* ===== Overlay ===== */
+.ef-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+
+/* ===== Modal ===== */
+.ef-modal {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 480px;
+  overflow: hidden;
+}
+
+.ef-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.ef-modal__title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.ef-modal__close {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  color: var(--text-muted);
+  transition: all var(--transition-fast);
+}
+
+.ef-modal__close:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* ===== Form ===== */
+.ef-modal__form {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ===== Field ===== */
+.ef-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ef-field__label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.ef-field__input {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: border-color var(--transition-fast);
+}
+
+.ef-field__input::placeholder {
+  color: var(--text-muted);
+}
+
+.ef-field__input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+.ef-field__input--textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.ef-field__error {
+  font-size: 12px;
+  color: #ef4444;
+}
+
+/* ===== Actions ===== */
+.ef-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+/* ===== Buttons ===== */
+.ef-btn {
+  padding: 8px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.ef-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ef-btn--cancel {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+}
+
+.ef-btn--cancel:hover:not(:disabled) {
+  background: var(--bg-hover);
+}
+
+.ef-btn--submit {
+  background: var(--accent-primary);
+  color: #fff;
+}
+
+.ef-btn--submit:hover:not(:disabled) {
+  opacity: 0.88;
 }

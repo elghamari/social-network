@@ -1,5 +1,6 @@
+import JoinButton from "../../_components/join-button";
+
 import type { Group } from "@/app/lib/types/group";
-import GroupJoinButton from "../../_components/group-join-button";
 
 type GroupHeaderProps = {
   group: Group;
@@ -33,7 +34,7 @@ export default function GroupHeader({ group, isMember }: GroupHeaderProps) {
             {group.role === "CREATOR" ? "Creator" : "Joined"}
           </span>
         ) : (
-          <GroupJoinButton
+          <JoinButton
             groupId={group.id}
             groupRole={group.role}
             type="header"

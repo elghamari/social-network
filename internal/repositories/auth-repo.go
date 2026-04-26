@@ -181,18 +181,32 @@ func (r *AuthRepo) CheckUserExists(id string) (bool, error) {
 	return exists, err
 }
 
-func (s *AuthRepo) ValidateSession(sessionID string) (string, bool) {
+func (r *AuthRepo) ValidateSession(sessionID string) (string, bool) {
 	var userID string
 	var sessionTime time.Time
 
 	query := `SELECT id, session_time FROM users WHERE session_id = ?`
-	err := s.DB.QueryRow(query, sessionID).Scan(&userID, &sessionTime)
+	err := r.DB.QueryRow(query, sessionID).Scan(&userID, &sessionTime)
 	if err != nil {
 		return "", false
 	}
 	if time.Now().After(sessionTime) {
-		s.DB.Exec(`UPDATE users SET session_id = NULL, session_time = NULL WHERE id = ?`, userID)
+		r.DB.Exec(`UPDATE users SET session_id = NULL, session_time = NULL WHERE id = ?`, userID)
 		return "", false
 	}
 	return userID, true
+}
+
+func (r *AuthRepo) UserExists(userId string) (bool, error) {
+	var exists bool
+	err := r.DB.QueryRow(`
+		SELECT EXISTS(
+			SELECT 1 FROM users WHERE id = ?
+		)
+	`, userId).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("authRepo.ValidateUserId: Scan: %w", err)
+	}
+
+	return exists, nil
 }

@@ -2,9 +2,9 @@ import Link from "next/link";
 import "./page.css";
 
 import { LeftArrowIcon } from "@/app/ui/icons";
-import GroupCreateForm from "@/app/(main)/groups/create/_components/group-create-form";
+import GroupCreateForm from "@/app/(main)/groups/create/_components/group-form";
 
-export default function Page() {
+export default function GroupCreatePage() {
   return (
     <div className="create-group-page">
       <Link href="/groups" className="create-group-page__back">

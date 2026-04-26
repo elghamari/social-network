@@ -4,7 +4,7 @@ interface GroupCreateFormFieldProps {
   children: React.ReactNode;
 }
 
-export default function GroupCreateFormField({
+export default function GroupFormField({
   label,
   error,
   children,

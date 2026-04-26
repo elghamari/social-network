@@ -3,28 +3,24 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { useGroupJoinRequestList } from "../_hooks/use-group-join-request-list";
+import { useJoinRequestList } from "../_hooks/use-join-request-list";
+
 import {
   approveJoinRequest,
   rejectJoinRequest,
 } from "@/app/lib/services/group";
 import { showToast } from "@/app/ui/layout/toast-store";
 
-export default function GroupJoinRequestList({
-  groupId,
-}: {
-  groupId: string;
-}) {
+export default function GroupJoinRequestList({ groupId }: { groupId: string }) {
   const router = useRouter();
-  const { list, loading, removeJoinRequest } =
-    useGroupJoinRequestList(groupId);
+
+  const { list, loading, removeJoinRequest } = useJoinRequestList(groupId);
   const [pendingId, setPendingId] = useState<string | null>(null);
 
-  if (loading) return <ListSkeleton />;
-
-  async function handleDecision(userId: string, approve: boolean) {
-    setPendingId(userId);
+  async function handleAction(userId: string, approve: boolean) {
     const action = approve ? approveJoinRequest : rejectJoinRequest;
+
+    setPendingId(userId);
     const resp = await action(groupId, userId);
     setPendingId(null);
 
@@ -51,15 +47,17 @@ export default function GroupJoinRequestList({
       <div className="gd-manage__panel-header">
         <h2 className="gd-manage__heading">Join Requests</h2>
         <p className="gd-manage__subtext">
-          Accept or decline pending requests.
+          Approve or reject pending requests.
         </p>
       </div>
 
-      {!list || list.length === 0 ? (
-        <div className="gd-empty">No pending requests.</div>
-      ) : (
-        <div className="gd-manage__list">
-          {list.map((req) => {
+      <div className="gd-manage__list">
+        {loading ? (
+          <Skeleton />
+        ) : !list || list.length === 0 ? (
+          <div className="gd-empty">No pending requests.</div>
+        ) : (
+          list.map((req) => {
             const initials =
               req.firstName.charAt(0).toUpperCase() +
               req.lastName.charAt(0).toUpperCase();
@@ -83,31 +81,31 @@ export default function GroupJoinRequestList({
                 <div className="gd-manage__actions">
                   <button
                     type="button"
-                    className="gd-manage__btn gd-manage__btn--accept"
+                    className="gd-manage__btn gd-manage__btn--approve"
                     disabled={pendingId === req.userId}
-                    onClick={() => handleDecision(req.userId, true)}
+                    onClick={() => handleAction(req.userId, true)}
                   >
-                    Accept
+                    Approve
                   </button>
                   <button
                     type="button"
-                    className="gd-manage__btn gd-manage__btn--decline"
+                    className="gd-manage__btn gd-manage__btn--reject"
                     disabled={pendingId === req.userId}
-                    onClick={() => handleDecision(req.userId, false)}
+                    onClick={() => handleAction(req.userId, false)}
                   >
-                    Decline
+                    Reject
                   </button>
                 </div>
               </div>
             );
-          })}
-        </div>
-      )}
+          })
+        )}
+      </div>
     </section>
   );
 }
 
-function ListSkeleton() {
+function Skeleton() {
   return (
     <>
       {Array.from({ length: 5 }).map((_, i) => (

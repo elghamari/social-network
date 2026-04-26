@@ -3,18 +3,18 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { GroupData, GroupErrors } from "@/app/lib/types/groups";
+import type { GroupFormErrors, GroupFormInput } from "@/app/lib/types/group";
 import { validateGroup } from "@/app/lib/utils/validators";
-import { createGroup } from "@/app/lib/services/groups";
+import { createGroup } from "@/app/lib/services/group";
 
-import FormField from "./form-field";
-import FormImageUpload from "./form-image-upload";
-import FormActions from "./form-actions";
+import GroupCreateFormField from "./group-form-field";
+import GroupCreateFormImageUpload from "./group-form-image-upload";
+import GroupCreateFormActions from "./group-form-actions";
 
-export default function Form() {
+export default function GroupForm() {
   const router = useRouter();
 
-  const [errors, setErrors] = useState<GroupErrors>({});
+  const [errors, setErrors] = useState<GroupFormErrors>({});
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.SubmitEvent) {
@@ -22,7 +22,7 @@ export default function Form() {
     const form = e.target;
 
     const fd = new FormData(form);
-    const data: GroupData = {
+    const data: GroupFormInput = {
       title: String(fd.get("title") ?? "").trim(),
       description: String(fd.get("description") ?? "").trim(),
       coverImage: fd.get("coverImage") as File | null,
@@ -58,7 +58,7 @@ export default function Form() {
 
   return (
     <form onSubmit={handleSubmit} className="group-form">
-      <FormField label="Title" error={errors?.title}>
+      <GroupCreateFormField label="Title" error={errors?.title}>
         <input
           id="title"
           type="text"
@@ -69,9 +69,9 @@ export default function Form() {
             setErrors({ ...errors, title: "" });
           }}
         />
-      </FormField>
+      </GroupCreateFormField>
 
-      <FormField label="Description" error={errors?.description}>
+      <GroupCreateFormField label="Description" error={errors?.description}>
         <textarea
           id="description"
           name="description"
@@ -81,11 +81,11 @@ export default function Form() {
             setErrors({ ...errors, description: "" });
           }}
         />
-      </FormField>
+      </GroupCreateFormField>
 
-      <FormImageUpload error={errors?.coverImage ?? ""} />
+      <GroupCreateFormImageUpload error={errors?.coverImage ?? ""} />
 
-      <FormActions loading={loading} />
+      <GroupCreateFormActions loading={loading} />
     </form>
   );
 }

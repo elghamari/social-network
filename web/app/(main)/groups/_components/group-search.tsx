@@ -8,12 +8,12 @@ import type { GroupTab } from "@/app/lib/types/group";
 import { SearchIcon } from "@/app/ui/icons";
 
 export default function GroupSearch() {
+  const { replace } = useRouter();
   const pathname = usePathname();
 
   const searchParams = useSearchParams();
   const activeTab = (searchParams.get("tab") as GroupTab) || "discover";
 
-  const { replace } = useRouter();
 
   let timeoutRef = useRef<NodeJS.Timeout | null>(null);
   function setSearch(value: string) {

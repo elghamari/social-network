@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import type { Group } from "@/app/lib/types/group";
-import { getGroup } from "@/app/lib/services/group";
 import { showToast } from "@/app/ui/layout/toast-store";
+
+import { getGroup } from "@/app/lib/services/group";
+import { Group } from "@/app/lib/types/group";
 
 export function useGroupDetail(id: string) {
   const router = useRouter();
@@ -38,7 +39,7 @@ export function useGroupDetail(id: string) {
       .finally(() => {
         setLoading(false);
       });
-  }, [id]);
+  }, []);
 
   return { group, loading };
 }
