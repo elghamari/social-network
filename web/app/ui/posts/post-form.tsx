@@ -4,11 +4,11 @@ import "./posts.css";
 import PrivateSection from "./private-section";
 import { useAuth } from "@/app/context/AuthContext";
 import { CreatePost } from "@/app/lib/services/feed";
-import { FormState, PostErrors, PostFormProps } from "@/app/lib/types/feed";
+import { CreatePostFormProps, FormState, PostErrors, PostFormProps } from "@/app/lib/types/feed";
 import { validatePostForm } from "@/app/lib/utils/post-validators";
 import { showToast } from "../layout/toast-store";
 
-export default function PostForm({ onCancel }: PostFormProps) {
+export default function PostForm({ onCancel, onPostCreated }: PostFormProps) {
   const [inputForm, setInputForm] = useState<FormState>({
     title: "",
     description: "",
@@ -97,6 +97,9 @@ export default function PostForm({ onCancel }: PostFormProps) {
       if (response.status === 201) {
         console.log("Post created successfully:");
         onCancel();
+        if (onPostCreated) {
+          onPostCreated();
+        }
       } else {
         showToast("Failed to create post, try again.");
       }

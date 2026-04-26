@@ -498,6 +498,11 @@
   color: var(--accent-primary);
 }
 
+.like-active {
+  background: var(--bg-hover);
+  color: var(--accent-primary);
+}
+
 .post-list-container {
   display: flex;
   flex-direction: column;
@@ -505,4 +510,9 @@
   width: 100%;
   max-width: 800px;
   margin-inline: auto;
+}
+
+.loading-spinner, .no-posts-message {
+  margin-top: 10px;
+  text-align: center;
 }
