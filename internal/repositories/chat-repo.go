@@ -128,29 +128,31 @@ func (r *ChatRepo) MarkPrivateAsRead(senderID, receiverID string) error {
 
 func (r *ChatRepo) GetRecentContacts(userID string) ([]types.Contact, error) {
 	query := `
-		SELECT 
-			u.id AS user_id,
-			COALESCE(u.nickname, u.first_name || ' ' || u.last_name) AS nickname,
-			COALESCE(u.avatar, '') AS avatar,
-			COALESCE(lm.content, '') AS last_message,
-			COALESCE(lm.created_at, '') AS last_time,
-			COALESCE(uc.unread_count, 0) AS unread_count
-		FROM users u
-		LEFT JOIN messages lm ON lm.message_id = (
-			SELECT m2.message_id FROM messages m2 
-			WHERE (m2.sender_id = ? AND m2.receiver_id = u.id) 
-			   OR (m2.sender_id = u.id AND m2.receiver_id = ?)
-			ORDER BY m2.created_at DESC LIMIT 1
-		)
-		LEFT JOIN (
-			SELECT sender_id, COUNT(*) AS unread_count 
-			FROM messages 
-			WHERE receiver_id = ? AND is_read = 0 
-			GROUP BY sender_id
-		) uc ON uc.sender_id = u.id
-		WHERE u.id != ? AND lm.message_id IS NOT NULL
-		ORDER BY lm.created_at DESC
-	`
+        SELECT 
+            u.id AS user_id,
+            u.first_name, 
+            u.last_name,   
+            COALESCE(u.nickname, '') AS nickname,
+            COALESCE(u.avatar, '') AS avatar,
+            COALESCE(lm.content, '') AS last_message,
+            COALESCE(lm.created_at, '') AS last_time,
+            COALESCE(uc.unread_count, 0) AS unread_count
+        FROM users u
+        LEFT JOIN messages lm ON lm.message_id = (
+            SELECT m2.message_id FROM messages m2 
+            WHERE (m2.sender_id = ? AND m2.receiver_id = u.id) 
+               OR (m2.sender_id = u.id AND m2.receiver_id = ?)
+            ORDER BY m2.created_at DESC LIMIT 1
+        )
+        LEFT JOIN (
+            SELECT sender_id, COUNT(*) AS unread_count 
+            FROM messages 
+            WHERE receiver_id = ? AND is_read = 0 
+            GROUP BY sender_id
+        ) uc ON uc.sender_id = u.id
+        WHERE u.id != ? AND lm.message_id IS NOT NULL
+        ORDER BY lm.created_at DESC
+    `
 
 	rows, err := r.DB.Query(query, userID, userID, userID, userID)
 	if err != nil {
@@ -161,7 +163,7 @@ func (r *ChatRepo) GetRecentContacts(userID string) ([]types.Contact, error) {
 	var contacts []types.Contact
 	for rows.Next() {
 		var c types.Contact
-		if err := rows.Scan(&c.UserID, &c.Nickname, &c.Avatar, &c.LastMessage, &c.LastTime, &c.UnreadCount); err != nil {
+		if err := rows.Scan(&c.UserID, &c.FirstName, &c.LastName, &c.Nickname, &c.Avatar, &c.LastMessage, &c.LastTime, &c.UnreadCount); err != nil {
 			return nil, err
 		}
 		contacts = append(contacts, c)
@@ -196,9 +198,11 @@ func (r *ChatRepo) IsFollowing(followerID, followingID string) (bool, error) {
 func (r *ChatRepo) GetAvailableChatUsers(userID string) ([]types.Contact, error) {
 	query := `
 		SELECT DISTINCT 
-			u.id AS user_id,
-			COALESCE(u.nickname, u.first_name || ' ' || u.last_name) AS nickname,
-			COALESCE(u.avatar, '') AS avatar
+    		u.id AS user_id,
+    		u.first_name,  
+    		u.last_name,     
+    		COALESCE(u.nickname, '') AS nickname,
+    		COALESCE(u.avatar, '') AS avatar
 		FROM users u
 		INNER JOIN followers f ON (f.follower_id = ? AND f.following_id = u.id) 
 		                       OR (f.follower_id = u.id AND f.following_id = ?)
@@ -214,7 +218,7 @@ func (r *ChatRepo) GetAvailableChatUsers(userID string) ([]types.Contact, error)
 	var contacts []types.Contact
 	for rows.Next() {
 		var c types.Contact
-		if err := rows.Scan(&c.UserID, &c.Nickname, &c.Avatar); err != nil {
+		if err := rows.Scan(&c.UserID, &c.FirstName, &c.LastName, &c.Nickname, &c.Avatar); err != nil {
 			return nil, err
 		}
 		contacts = append(contacts, c)
@@ -267,7 +271,7 @@ func (r *ChatRepo) GetGroupLastRead(groupId int, userId string) (int64, error) {
 	err := r.DB.QueryRow(query, groupId, userId).Scan(&lastRead)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return 0, nil 
+			return 0, nil
 		}
 		return 0, err
 	}
