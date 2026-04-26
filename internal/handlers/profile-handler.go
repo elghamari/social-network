@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+
 	"soc-net/internal/types"
 	"soc-net/internal/utils"
 )
@@ -31,13 +32,13 @@ func (h *Handler) GetMe(w http.ResponseWriter, r *http.Request) {
 			LastName:        user.LastName,
 			IsPublic:        user.IsPublic,
 			FollowStatus:    "owner",
+			Avatar:          *user.Avatar,
 			Followers:       followers,
 			Following:       following,
 			PendingRequests: pending,
 		},
 	})
 }
-
 // GET /api/profile?profile_id=<id>
 func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	viewerID := utils.GetUserId(r)
@@ -62,6 +63,11 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 
 	followStatus, _ := h.Services.Follow.GetFollowStatus(viewerID, targetID)
 	isOwner := viewerID == targetID
+	
+	if isOwner {
+		followStatus = "owner"
+	}
+
 	canView := target.IsPublic || followStatus == "following" || isOwner
 
 	var followers, following, pending []types.FollowerInfo

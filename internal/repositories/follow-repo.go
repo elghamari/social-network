@@ -15,8 +15,8 @@ func NewFollowRepo(db *sql.DB) *FollowRepo {
 	return &FollowRepo{DB: db}
 }
 
-func (f *FollowRepo) getUsersByQuery(query, userID string) ([]types.FollowerInfo, error) {
-	rows, err := f.DB.Query(query, userID)
+func (f *FollowRepo) getUsersByQuery(query string, args ...any) ([]types.FollowerInfo, error) {
+	rows, err := f.DB.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}

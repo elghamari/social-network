@@ -32,7 +32,7 @@ class ClientApi {
       if (err.status) throw err;
       throw {
         status: 0,
-        message: "Network Error or Server Down",
+        message: "Search error",
         error: err,
       };
     }

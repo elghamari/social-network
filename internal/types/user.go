@@ -1,6 +1,8 @@
 package types
 
-import "time"
+import (
+	"time"
+)
 
 // ===== Session (used by middleware)
 
@@ -50,7 +52,7 @@ type FollowerInfo struct {
 	ID        string `json:"id"`
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
-	Avatar  string `json:"avatar"`
+	Avatar    string `json:"avatar"`
 }
 
 type UserProfileResponse struct {
@@ -62,6 +64,7 @@ type UserProfileResponse struct {
 	Followers       []FollowerInfo `json:"followers"`
 	Following       []FollowerInfo `json:"following"`
 	PendingRequests []FollowerInfo `json:"pending_requests,omitempty"`
+	Avatar          string         `json:"avatar,omitempty"`
 }
 
 type FollowRequest struct {

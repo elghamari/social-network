@@ -80,6 +80,10 @@ func validateRegisterInput(input types.RegisterInput) error {
 		}
 		input.Avatar = avatarPath
 	}
+	if input.AboutMe != nil && *input.AboutMe != "" {
+		trimmed := strings.TrimSpace(*input.AboutMe)
+		input.AboutMe = &trimmed
+	}
 	return nil
 }
 

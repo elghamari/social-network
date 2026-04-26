@@ -1,27 +1,36 @@
 "use client";
 import { createContext, useContext, useState, useEffect } from "react";
-import { authService } from "@/app/lib/services/auth";
-import { log } from "node:console";
+import { useRouter } from "next/navigation";
+import { authService } from "../lib/services/auth";
 
 type AuthContextType = {
   user: any | null;
   fetchUser: () => Promise<void>;
+  logout: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<any | null>(null);
+  const router = useRouter();
 
   const fetchUser = async () => {
     try {
       const res = await authService.getMe();
-      console.log(res);
-      
       if (res.status === 200) setUser(res.user);
     } catch (err) {
-      console.log("err468888888888888888888",err);
       setUser(null);
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await authService.logout();
+    } catch (_) {}
+    finally {
+      setUser(null);
+      router.push("/login");
     }
   };
 
@@ -30,7 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, fetchUser }}>
+    <AuthContext.Provider value={{ user, fetchUser, logout }}>
       {children}
     </AuthContext.Provider>
   );

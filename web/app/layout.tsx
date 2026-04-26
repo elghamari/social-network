@@ -24,9 +24,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={josefin.variable}>
       <body>
-        <AuthProvider>
+      
           {children} 
-        </AuthProvider>        <Toast />
+               <Toast />
       </body>
     </html>
   );

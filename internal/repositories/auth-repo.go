@@ -51,7 +51,6 @@ func (r *AuthRepo) SetSession(userID, sessionID string) error {
 		SET session_id = ?, session_time = ?
 		WHERE id = ?
 	`, sessionID, expiresAt, userID)
-	
 	if err != nil {
 		return fmt.Errorf("authRepo.SetSession: %w", err)
 	}
