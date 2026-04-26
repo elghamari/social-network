@@ -1,0 +1,147 @@
+package repositories
+
+import (
+	"database/sql"
+	"fmt"
+	"soc-net/internal/types"
+)
+
+type FollowRepo struct {
+	DB *sql.DB
+}
+
+func NewFollowRepo(db *sql.DB) *FollowRepo {
+	return &FollowRepo{DB: db}
+}
+
+func (f *FollowRepo) getUsersByQuery(query, userID string) ([]types.FollowerInfo, error) {
+	rows, err := f.DB.Query(query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	list := []types.FollowerInfo{}
+	for rows.Next() {
+		var info types.FollowerInfo
+		if err := rows.Scan(&info.ID, &info.FirstName, &info.LastName); err != nil {
+			return nil, err
+		}
+		list = append(list, info)
+	}
+	return list, nil
+}
+
+func (f *FollowRepo) GetFollowers(userID string) ([]types.FollowerInfo, error) {
+	q := `SELECT u.id, u.first_name, u.last_name
+	      FROM followers fl JOIN users u ON fl.follower_id = u.id
+	      WHERE fl.following_id = ?`
+	return f.getUsersByQuery(q, userID)
+}
+
+func (f *FollowRepo) GetFollowing(userID string) ([]types.FollowerInfo, error) {
+	q := `SELECT u.id, u.first_name, u.last_name
+	      FROM followers fl JOIN users u ON fl.following_id = u.id
+	      WHERE fl.follower_id = ?`
+	return f.getUsersByQuery(q, userID)
+}
+
+func (f *FollowRepo) GetPendingRequests(userID string) ([]types.FollowerInfo, error) {
+	q := `SELECT u.id, u.first_name, u.last_name
+	      FROM follow_requests fr JOIN users u ON fr.sender_id = u.id
+	      WHERE fr.receiver_id = ?`
+	return f.getUsersByQuery(q, userID)
+}
+
+func (f *FollowRepo) GetFollowStatus(viewerID, targetID string) (string, error) {
+	var id string
+
+	err := f.DB.QueryRow(
+		`SELECT follower_id FROM followers WHERE follower_id = ? AND following_id = ?`,
+		viewerID, targetID,
+	).Scan(&id)
+	if err == nil {
+		return "following", nil
+	} else if err != sql.ErrNoRows {
+		return "", fmt.Errorf("followRepo.GetFollowStatus: %w", err)
+	}
+
+	err = f.DB.QueryRow(
+		`SELECT sender_id FROM follow_requests WHERE sender_id = ? AND receiver_id = ?`,
+		viewerID, targetID,
+	).Scan(&id)
+	if err == nil {
+		return "pending", nil
+	} else if err != sql.ErrNoRows {
+		return "", fmt.Errorf("followRepo.GetFollowStatus: %w", err)
+	}
+
+	return "none", nil
+}
+
+func (f *FollowRepo) FollowUserDirectly(followerID, followingID string) error {
+	_, err := f.DB.Exec(
+		`INSERT INTO followers (follower_id, following_id) VALUES (?, ?)`,
+		followerID, followingID,
+	)
+	if err != nil {
+		return fmt.Errorf("followRepo.FollowUserDirectly: %w", err)
+	}
+	return nil
+}
+
+func (f *FollowRepo) SendFollowRequest(senderID, receiverID string) error {
+	_, err := f.DB.Exec(
+		`INSERT INTO follow_requests (sender_id, receiver_id) VALUES (?, ?)`,
+		senderID, receiverID,
+	)
+	if err != nil {
+		return fmt.Errorf("followRepo.SendFollowRequest: %w", err)
+	}
+	return nil
+}
+
+func (f *FollowRepo) AcceptFollowRequest(senderID, receiverID string) error {
+	tx, err := f.DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	res, err := tx.Exec(
+		`DELETE FROM follow_requests WHERE sender_id = ? AND receiver_id = ?`,
+		senderID, receiverID,
+	)
+	if err != nil {
+		return err
+	}
+	rows, _ := res.RowsAffected()
+	if rows == 0 {
+		return fmt.Errorf("no pending request found")
+	}
+
+	_, err = tx.Exec(
+		`INSERT INTO followers (follower_id, following_id) VALUES (?, ?)`,
+		senderID, receiverID,
+	)
+	if err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
+func (f *FollowRepo) DeclineFollowRequest(senderID, receiverID string) error {
+	_, err := f.DB.Exec(
+		`DELETE FROM follow_requests WHERE sender_id = ? AND receiver_id = ?`,
+		senderID, receiverID,
+	)
+	return err
+}
+
+func (f *FollowRepo) UnfollowUser(followerID, followingID string) error {
+	_, err := f.DB.Exec(
+		`DELETE FROM followers WHERE follower_id = ? AND following_id = ?`,
+		followerID, followingID,
+	)
+	return err
+}

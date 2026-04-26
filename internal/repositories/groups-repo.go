@@ -3,6 +3,8 @@ package repositories
 import (
 	"database/sql"
 	"fmt"
+	"strings"
+
 	"soc-net/internal/types"
 )
 
@@ -16,8 +18,8 @@ func NewGroupsRepo(db *sql.DB) *GroupsRepo {
 
 var repo string = "groups-repo"
 
-// ===== Group repos
-func (r *GroupsRepo) CreateGroup(tx *sql.Tx, input types.GroupInput) (int, error) {
+func (r *GroupsRepo) Insert(tx *sql.Tx, input types.GroupInput) (int, error) {
+	fmt.Println(input)
 	res, err := tx.Exec(`
 	INSERT INTO groups
 		(creator_id, title, description)
@@ -66,65 +68,11 @@ func (r *GroupsRepo) GetMaxGroupId() (int, error) {
 	return id, err
 }
 
-func (r *GroupsRepo) ListGroups(query string, args []any) ([]types.Group, error) {
-	rows, err := r.DB.Query(query, args...)
-	if err != nil {
-		return nil, fmt.Errorf("%s.ListGroups: Reading: %w", repo, err)
-	}
-	defer rows.Close()
+// func (r *GroupsRepo) GetAll(cursorId int) ([]types.Group, error) {
+// 	r.DB.Query(`
 
-	groups := []types.Group{}
-	for rows.Next() {
-		group := types.Group{}
-
-		err := rows.Scan(&group.Id, &group.CreatorId, &group.Title, &group.Description, &group.CreatedAt, &group.MembersCnt, &group.IsJoined, &group.IsPending)
-		if err != nil {
-			return nil, fmt.Errorf("%s.ListGroups: Scanning: %w", repo, err)
-		}
-
-		groups = append(groups, group)
-	}
-	return groups, nil
-}
-
-func (r *GroupsRepo) ValidGroupId(groupId string) (bool, error) {
-	var exists bool
-	err := r.DB.QueryRow(`
-		SELECT EXISTS(
-			SELECT 1 FROM groups WHERE id = ?
-		)
-	`, groupId).Scan(&exists)
-	if err != nil {
-		return false, fmt.Errorf("%s.ValidGroupId: Scan: %w", repo, err)
-	}
-
-	return exists, nil
-}
-
-// ===== JoinRequest repos
-
-func (r *GroupsRepo) CreateJoinRequest(req types.JoinRequest) error {
-	_, err := r.DB.Exec(`
-	INSERT OR IGNORE INTO group_join_requests 
-	(group_id, user_id)
-	VALUES (?, ?)
-	`, req.GroupId, req.UserId)
-	if err != nil {
-		return fmt.Errorf("%s.CreateJoinRequest: %w", repo, err)
-	}
-	return nil
-}
-
-func (r *GroupsRepo) DeleteJoinRequest(req types.JoinRequest) error {
-	_, err := r.DB.Exec(`
-	DELETE FROM group_join_requests 
-	WHERE group_id = ? AND user_id = ?
-	`, req.GroupId, req.UserId)
-	if err != nil {
-		return fmt.Errorf("%s.DeleteJoinRequest: %w", repo, err)
-	}
-	return nil
-}
+// 	`)
+// }
 
 func (r *GroupsRepo) CheckGroupAndMembership(groupId int, userId string) (bool, bool, error) {
 	var groupExists, isMember bool
@@ -142,6 +90,7 @@ func (r *GroupsRepo) CheckGroupAndMembership(groupId int, userId string) (bool, 
 	return groupExists, isMember, nil
 }
 
+// TODO: Move to UsersRepo later
 func (r *GroupsRepo) UserExists(userId string) (bool, error) {
 	var exists bool
 
@@ -153,4 +102,29 @@ func (r *GroupsRepo) UserExists(userId string) (bool, error) {
 	}
 
 	return exists, nil
+}
+
+// TODO: Move to UsersRepo later
+func (r *GroupsRepo) CheckAllUsersExist(userIds []string) (bool, error) {
+	if len(userIds) == 0 {
+		return true, nil
+	}
+
+	placeholders := make([]string, len(userIds))
+	args := make([]interface{}, len(userIds))
+
+	for i, id := range userIds {
+		placeholders[i] = "?"
+		args[i] = id
+	}
+
+	query := fmt.Sprintf("SELECT COUNT(id) FROM users WHERE id IN (%s)", strings.Join(placeholders, ","))
+
+	var count int
+	err := r.DB.QueryRow(query, args...).Scan(&count)
+	if err != nil {
+		return false, fmt.Errorf("CheckAllUsersExist (QueryRow): %w", err)
+	}
+
+	return count == len(userIds), nil
 }

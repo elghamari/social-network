@@ -1,0 +1,36 @@
+package services
+
+import (
+	"fmt"
+
+	"soc-net/internal/repositories"
+)
+
+type ReactionsService struct {
+	Reactions *repositories.ReactionsRepo
+	Posts     *repositories.PostsRepo
+}
+
+func NewReactionsService(reactions *repositories.ReactionsRepo, posts *repositories.PostsRepo) *ReactionsService {
+	return &ReactionsService{
+		Reactions: reactions,
+		Posts:     posts,
+	}
+}
+
+func (s *ReactionsService) UpdateReaction(currentUserId string, postId int) (bool, int, error) {
+	postExists, canInteract, err := s.Posts.CanUserInteractWithPost(postId, currentUserId)
+	if err != nil {
+		return false, 0, fmt.Errorf("ReactionsService.UpdateReaction (Check Access): %w", err)
+	}
+
+	if !postExists {
+		return false, 0, ErrPostNotFound
+	}
+
+	if !canInteract {
+		return false, 0, ErrUnauthorizedAccess
+	}
+
+	return s.Reactions.ToggleReaction(currentUserId, postId)
+}

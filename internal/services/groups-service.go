@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"soc-net/internal/repositories"
 	"soc-net/internal/types"
+	"strconv"
 )
 
 type GroupsService struct {
@@ -20,129 +21,55 @@ func NewGroupsService(auth *repositories.AuthRepo, grps *repositories.GroupsRepo
 
 var srvs string = "groups-service"
 
-// ===== Group Services
 func (s *GroupsService) CreateGroup(input types.GroupInput) (types.Group, error) {
+
+	group := types.Group{}
 
 	err := ValidateGroupInput(input)
 	if err != nil {
-		return types.Group{}, err
+		return group, err
 	}
 
 	tx, err := s.Groups.DB.Begin()
 	if err != nil {
-		return types.Group{}, fmt.Errorf("%s.CreateGroup: Starting tx: %w", srvs, err)
+		return group, fmt.Errorf("%s.AddGroup: Starting tx: %w", srvs, err)
 	}
 	defer tx.Rollback()
 
-	groupId, err := s.Groups.CreateGroup(tx, input)
+	groupId, err := s.Groups.Insert(tx, input)
 	if err != nil {
-		return types.Group{}, err
+		return group, err
 	}
 
-	group, err := s.Groups.GetGroupById(tx, groupId)
+	group, err = s.Groups.GetGroupById(tx, groupId)
 	if err != nil {
-		return types.Group{}, err
+		return group, err
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return group, fmt.Errorf("%s.CreateGroup: Commiting tx: %w", srvs, err)
+		return group, fmt.Errorf("%s.AddGroup: Commiting tx: %w", srvs, err)
 	}
 
 	return group, nil
 }
 
-func GetGroupsSqlParams(tab, search, userId string) (string, []any) {
-	query := `
-	SELECT 
-		g.id, g.creator_id, g.title, g.description, g.created_at,
-
-		(SELECT COUNT(*) FROM group_members WHERE group_id = g.id) AS members_cnt,
-
-		EXISTS(
-			SELECT 1 
-			FROM group_members gm 
-			WHERE gm.user_id = ? AND gm.group_id = g.id
-		) AS is_joined,
-
-		EXISTS(
-			SELECT 1 
-			FROM group_join_requests gjr 
-			WHERE gjr.user_id = ? AND gjr.group_id = g.id
-		) AS is_pending
-
-	FROM groups g
-	WHERE 1=1
-	`
-	args := []any{userId, userId}
-
-	if search != "" {
-		query += ` AND g.title LIKE '%' || ? || '%'`
-		args = append(args, search)
+func (s *GroupsService) GetAll(strCursorId string) ([]types.Group, error) {
+	cursorId, err := strconv.Atoi(strCursorId)
+	if err != nil {
+		return nil, ErrInvalidGroupId
 	}
 
-	switch tab {
-	case "joined":
-		query += `
-		AND EXISTS(
-			SELECT 1 
-			FROM group_members gm 
-			WHERE gm.user_id = ? AND gm.group_id = g.id
-		)`
-		args = append(args, userId)
-
-	case "pending":
-		query += `
-		AND EXISTS(
-			SELECT 1 
-			FROM group_join_requests gjr 
-			WHERE gjr.user_id = ? AND gjr.group_id = g.id
-		)`
-		args = append(args, userId)
-	}
-
-	return query, args
-}
-
-func (s *GroupsService) ListGroups(tab, search string) ([]types.Group, error) {
-	err := ValidateTab(tab)
+	lastGroupId, err := s.Groups.GetMaxGroupId()
 	if err != nil {
 		return nil, err
 	}
 
-	query, args := GetGroupsSqlParams(tab, search, "user")
-
-	groups, err := s.Groups.ListGroups(query, args)
-	if err != nil {
-		return nil, err
+	if cursorId > lastGroupId {
+		return nil, ErrInvalidGroupId
 	}
 
-	return groups, err
-}
+	// s.Groups.GetAll(cursorId)
 
-// ===== JoinRequest Handlers
-func (s *GroupsService) RequestToJoinGroup(req types.JoinRequest) error {
-	exists, err := s.Groups.ValidGroupId(req.GroupId)
-	if err != nil {
-		return err
-	}
-
-	if !exists {
-		return types.NewActionError("Group does not exist.")
-	}
-
-	return s.Groups.CreateJoinRequest(req)
-}
-
-func (s *GroupsService) CancelToJoinGroup(req types.JoinRequest) error {
-	exists, err := s.Groups.ValidGroupId(req.GroupId)
-	if err != nil {
-		return err
-	}
-
-	if !exists {
-		return types.NewActionError("Group does not exist.")
-	}
-
-	return s.Groups.DeleteJoinRequest(req)
+	return []types.Group{}, nil
 }
