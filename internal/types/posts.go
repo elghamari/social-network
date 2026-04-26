@@ -28,13 +28,16 @@ type Reaction struct {
 }
 
 type UserResponse struct {
-	Id       string `json:"id"`
-	Username string `json:"username"`
+	Id        string `json:"id"`
+	Nickname  string `json:"nickname"`
+	FirstName string `json:"fistname"`
+	LastName  string `json:"lastname"`
+	Avatar   string `json:"avatar"`
 }
 
 type PostResponse struct {
 	Id            int          `json:"id"`
-	User          UserResponse `json:"user"`
+	User          UserResponse `json:"author"`
 	GroupId       *int         `json:"group_id"`
 	Title         string       `json:"title"`
 	Description   string       `json:"description"`
