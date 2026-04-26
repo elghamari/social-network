@@ -2,14 +2,14 @@
 
 import { useState, useEffect, useRef } from 'react';
 import styles from './chat.module.css';
-import { Contact, Message } from '../lib/types/chat'; 
+import { Contact, Message } from '../../lib/types/chat'; 
 import { 
   getContacts, 
   getChatHistory, 
   getAvailableUsers, 
   markAsRead 
-} from '../lib/services/contactService';
-import { throttle } from '../lib/utils/throttle'; 
+} from '../../lib/services/contactService';
+import { throttle } from '../../lib/utils/throttle'; 
 
 const getInitials = (firstName: string, lastName: string) => {
   return `${firstName?.charAt(0).toUpperCase() || ''}${lastName?.charAt(0).toUpperCase() || ''}`;
@@ -62,7 +62,7 @@ export default function ChatPage() {
         setMessages(prev => [...mapped, ...prev]);
       }
     } catch (err) {
-      console.error("Error loading more messages:", err);
+      console.log("Error loading more messages:", err);
     } finally {
       setIsLoadingMore(false);
     }

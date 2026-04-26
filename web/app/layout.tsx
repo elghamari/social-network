@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Josefin_Sans } from "next/font/google";
 import "./globals.css";
-import "./layout.css";
-import Sidenav from "./ui/layout/sidenav";
 import Toast from "./ui/layout/toast";
 
 const josefin = Josefin_Sans({
@@ -15,6 +13,9 @@ const josefin = Josefin_Sans({
 export const metadata: Metadata = {
   title: "Nexus - Social Network",
   description: "Connect with your network",
+  icons: {
+    icon: "/chat.png",
+  },
 };
 
 export default function RootLayout({
@@ -25,10 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={josefin.variable}>
       <body>
-        <div className="app">
-          <Sidenav />
-          <main className="app__content">{children}</main>
-        </div>
+          {children} 
         <Toast />
       </body>
     </html>
