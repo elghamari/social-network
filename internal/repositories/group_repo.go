@@ -304,9 +304,9 @@ func (r *GroupRepo) ListJoinRequestUsersForGroup(groupId string) ([]types.JoinRe
 
 func (r *GroupRepo) InsertEvent(tx *sql.Tx, groupId string, event types.Event) (string, error) {
 	res, err := tx.Exec(`
-		INSERT INTO events
-		(title, description, date) VALUES (?, ?, ?)
-	`, event.Title, event.Description, event.Date)
+		INSERT OR IGNORE INTO events
+		(group_id, title, description, date) VALUES (?, ?, ?, ?)
+	`, groupId, event.Title, event.Description, event.Date)
 	if err != nil {
 		return "", fmt.Errorf("%s.InsertEvent: Inserting %w", groupRepoName, err)
 	}
@@ -319,29 +319,47 @@ func (r *GroupRepo) InsertEvent(tx *sql.Tx, groupId string, event types.Event) (
 	return strconv.Itoa(int(eventId)), nil
 }
 
-// func (r *GroupRepo) eventBaseQuery() string {
-// 	return `
-// 	SELECT 
-// 		e.id, e.title, e.description, e.date,
+func (r *GroupRepo) eventBaseQuery() string {
+	return `
+	SELECT 
+		e.id, e.title, e.description, e.date,
 
-// 		(SELECT COUNT(*) FROM group_members WHERE group_id = g.id) AS going_cnt,
+		COUNT(CASE WHEN er.status = 'GOING' THEN 1 END) AS going_cnt,
+		COUNT(CASE WHEN er.status = 'NOT_GOING' THEN 1 END) AS not_going_cnt
+		
+	FROM events e
+	LEFT JOIN event_responses er ON er.event_id = e.id
+	WHERE group_id = ?
+	`
+}
 
-// 		(SELECT COUNT(*) FROM group_members WHERE group_id = g.id) AS not_going_cnt,
-	
-// 	FROM events e
-// 	`
-// }
+func (r *GroupRepo) GetEventForUser(tx *sql.Tx, eventId string) (types.Event, error) {
+	event := types.Event{}
 
-// func (r *GroupRepo) GetEventById(tx *sql.Tx, eventId string) (types.Event, error) {
-// 	tx.QueryRow(``)
-// }
+	query := r.eventBaseQuery() + "WHERE e.id = ?"
+	err := tx.QueryRow(query, eventId).Scan(&event.Id, &event.Title, &event.Description, &event.Date, &event.GoingCnt, &event.NotGoingCnt)
+	if err != nil {
+		return types.Event{}, fmt.Errorf("%s.GetEventById: %w", groupRepoName, err)
+	}
+	return event, err
+}
 
 func (r *GroupRepo) ListEvents(groupId, userId string) ([]types.Event, error) {
-	r.DB.Query(`
-		SELECT e.id, e.title, e.description, e.created_at,
-FROM events e
+	query := r.eventBaseQuery() + "GROUP BY e.id"
+	rows, err := r.DB.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("%s.ListEvents: Reading: %w", groupRepoName, err)
+	}
+	defer rows.Close()
 
-LEFT JOIN event_responses er ON e.id = er.event_id AND user_id = ?
-	`)
-	return nil, nil
+	events := []types.Event{}
+	for rows.Next() {
+		event := types.Event{}
+		err := rows.Scan(&event.Id, &event.Title, &event.Description, &event.Date, &event.GoingCnt, &event.NotGoingCnt)
+		if err != nil {
+			return nil, fmt.Errorf("%s.ListEvents: Scanning: %w", groupRepoName, err)
+		}
+		events = append(events, event)
+	}
+	return events, nil
 }

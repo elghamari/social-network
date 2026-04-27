@@ -295,21 +295,24 @@ func (h *Handler) CreateEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJson(w, map[string]any{"status": http.StatusOK})
+	utils.WriteJson(w, map[string]any{
+		"status": http.StatusOK,
+		"event":  event,
+	})
 }
 
 func (h *Handler) GetEvents(w http.ResponseWriter, r *http.Request) {
-	// userId := utils.GetUserId(r)
-	// groupId := r.PathValue("id")
+	userId := utils.GetUserId(r)
+	groupId := r.PathValue("id")
 
-	// events, err := h.Services.Group.ListEvents(groupId, userId)
-	// if err != nil {
-	// 	HandleError(w, err)
-	// 	return
-	// }
+	events, err := h.Services.Group.ListEvents(groupId, userId)
+	if err != nil {
+		HandleError(w, err)
+		return
+	}
 
 	utils.WriteJson(w, map[string]any{
 		"status": http.StatusOK,
-		"events": []string{},
+		"events": events,
 	})
 }

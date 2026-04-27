@@ -9,6 +9,7 @@ import { useEvents } from "./_hooks/use-events";
 import EventFormModal from "./_components/event-form-modal";
 
 import { Event, EventFormInput } from "@/app/lib/types/group";
+import { formatDate } from "@/app/lib/utils/utils";
 
 const INITIAL_EVENTS: Event[] = [
   {
@@ -59,18 +60,10 @@ export default function EventsPage() {
 
   if (loading) return <Skeleton />;
 
-  function handleCreated(input: EventFormInput) {
-    const newEvent: Event = {
-      id: `e${Date.now()}`,
-      title: input.title,
-      description: input.description,
-      date: input.date,
-      status: null,
-      goingCnt: 0,
-      notGoingCnt: 0,
-    };
+  function handleCreated(event: Event) {
+    event.date = formatDate(event.date);
 
-    actions.addEvent(newEvent);
+    actions.addEvent(event);
     setShowForm(false);
   }
 
@@ -94,57 +87,61 @@ export default function EventsPage() {
           <div className="gd-empty">No events yet.</div>
         ) : (
           <div className="gd-events">
-            {events.map((event) => (
-              <div key={event.id} className="gd-event">
-                <div className="gd-event__body">
-                  <h3 className="gd-event__title">{event.title}</h3>
-                  <p className="gd-event__description">{event.description}</p>
-                  <span className="gd-date">{event.date}</span>
-                </div>
+            {events.map((event) => {
+              event.date = formatDate(event.date);
 
-                <div className="gd-event__side">
-                  <div className="gd-event__counts">
-                    <span className="gd-event__count gd-event__count--going">
-                      ✓ {event.goingCnt} going
-                    </span>
-                    <span className="gd-event__count gd-event__count--not">
-                      ✗ {event.notGoingCnt} not going
-                    </span>
+              return (
+                <div key={event.id} className="gd-event">
+                  <div className="gd-event__body">
+                    <h3 className="gd-event__title">{event.title}</h3>
+                    <p className="gd-event__description">{event.description}</p>
+                    <span className="gd-date">{event.date}</span>
                   </div>
 
-                  {isMember && (
-                    <div className="gd-event__status">
-                      <button
-                        type="button"
-                        className={`gd-status ${
-                          event.status === "GOING"
-                            ? "gd-status--active-going"
-                            : ""
-                        }`}
-                        onClick={() =>
-                          actions.setEventStatus(event.id, "GOING")
-                        }
-                      >
-                        Going
-                      </button>
-                      <button
-                        type="button"
-                        className={`gd-status ${
-                          event.status === "NOT_GOING"
-                            ? "gd-status--active-not"
-                            : ""
-                        }`}
-                        onClick={() =>
-                          actions.setEventStatus(event.id, "NOT_GOING")
-                        }
-                      >
-                        Not Going
-                      </button>
+                  <div className="gd-event__side">
+                    <div className="gd-event__counts">
+                      <span className="gd-event__count gd-event__count--going">
+                        ✓ {event.goingCnt} going
+                      </span>
+                      <span className="gd-event__count gd-event__count--not">
+                        ✗ {event.notGoingCnt} not going
+                      </span>
                     </div>
-                  )}
+
+                    {isMember && (
+                      <div className="gd-event__status">
+                        <button
+                          type="button"
+                          className={`gd-status ${
+                            event.status === "GOING"
+                              ? "gd-status--active-going"
+                              : ""
+                          }`}
+                          onClick={() =>
+                            actions.setEventStatus(event.id, "GOING")
+                          }
+                        >
+                          Going
+                        </button>
+                        <button
+                          type="button"
+                          className={`gd-status ${
+                            event.status === "NOT_GOING"
+                              ? "gd-status--active-not"
+                              : ""
+                          }`}
+                          onClick={() =>
+                            actions.setEventStatus(event.id, "NOT_GOING")
+                          }
+                        >
+                          Not Going
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

@@ -1,17 +1,18 @@
 "use client";
 
 import { createEvent } from "@/app/lib/services/group";
-import { EventFormErrors, EventFormInput } from "@/app/lib/types/group";
+import { Event, EventFormInput, EventFormErrors } from "@/app/lib/types/group";
 import { validateEvent } from "@/app/lib/utils/validators";
 import { XCancelIcon } from "@/app/ui/icons";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import EventFormField from "./event-form-field";
+import { showToast } from "@/app/ui/layout/toast-store";
 
 interface Props {
   groupId: string;
   onClose: () => void;
-  onCreated: (input: EventFormInput) => void;
+  onCreated: (input: Event) => void;
 }
 
 export default function EventFormModal({ groupId, onClose, onCreated }: Props) {
@@ -48,16 +49,15 @@ export default function EventFormModal({ groupId, onClose, onCreated }: Props) {
         break;
 
       case 400:
-        console.log(resp.fields);
-
         setErrors(resp.fields);
         break;
 
       case 500:
-        throw new Error("Internal Server Error");
+        showToast("Something went wrong. Try again later.");
+        break;
 
       default:
-        onCreated(data);
+        onCreated(resp.event);
     }
   }
 

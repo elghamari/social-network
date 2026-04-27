@@ -290,22 +290,22 @@ func (s *GroupService) CreateEvent(groupId, userId string, event types.Event) (t
 	}
 	defer tx.Rollback()
 
-	_, err = s.Group.InsertEvent(tx, groupId, event)
+	eventId, err := s.Group.InsertEvent(tx, groupId, event)
 	if err != nil {
 		return types.Event{}, err
 	}
 
-	// event, err := s.Group.GetEventForUser(tx, eventId)
-	// if err != nil {
-	// 	return types.Event{}, err
-	// }
+	event, err = s.Group.GetEventForUser(tx, eventId)
+	if err != nil {
+		return types.Event{}, err
+	}
 
 	err = tx.Commit()
 	if err != nil {
 		return types.Event{}, fmt.Errorf("%s.CreateEvent: Commiting transaction: %w", groupServiceName, err)
 	}
 
-	return types.Event{}, nil
+	return event, nil
 }
 
 func (s *GroupService) ListEvents(groupId, userId string) ([]types.Event, error) {
