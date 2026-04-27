@@ -49,22 +49,31 @@ type LoginInput struct {
 // ===== Follow
 
 type FollowerInfo struct {
-	ID        string `json:"id"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Avatar    string `json:"avatar"`
+	ID          string    `json:"id"`
+	FirstName   string    `json:"first_name"`
+	LastName    string    `json:"last_name"`
+	Avatar      string    `json:"avatar"`
+	Email       string    `json:"email"`
+	DateOfBirth time.Time `json:"date_of_birth"`
+	Nickname    string    `json:"nickname"`
+	AboutMe     string    `json:"about_me,omitempty"`
 }
 
 type UserProfileResponse struct {
-	ID              string         `json:"id"`
-	FirstName       string         `json:"first_name"`
-	LastName        string         `json:"last_name"`
+	ID          string    `json:"id"`
+	FirstName   string    `json:"first_name"`
+	LastName    string    `json:"last_name"`
+	Email       string    `json:"email"`
+	Avatar      string    `json:"avatar,omitempty"`
+	AboutMe     string    `json:"about_me,omitempty"`
+	DateOfBirth time.Time `json:"date_of_birth"`
+	Nickname    string    `json:"nickname"`
+	//
 	IsPublic        bool           `json:"is_public"`
 	FollowStatus    string         `json:"follow_status"`
 	Followers       []FollowerInfo `json:"followers"`
 	Following       []FollowerInfo `json:"following"`
 	PendingRequests []FollowerInfo `json:"pending_requests,omitempty"`
-	Avatar          string         `json:"avatar,omitempty"`
 }
 
 type FollowRequest struct {

@@ -4,7 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import ProfileHeader from "@/app/ui/profile/ProfileHeader";
 import ProfileStats from "@/app/ui/profile/ProfileStats";
 import FollowModal from "@/app/ui/profile/FollowModal";
-import client from "@/app/lib/services/client"; // ضروري تزيد هادي
+import client from "@/app/lib/services/client"; 
 import "./profile.css";
 
 export default function ProfilePage() {
@@ -35,28 +35,32 @@ export default function ProfilePage() {
 
   return (
     <div className="profile-page">
-
       <ProfileHeader
         firstName={user.first_name}
         lastName={user.last_name}
         nickname={user.nickname}
         bio={user.about_me}
         avatar={user.avatar}
+        email={user.email}          
+        dateOfBirth={user.date_of_birth}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
-          <button className="profile-btn profile-btn--edit">
-            Edit Profile
-          </button>
+        <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
           
-          <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "14px", color: "#ccc" }}>
+          <label className="privacy-toggle-wrapper">
             <input
               type="checkbox"
               checked={isPublic}
               onChange={handlePrivacyToggle}
-              style={{ cursor: "pointer" }}
+              className="privacy-toggle-input"
             />
-            Public Account
+            <span className="privacy-toggle-slider"></span>
+            <span className="privacy-toggle-text">Public Account</span>
           </label>
+
+          <button className="profile-btn profile-btn--edit">
+            Edit Profile
+          </button>
+
         </div>
       </ProfileHeader>
 

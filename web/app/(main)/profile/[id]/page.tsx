@@ -5,11 +5,13 @@ import client from "@/app/lib/services/client";
 import ProfileHeader from "@/app/ui/profile/ProfileHeader";
 import ProfileStats from "@/app/ui/profile/ProfileStats";
 import FollowModal from "@/app/ui/profile/FollowModal";
+import { useAuth } from "@/app/context/AuthContext";
 import "../profile.css";
 
 export default function UserProfilePage() {
   const params = useParams();
   const profileId = params.id as string;
+  const { user: currentUser } = useAuth();
 
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -22,6 +24,8 @@ export default function UserProfilePage() {
       try {
         const res = await client.get(`/profile?profile_id=${profileId}`);
         if (res.status === 200) {
+          console.log(res.user);
+          
           setProfile(res.user);
         }
       } catch (err) {
@@ -33,22 +37,49 @@ export default function UserProfilePage() {
 
     fetchProfile();
   }, [profileId]);
+
   const handleFollowToggle = async () => {
     if (!profile) return;
+console.log("profile---------------------------------------", profile);
 
     try {
       if (profile.follow_status === "following" || profile.follow_status === "pending") {
         const res = await client.delete(`/unfollow?target_id=${profileId}`);
         if (res.status === 200) {
-          setProfile((prev: any) => ({ ...prev, follow_status: "none" }));
+          setProfile((prev: any) => ({
+            ...prev,
+            follow_status: "none",
+            followers: prev.followers?.filter((f: any) => f.id !== currentUser?.id)
+          }));
         }
       } else {
         const res = await client.post(`/follow?target_id=${profileId}`, {});
         if (res.status === 200) {
-          setProfile((prev: any) => ({
-            ...prev,
-            follow_status: res.follow_status,
-          }));
+          setProfile((prev: any) => {
+            const newStatus = res.follow_status;
+            let updatedFollowers = prev.followers || [];
+
+   
+            if (newStatus === "following" && currentUser) {
+              updatedFollowers = [
+                ...updatedFollowers,
+                {
+                  id: currentUser.id,
+                  first_name: currentUser.first_name,
+                  last_name: currentUser.last_name,
+                  avatar: currentUser.avatar,
+                  nickname: currentUser.nickname,
+                  about_me: currentUser.about_me,
+                }
+              ];
+            }
+
+            return {
+              ...prev,
+              follow_status: newStatus,
+              followers: updatedFollowers,
+            };
+          });
         }
       }
     } catch (err) {
@@ -65,9 +96,7 @@ export default function UserProfilePage() {
           return {
             ...prev,
             pending_requests: prev.pending_requests?.filter((r: any) => r.id !== reqId),
-            followers: accepted
-              ? [...(prev.followers || []), accepted]
-              : prev.followers,
+            followers: accepted ? [...(prev.followers || []), accepted] : prev.followers,
           };
         });
       }
@@ -93,7 +122,7 @@ export default function UserProfilePage() {
   if (loading) return <div className="profile-loading">Loading...</div>;
   if (!profile) return <div className="profile-error">User not found.</div>;
 
- const canView =
+  const canView =
     profile.is_public ||
     profile.follow_status === "following" ||
     profile.follow_status === "owner";
@@ -107,11 +136,14 @@ export default function UserProfilePage() {
 
   return (
     <div className="profile-page">
-
-      <ProfileHeader
+     <ProfileHeader
         firstName={profile.first_name}
         lastName={profile.last_name}
+        nickname={profile.nickname}
+        bio={profile.about_me}
         avatar={profile.avatar}
+        email={profile.email}                  
+        dateOfBirth={profile.date_of_birth}
       >
         {profile.follow_status !== "owner" && (
           <button
@@ -135,6 +167,11 @@ export default function UserProfilePage() {
             onFollowersClick={() => setModalType("followers")}
             onFollowingClick={() => setModalType("following")}
           />
+          
+          <div className="profile-posts">
+            <h2 className="profile-posts__title">Posts</h2>
+            <div className="profile-posts__empty">No posts yet.</div>
+          </div>
         </>
       ) : (
         <div className="profile-private">
@@ -150,6 +187,8 @@ export default function UserProfilePage() {
           </p>
         </div>
       )}
+
+      {/* Pending Requests */}
       {profile.follow_status === "owner" && profile.pending_requests?.length > 0 && (
         <div className="profile-pending">
           <h3 className="profile-pending__title">
@@ -164,12 +203,11 @@ export default function UserProfilePage() {
                     {req.avatar ? (
                       <img src={req.avatar} alt="avatar" />
                     ) : (
-                      (req.first_name )?.[0]
+                      (req.first_name)?.[0]
                     )}
                   </div>
                   <span className="profile-pending__name">
-                    {req.first_name }{" "}
-                    {req.last_name }
+                    {req.first_name} {req.last_name}
                   </span>
                 </div>
                 <div className="profile-pending__actions">
