@@ -512,7 +512,7 @@
   margin-inline: auto;
 }
 
-.loading-spinner, .no-posts-message {
+.loading-spinner, .no-posts-message, .no-more-posts {
   margin-top: 10px;
   text-align: center;
 }
