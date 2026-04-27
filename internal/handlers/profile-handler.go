@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"soc-net/internal/types"
@@ -23,8 +24,12 @@ func (h *Handler) GetMe(w http.ResponseWriter, r *http.Request) {
 
 	followers, _ := h.Services.Follow.GetFollowers(userID)
 	following, _ := h.Services.Follow.GetFollowing(userID)
-	pending, _ := h.Services.Follow.GetPendingRequests(userID)
-
+	pending, err := h.Services.Follow.GetPendingRequests(userID)
+	if err != nil {
+		fmt.Println("err------------------")
+		return
+	}
+	fmt.Println(pending)
 	utils.WriteJson(w, map[string]any{
 		"status": http.StatusOK,
 		"user": types.UserProfileResponse{
@@ -82,6 +87,9 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 		following, _ = h.Services.Follow.GetFollowing(targetID)
 		if isOwner {
 			pending, _ = h.Services.Follow.GetPendingRequests(targetID)
+
+			fmt.Println(pending)
+
 		}
 	}
 

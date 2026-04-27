@@ -1,38 +1,68 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import ProfileHeader from "@/app/ui/profile/ProfileHeader";
 import ProfileStats from "@/app/ui/profile/ProfileStats";
 import FollowModal from "@/app/ui/profile/FollowModal";
-import client from "@/app/lib/services/client"; 
+import client from "@/app/lib/services/client";
 import "./profile.css";
+import EditProfileModal from "@/app/ui/profile/EditProfileModal";
 
 export default function ProfilePage() {
   const { user } = useAuth();
+  console.log(user);
+  
 
   const [modalType, setModalType] = useState<"followers" | "following" | null>(null);
-  
   const [isPublic, setIsPublic] = useState<boolean>(user?.is_public ?? true);
+  const [isEditingProfile, setIsEditingProfile] = useState<boolean>(false)
+  useEffect(() => {
+    if (user && user.is_public !== undefined) {
+      setIsPublic(user.is_public);
+    }
+  }, [user]);
 
   if (!user) {
     return <div className="profile-loading">Loading...</div>;
   }
 
+  const handleEditingProfile = () => {
+    setIsEditingProfile(!isEditingProfile)
+  }
   const handlePrivacyToggle = async () => {
     const newStatus = !isPublic;
     setIsPublic(newStatus);
-
     try {
       const res = await client.put('/profile/privacy', { is_public: newStatus });
       if (res.status !== 200) {
-        setIsPublic(!newStatus); 
+        setIsPublic(!newStatus);
       }
     } catch (err) {
       console.log("Privacy toggle error:", err);
       setIsPublic(!newStatus);
     }
   };
+  const handleAccept = async (reqId: string) => {
+    try {
+      const res = await client.post(`/follow/accept?target_id=${reqId}`, {});
+      if (res.status === 200) {
+        window.location.reload(); 
+      }
+    } catch (err) {
+      console.log("Accept error:", err);
+    }
+  };
 
+  const handleDecline = async (reqId: string) => {
+    try {
+      const res = await client.post(`/follow/decline?target_id=${reqId}`, {});
+      if (res.status === 200) {
+        window.location.reload();
+      }
+    } catch (err) {
+      console.log("Decline error:", err);
+    }
+  };
   return (
     <div className="profile-page">
       <ProfileHeader
@@ -41,23 +71,20 @@ export default function ProfilePage() {
         nickname={user.nickname}
         bio={user.about_me}
         avatar={user.avatar}
-        email={user.email}          
+        email={user.email}
         dateOfBirth={user.date_of_birth}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-          
-          <label className="privacy-toggle-wrapper">
-            <input
-              type="checkbox"
-              checked={isPublic}
-              onChange={handlePrivacyToggle}
-              className="privacy-toggle-input"
-            />
-            <span className="privacy-toggle-slider"></span>
-            <span className="privacy-toggle-text">Public Account</span>
-          </label>
 
-          <button className="profile-btn profile-btn--edit">
+          {isEditingProfile && (
+            <EditProfileModal
+              user={user}
+              onClose={() => setIsEditingProfile(false)}
+              isPublic={isPublic}
+              onPrivacyToggle={handlePrivacyToggle}
+            />
+          )}
+          <button className="profile-btn profile-btn--edit" onClick={handleEditingProfile}>
             Edit Profile
           </button>
 
@@ -70,14 +97,18 @@ export default function ProfilePage() {
         onFollowersClick={() => setModalType("followers")}
         onFollowingClick={() => setModalType("following")}
       />
-
-      {user.pending_requests?.length > 0 && (
+{user.pending_requests?.length > 0 && (
         <div className="profile-pending">
           <h3 className="profile-pending__title">
             Pending Requests ({user.pending_requests.length})
           </h3>
           {user.pending_requests.map((req: any) => (
-            <PendingRequestItem key={req.id || req.ID} req={req} />
+            <PendingRequestItem 
+              key={req.id || req.ID} 
+              req={req} 
+              onAccept={() => handleAccept(req.id || req.ID)}
+              onDecline={() => handleDecline(req.id || req.ID)}
+            />
           ))}
         </div>
       )}
@@ -99,7 +130,7 @@ export default function ProfilePage() {
   );
 }
 
-function PendingRequestItem({ req }: { req: any }) {
+function PendingRequestItem({ req, onAccept, onDecline }: { req: any, onAccept: () => void, onDecline: () => void }) {
   return (
     <div className="profile-pending__item">
       <div className="profile-pending__user">
@@ -111,8 +142,23 @@ function PendingRequestItem({ req }: { req: any }) {
           )}
         </div>
         <span className="profile-pending__name">
-          {req.first_name } {req.last_name }
+          {req.first_name} {req.last_name}
         </span>
+      </div>
+      
+      <div className="profile-pending__actions">
+        <button
+          className="profile-pending__btn profile-pending__btn--accept"
+          onClick={onAccept}
+        >
+          Accept
+        </button>
+        <button
+          className="profile-pending__btn profile-pending__btn--decline"
+          onClick={onDecline}
+        >
+          Decline
+        </button>
       </div>
     </div>
   );

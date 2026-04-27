@@ -7,12 +7,13 @@ import ProfileStats from "@/app/ui/profile/ProfileStats";
 import FollowModal from "@/app/ui/profile/FollowModal";
 import { useAuth } from "@/app/context/AuthContext";
 import "../profile.css";
+import { useRouter } from "next/navigation";
 
 export default function UserProfilePage() {
   const params = useParams();
   const profileId = params.id as string;
   const { user: currentUser } = useAuth();
-
+  const router = useRouter();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [modalType, setModalType] = useState<"followers" | "following" | null>(null);
@@ -20,12 +21,19 @@ export default function UserProfilePage() {
   useEffect(() => {
     if (!profileId) return;
 
+    if (currentUser && currentUser.id === profileId) {
+      router.push("/profile");
+      return;
+    }
+
     const fetchProfile = async () => {
       try {
         const res = await client.get(`/profile?profile_id=${profileId}`);
         if (res.status === 200) {
-          console.log(res.user);
-          
+          if (res.user.follow_status === "owner") {
+            router.push("/profile");
+            return;
+          }
           setProfile(res.user);
         }
       } catch (err) {
@@ -36,11 +44,11 @@ export default function UserProfilePage() {
     };
 
     fetchProfile();
-  }, [profileId]);
+  }, [profileId, currentUser, router]);
 
   const handleFollowToggle = async () => {
     if (!profile) return;
-console.log("profile---------------------------------------", profile);
+    console.log("profile---------------------------------------", profile);
 
     try {
       if (profile.follow_status === "following" || profile.follow_status === "pending") {
@@ -59,7 +67,7 @@ console.log("profile---------------------------------------", profile);
             const newStatus = res.follow_status;
             let updatedFollowers = prev.followers || [];
 
-   
+
             if (newStatus === "following" && currentUser) {
               updatedFollowers = [
                 ...updatedFollowers,
@@ -136,22 +144,21 @@ console.log("profile---------------------------------------", profile);
 
   return (
     <div className="profile-page">
-     <ProfileHeader
+      <ProfileHeader
         firstName={profile.first_name}
         lastName={profile.last_name}
         nickname={profile.nickname}
         bio={profile.about_me}
         avatar={profile.avatar}
-        email={profile.email}                  
+        email={profile.email}
         dateOfBirth={profile.date_of_birth}
       >
         {profile.follow_status !== "owner" && (
           <button
-            className={`profile-btn ${
-              profile.follow_status === "none"
+            className={`profile-btn ${profile.follow_status === "none"
                 ? "profile-btn--follow"
                 : "profile-btn--unfollow"
-            }`}
+              }`}
             onClick={handleFollowToggle}
           >
             {followBtnText}
@@ -167,7 +174,7 @@ console.log("profile---------------------------------------", profile);
             onFollowersClick={() => setModalType("followers")}
             onFollowingClick={() => setModalType("following")}
           />
-          
+
           <div className="profile-posts">
             <h2 className="profile-posts__title">Posts</h2>
             <div className="profile-posts__empty">No posts yet.</div>
@@ -189,7 +196,7 @@ console.log("profile---------------------------------------", profile);
       )}
 
       {/* Pending Requests */}
-      {profile.follow_status === "owner" && profile.pending_requests?.length > 0 && (
+      {/* {profile.follow_status === "owner" && profile.pending_requests?.length > 0 && (
         <div className="profile-pending">
           <h3 className="profile-pending__title">
             Pending Requests ({profile.pending_requests.length})
@@ -228,7 +235,7 @@ console.log("profile---------------------------------------", profile);
             );
           })}
         </div>
-      )}
+      )} */}
 
       {modalType && (
         <FollowModal
@@ -238,6 +245,10 @@ console.log("profile---------------------------------------", profile);
           users={modalType === "followers" ? profile.followers : profile.following}
         />
       )}
+      {
+
+      }
     </div>
+
   );
 }

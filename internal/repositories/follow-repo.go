@@ -74,7 +74,7 @@ func (f *FollowRepo) GetFollowing(userID string) ([]types.FollowerInfo, error) {
 }
 
 func (f *FollowRepo) GetPendingRequests(userID string) ([]types.FollowerInfo, error) {
-	q := `SELECT u.id, u.first_name, u.last_name  , u.avatar
+	q := `SELECT u.id, u.first_name, u.last_name  , u.avatar, u.email, u.date_of_birth, u.nickname, u.about_me
 	      FROM follow_requests fr JOIN users u ON fr.sender_id = u.id
 	      WHERE fr.receiver_id = ?`
 	return f.getUsersByQuery(q, userID)
