@@ -13,8 +13,9 @@ type IncomingMessage struct {
 }
 
 type Message struct {
-	MessageID  int `json:"message_id"`
+	MessageID  int    `json:"message_id"`
 	SenderID   string `json:"sender_id"`
+	SenderName string `json:"sender_name,omitempty"` 
 	ReceiverID string `json:"receiver_id"`
 	Content    string `json:"content"`
 	IsRead     int    `json:"is_read"`
@@ -31,4 +32,5 @@ type Contact struct {
     LastMessage string `json:"lastMessage"`
     LastTime    string `json:"lastTime"`
     UnreadCount int    `json:"unreadCount"`
+	IsOnline    bool   `json:"isOnline"`
 }
