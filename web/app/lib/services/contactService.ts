@@ -8,7 +8,7 @@ export async function getContacts(): Promise<Contact[]> {
         const response = await client.get('/chat/contacts');
         return response.data || []; 
     } catch (error) {
-        console.error('Error fetching contacts:', JSON.stringify(error));
+        console.log('Error fetching contacts:', JSON.stringify(error));
         return [];
     }
 }
