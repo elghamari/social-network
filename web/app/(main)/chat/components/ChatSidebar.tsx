@@ -25,8 +25,10 @@ export default function ChatSidebar({ showAvailable, contacts, availableUsers, o
           <div key={c.id} className={styles.contactItem} onClick={() => onSelectContact(c)}>
             <div className={styles.avatarContainer}>
               <div className={styles.contactAvatar}>{getInitials(c.firstName, c.lastName)}</div>
-              {c.isOnline && <div className={styles.onlineDot}></div>}
+              
+              {c.isOnline && <div className={styles.statusBadge}></div>}
             </div>
+
             <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span className={styles.contactName}>{c.firstName} {c.lastName}</span>
