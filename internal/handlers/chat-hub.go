@@ -77,6 +77,25 @@ func (h *Hub) Start() {
 				if err := h.onMessage(evt.OwnerID, evt.Payload); err != nil {
 					log.Println("Hub.onMessage:", err)
 				}
+
+			case "mark_as_read":
+				var senderId string
+				json.Unmarshal(evt.Payload, &senderId)
+
+				raw, _ := json.Marshal(Signal{
+					Kind: "messages_read",
+					Data: map[string]string{"senderId": senderId},
+				})
+				h.sendToUser(evt.OwnerID, raw)
+			case "mark_group_as_read":
+				var data map[string]int
+				json.Unmarshal(evt.Payload, &data)
+
+				raw, _ := json.Marshal(Signal{
+					Kind: "group_messages_read",
+					Data: data, 
+				})
+				h.sendToUser(evt.OwnerID, raw)
 			}
 
 		case p := <-h.leave:
@@ -91,6 +110,7 @@ func (h *Hub) Start() {
 			conns, exists := h.peers[sq.uid]
 			sq.reply <- (exists && len(conns) > 0)
 		}
+		
 	}
 }
 
@@ -255,6 +275,11 @@ func (h *Hub) sendToUser(userID string, raw []byte) {
 		default:
 		}
 	}
+}
+
+func (h *Hub) IsUserOnline(userID string) bool {
+	conns, exists := h.peers[userID]
+	return exists && len(conns) > 0
 }
 
 
