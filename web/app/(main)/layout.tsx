@@ -5,6 +5,7 @@ import "../layout.css";
 import Sidenav from "../ui/layout/sidenav";
 import RightSidebar from "../ui/layout/right-sidebar";
 import { AuthProvider } from "../context/AuthContext";
+import { WebSocketProvider } from "../context/WebSocketContext";
 
 export default function MainLayout({
   children,
@@ -16,11 +17,16 @@ export default function MainLayout({
 
   return (
     <AuthProvider>
-      <div className="app">
-        <Sidenav />
-        <main className="app__content">{children}</main>
-        {!isChatPage && <RightSidebar />}
-      </div>
+      <WebSocketProvider>
+        
+        <div className="app">
+          <Sidenav />
+          <main className="app__content">{children}</main>
+          {!isChatPage && <RightSidebar />}
+        </div>
+        
+      </WebSocketProvider>
+      
     </AuthProvider>
   );
 }
