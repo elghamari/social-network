@@ -47,26 +47,30 @@ func (h *Handler) ServeWs(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetRecentContacts(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		utils.WriteJson(w, map[string]any{"status": http.StatusMethodNotAllowed})
-		return
-	}
+    if r.Method != http.MethodGet {
+        utils.WriteJson(w, map[string]any{"status": http.StatusMethodNotAllowed})
+        return
+    }
 
-	userId := utils.GetUserId(r)
+    userId := utils.GetUserId(r)
 
-	contacts, err := h.Services.Chat.GetRecentContacts(userId)
-	if err != nil {
-		utils.WriteJson(w, map[string]any{
-			"status": http.StatusBadRequest,
-			"error":  err.Error(),
-		})
-		return
-	}
+    contacts, err := h.Services.Chat.GetRecentContacts(userId)
+    if err != nil {
+        utils.WriteJson(w, map[string]any{
+            "status": http.StatusBadRequest,
+            "error":  err.Error(),
+        })
+        return
+    }
 
-	utils.WriteJson(w, map[string]any{
-		"status": http.StatusOK,
-		"data":   contacts,
-	})
+    for i := range contacts {
+        contacts[i].IsOnline = h.Hub.IsUserOnline(contacts[i].UserID)
+    }
+
+    utils.WriteJson(w, map[string]any{
+        "status": http.StatusOK,
+        "data":   contacts,
+    })
 }
 
 func (h *Handler) GetPrivateHistory(w http.ResponseWriter, r *http.Request) {
@@ -105,26 +109,29 @@ func (h *Handler) GetPrivateHistory(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetAvailableChatUsers(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		utils.WriteJson(w, map[string]any{"status": http.StatusMethodNotAllowed})
-		return
-	}
+    if r.Method != http.MethodGet {
+        utils.WriteJson(w, map[string]any{"status": http.StatusMethodNotAllowed})
+        return
+    }
 
-	userId := utils.GetUserId(r)
+    userId := utils.GetUserId(r)
 
-	users, err := h.Services.Chat.GetAvailableChatUsers(userId)
-	if err != nil {
-		utils.WriteJson(w, map[string]any{
-			"status": http.StatusBadRequest,
-			"error":  err.Error(),
-		})
-		return
-	}
-
-	utils.WriteJson(w, map[string]any{
-		"status": http.StatusOK,
-		"data":   users,
-	})
+    users, err := h.Services.Chat.GetAvailableChatUsers(userId)
+    if err != nil {
+        utils.WriteJson(w, map[string]any{
+            "status": http.StatusBadRequest,
+            "error":  err.Error(),
+        })
+        return
+    }
+    for i := range users {
+        users[i].IsOnline = h.Hub.IsUserOnline(users[i].UserID)
+    }
+    
+    utils.WriteJson(w, map[string]any{
+        "status": http.StatusOK,
+        "data":   users,
+    })
 }
 
 func (h *Handler) GetGroupHistory(w http.ResponseWriter, r *http.Request) {
@@ -208,6 +215,13 @@ func (h *Handler) MarkAsRead(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	payloadBytes, _ := json.Marshal(input.SenderId)
+	h.Hub.events <- Event{
+		Kind:    "mark_as_read",
+		OwnerID: currentUserId,
+		Payload: payloadBytes,
+	}
+
 	utils.WriteJson(w, map[string]any{
 		"status":  http.StatusOK,
 		"message": "Messages marked as read",
@@ -251,6 +265,13 @@ func (h *Handler) MarkGroupAsRead(w http.ResponseWriter, r *http.Request) {
             "error":  err.Error(),
         })
         return
+    }
+
+	payloadBytes, _ := json.Marshal(map[string]int{"groupId": input.GroupId})
+    h.Hub.events <- Event{
+        Kind:    "mark_group_as_read",
+        OwnerID: currentUserId,
+        Payload: payloadBytes,
     }
 
     utils.WriteJson(w, map[string]any{
