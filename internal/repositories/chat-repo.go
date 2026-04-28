@@ -79,17 +79,19 @@ func (r *ChatRepo) GetGroupHistory(groupID int, cursor int64) ([]types.Message, 
 
 	if cursor == 0 {
 		query := `
-			SELECT message_id, sender_id, content, created_at 
-			FROM group_messages 
-			WHERE group_id = ? 
-			ORDER BY message_id DESC LIMIT 20`
+			SELECT gm.message_id, gm.sender_id, u.first_name, gm.content, gm.created_at 
+			FROM group_messages gm
+			JOIN users u ON gm.sender_id = u.id
+			WHERE gm.group_id = ? 
+			ORDER BY gm.message_id DESC LIMIT 20`
 		rows, err = r.DB.Query(query, groupID)
 	} else {
 		query := `
-			SELECT message_id, sender_id, content, created_at 
-			FROM group_messages 
-			WHERE group_id = ? AND message_id < ? 
-			ORDER BY message_id DESC LIMIT 20`
+			SELECT gm.message_id, gm.sender_id, u.first_name, gm.content, gm.created_at 
+			FROM group_messages gm
+			JOIN users u ON gm.sender_id = u.id
+			WHERE gm.group_id = ? AND gm.message_id < ? 
+			ORDER BY gm.message_id DESC LIMIT 20`
 		rows, err = r.DB.Query(query, groupID, cursor)
 	}
 
@@ -101,9 +103,10 @@ func (r *ChatRepo) GetGroupHistory(groupID int, cursor int64) ([]types.Message, 
 	var messages []types.Message
 	for rows.Next() {
 		var msg types.Message
-		if err := rows.Scan(&msg.MessageID, &msg.SenderID, &msg.Content, &msg.CreatedAt); err != nil {
+		if err := rows.Scan(&msg.MessageID, &msg.SenderID, &msg.SenderName, &msg.Content, &msg.CreatedAt); err != nil {
 			return nil, err
 		}
+		msg.GroupID = &groupID 
 		messages = append(messages, msg)
 	}
 	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
@@ -228,8 +231,13 @@ func (r *ChatRepo) GetAvailableChatUsers(userID string) ([]types.Contact, error)
 
 func (r *ChatRepo) FetchGroupMessageByID(tx *sql.Tx, messageID int64) (types.Message, error) {
 	var msg types.Message
-	query := `SELECT message_id, group_id, sender_id, content, created_at FROM group_messages WHERE message_id = ?`
-	err := tx.QueryRow(query, messageID).Scan(&msg.MessageID, &msg.GroupID, &msg.SenderID, &msg.Content, &msg.CreatedAt)
+	query := `
+		SELECT gm.message_id, gm.group_id, gm.sender_id, u.first_name, gm.content, gm.created_at 
+		FROM group_messages gm
+		JOIN users u ON gm.sender_id = u.id
+		WHERE gm.message_id = ?`
+		
+	err := tx.QueryRow(query, messageID).Scan(&msg.MessageID, &msg.GroupID, &msg.SenderID, &msg.SenderName, &msg.Content, &msg.CreatedAt)
 	return msg, err
 }
 
