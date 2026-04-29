@@ -5,6 +5,7 @@ import { PostType } from "@/app/lib/types/feed";
 import { useState } from "react";
 import { ToggleLikePost } from "@/app/lib/services/feed";
 import { showToast } from "../layout/toast-store";
+import CommentSection from "./comment-section";
 
 export default function PostCard({ post }: { post: PostType }) {
 
@@ -12,6 +13,8 @@ export default function PostCard({ post }: { post: PostType }) {
   const [likesCount, setLikesCount] = useState(post.total_likes);
   
   const [isLiking, setIsLiking] = useState(false);
+
+  const [showComments, setShowComments] = useState(false);
 
   const handleLike = async () => {
     if (isLiking) return;
@@ -80,13 +83,21 @@ export default function PostCard({ post }: { post: PostType }) {
           <span>{likesCount} Likes</span>
         </button>
 
-        <button className="post-action-btn">
+        <button 
+        className="post-action-btn"
+        onClick={() => setShowComments(!showComments)} 
+        >
           <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
           </svg>
           <span>{post.total_comments} Comments</span>
         </button>
       </div>
+
+      {showComments && (
+        <CommentSection postId={post.id} />
+      )}
+
     </article>
   );
 }
