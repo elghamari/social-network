@@ -1,10 +1,32 @@
+import { showToast } from "@/app/ui/layout/toast-store";
+
 class ClientApi {
   private async request(endpoint: string, config: RequestInit = {}) {
     try {
       const resp = await fetch(`/api${endpoint}`, config);
-      return resp.json();
+      const data = await resp.json().catch(() => ({}));
+
+      switch (resp.status) {
+        case 200:
+        case 404:
+          return data;
+
+        case 400:
+          if (data.fields) return data;
+
+          showToast(data.error ?? "Bad request");
+          return null;
+
+        case 500:
+          showToast("Somthing went wrong. try again later");
+          return null;
+
+        default:
+          showToast("Unexpected error");
+          return null;
+      }
     } catch (err) {
-      throw { status: 0, message: "Request Failed", error: err };
+      throw new Error("Network Error");
     }
   }
 

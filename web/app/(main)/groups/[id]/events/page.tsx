@@ -9,7 +9,7 @@ import { useEvents } from "./_hooks/use-events";
 import EventFormModal from "./_components/event-form-modal";
 
 import { Event, EventFormInput } from "@/app/lib/types/group";
-import { formatDate } from "@/app/lib/utils/utils";
+import { formatDate } from "@/app/lib/utils/format";
 
 const INITIAL_EVENTS: Event[] = [
   {

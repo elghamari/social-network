@@ -5,9 +5,8 @@ export interface NavItem {
   icon: string;
 }
 
-export interface User {
-  id: string;
-  firstName: string;
-  lastName: string;
-  avatar?: string;
-}
+export type ApiResponse = {
+  status: number;
+  error?: string;
+  [key: string]: unknown;
+};

@@ -2,9 +2,7 @@
 
 import { useState } from "react";
 
-import { showToast } from "@/app/ui/layout/toast-store";
 import { cancelJoinRequest, submitJoinRequest } from "@/app/lib/services/group";
-import { useRouter } from "next/navigation";
 
 const styles = {
   card: {
@@ -17,19 +15,13 @@ const styles = {
   },
 };
 
-type GroupJoinButtonProps = {
+type Props = {
   groupId: string;
   groupRole: string;
   type: "card" | "header";
 };
 
-export default function GroupJoinButton({
-  groupId,
-  groupRole,
-  type,
-}: GroupJoinButtonProps) {
-  const router = useRouter();
-
+export default function GroupJoinButton({ groupId, groupRole, type }: Props) {
   const [isPending, setIsPending] = useState(groupRole === "PENDING");
   const [loading, setLoading] = useState(false);
 
@@ -40,23 +32,10 @@ export default function GroupJoinButton({
     setLoading(true);
     const action = isPending ? cancelJoinRequest : submitJoinRequest;
 
-    const resp = await action(groupId);
+    await action(groupId);
+    setIsPending(!isPending);
+    ``;
     setLoading(false);
-    switch (resp.status) {
-      case 401:
-        router.push("/login");
-        break;
-
-      case 400:
-        showToast(resp.error);
-        break;
-
-      case 500:
-        throw new Error("Internal Server Error");
-
-      default:
-        setIsPending(!isPending);
-    }
   };
 
   const style = styles[type];

@@ -22,11 +22,10 @@ func SessionLoader(authService *services.AuthService) func(http.Handler) http.Ha
 
 			user, err := authService.GetUser(cookie.Value)
 			if err != nil {
-				utils.WriteJson(w, map[string]any{
-					"ok":     false,
-					"status": http.StatusInternalServerError,
-				})
 				log.Println(err)
+				utils.WriteJson(w, http.StatusInternalServerError, map[string]any{
+					"error": "Something went wrong",
+				})
 				return
 			}
 
@@ -53,9 +52,8 @@ func GuestOnly(next http.Handler) http.Handler {
 
 		userID := utils.GetUserId(r)
 		if userID != "" {
-			utils.WriteJson(w, map[string]any{
-				"status": http.StatusConflict,
-				"code":   "ALREADY_LOGGED",
+			utils.WriteJson(w, http.StatusConflict, map[string]any{
+				"error": "you are already logged in",
 			})
 			return
 		}
@@ -70,9 +68,8 @@ func AuthRequired(next http.Handler) http.Handler {
 		userID := utils.GetUserId(r)
 
 		if userID == "" {
-			utils.WriteJson(w, map[string]any{
-				"status": http.StatusUnauthorized,
-				"code":   "UNAUTHORIZED",
+			utils.WriteJson(w, http.StatusUnauthorized, map[string]any{
+				"error": "unauthorized, login first",
 			})
 			return
 		}

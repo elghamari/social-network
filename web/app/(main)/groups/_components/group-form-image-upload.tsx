@@ -3,7 +3,11 @@
 import { ImageIcon, XCancelIcon } from "@/app/ui/icons";
 import { useRef, useState } from "react";
 
-export default function GroupFormImageUpload({ error }: { error: string }) {
+export default function GroupFormImageUpload({
+  errors,
+}: {
+  errors?: string[];
+}) {
   const [imagePreview, setImagePreview] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -16,18 +20,18 @@ export default function GroupFormImageUpload({ error }: { error: string }) {
   };
 
   return (
-    <div className="group-form__field">
-      <label className="group-form__label">Cover Image (optional)</label>
+    <div className="gf-modal__field">
+      <label className="gf-modal__label">Cover Image (optional)</label>
       <div
-        className={`group-form__upload ${imagePreview ? "group-form__upload--has-image" : ""}`}
+        className={`gf-modal__upload ${imagePreview ? "gf-modal__upload--has-image" : ""}`}
         onClick={() => !imagePreview && fileInputRef.current?.click()}
       >
         {imagePreview ? (
-          <div className="group-form__upload-preview">
+          <div className="gf-modal__upload-preview">
             <img src={imagePreview} alt="Cover preview" />
             <button
               type="button"
-              className="group-form__upload-remove"
+              className="gf-modal__upload-remove"
               onClick={(e: React.MouseEvent) => {
                 e.stopPropagation();
                 if (fileInputRef.current) fileInputRef.current.value = "";
@@ -39,7 +43,7 @@ export default function GroupFormImageUpload({ error }: { error: string }) {
             </button>
           </div>
         ) : (
-          <div className="group-form__upload-placeholder">
+          <div className="gf-modal__upload-placeholder">
             <ImageIcon size={25} />
             <span>Click to upload</span>
           </div>
@@ -53,7 +57,13 @@ export default function GroupFormImageUpload({ error }: { error: string }) {
           aria-label="Upload cover image"
         />
       </div>
-      {error && <span className="group-form__error">{error}</span>}
+      {errors &&
+        errors.length > 0 &&
+        errors.map((err, i) => (
+          <span key={i} className="gf-modal__error">
+            {err}
+          </span>
+        ))}
     </div>
   );
 }

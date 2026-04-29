@@ -24,7 +24,8 @@ export default function GroupDetails({
   const { group, loading } = useGroupDetail(id);
 
   if (loading) return <Skeleton />;
-  if (!group) notFound();
+
+  if (!group || !group?.id) notFound();
 
   const isMember = group.role === "CREATOR" || group.role === "MEMBER";
 

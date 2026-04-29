@@ -7,6 +7,13 @@ import (
 	"strconv"
 )
 
+// DBTX allows repo methods to accept both *sql.DB and *sql.Tx.
+type DBTX interface {
+	Exec(query string, args ...any) (sql.Result, error)
+	Query(query string, args ...any) (*sql.Rows, error)
+	QueryRow(query string, args ...any) *sql.Row
+}
+
 type GroupRepo struct {
 	DB *sql.DB
 }
@@ -17,28 +24,41 @@ func NewGroupRepo(db *sql.DB) *GroupRepo {
 
 var groupRepoName = "group-repo"
 
-// ===== Groups
+// ============================================================
+// Groups
+// ============================================================
 
-func (r *GroupRepo) InsertGroup(input types.GroupInput, destPath string) (string, error) {
-	res, err := r.DB.Exec(`
+// InsertGroup inserts a new group row and returns its generated ID.
+func (r *GroupRepo) InsertGroup(db DBTX, group types.Group, userId string) (string, error) {
+	if db == nil {
+		db = r.DB
+	}
+
+	res, err := db.Exec(`
 	INSERT INTO groups
 		(creator_id, title, description, cover_path)
 	VALUES (?, ?, ?, ?)
-	`, input.CreatorId, input.Title, input.Description, destPath)
+	`, userId, group.Title, group.Description, group.CoverPath)
 	if err != nil {
 		return "", fmt.Errorf("%s.InsertGroup: Inserting %w", groupRepoName, err)
 	}
 
-	intGroupId, err := res.LastInsertId()
+	groupId, err := res.LastInsertId()
 	if err != nil {
 		return "", fmt.Errorf("%s.InsertGroup: LastInsertId %w", groupRepoName, err)
 	}
 
-	return strconv.Itoa(int(intGroupId)), nil
+	return strconv.Itoa(int(groupId)), nil
 }
 
-func (r *GroupRepo) InsertGroupMember(groupId, userId string, isCreator bool) error {
-	_, err := r.DB.Exec(`
+// InsertGroupMember adds a user to a group.
+// Set isCreator=true when inserting the group creator.
+func (r *GroupRepo) InsertGroupMember(db DBTX, groupId, userId string, isCreator bool) error {
+	if db == nil {
+		db = r.DB
+	}
+
+	_, err := db.Exec(`
 	INSERT OR IGNORE INTO group_members 
 	(group_id, user_id, is_creator)
 	VALUES (?, ?, ?)
@@ -49,47 +69,85 @@ func (r *GroupRepo) InsertGroupMember(groupId, userId string, isCreator bool) er
 	return nil
 }
 
-func (r *GroupRepo) groupBaseQuery() string {
+// groupBaseQuery returns the shared SELECT used by single and list group queries.
+func (r *GroupRepo) groupBaseQuery(userId string) (string, []any) {
 	return `
 	SELECT 
-		g.id, g.creator_id, g.title, g.description, g.cover_path, g.created_at,
+    g.id, g.creator_id, g.title, g.description, g.cover_path, g.created_at,
+    (SELECT COUNT(*) FROM group_members WHERE group_id = g.id) AS members_cnt,
 
-		(SELECT COUNT(*) FROM group_members WHERE group_id = g.id) AS members_cnt,
+    CASE
+        WHEN gm_user.is_creator = 1 THEN 'CREATOR'
+        WHEN gm_user.user_id IS NOT NULL THEN 'MEMBER'
+        WHEN gjr.user_id IS NOT NULL THEN 'PENDING'
+        ELSE 'NONE'
+    END AS role
 
-		CASE
-			WHEN EXISTS(
-				SELECT 1 FROM group_members gm 
-				WHERE gm.group_id = g.id AND gm.user_id = ?
-				AND gm.is_creator = 1
-			) THEN 'CREATOR'
-
-			WHEN EXISTS (
-				SELECT 1 FROM group_members gm
-				WHERE gm.group_id = g.id AND gm.user_id = ?
-			) THEN 'MEMBER'
-
-			WHEN EXISTS (
-				SELECT 1 FROM group_join_requests gjr
-				WHERE gjr.group_id = g.id AND gjr.user_id = ?
-			) THEN 'PENDING'
-
-			ELSE 'NONE'
-		END AS role
-	
 	FROM groups g
-	`
+	LEFT JOIN group_members gm_user ON gm_user.group_id = g.id AND gm_user.user_id = ?
+	LEFT JOIN group_join_requests gjr ON gjr.group_id = g.id AND gjr.user_id = ?
+	WHERE 1=1`, []any{userId, userId}
+
 }
 
+// getGroupForUserQuery builds the query and args for fetching a single group.
+func (r *GroupRepo) getGroupForUserQuery(groupId, userId string) (string, []any) {
+	query, args := r.groupBaseQuery(userId)
+
+	query += `
+	AND g.id = ?`
+
+	args = append(args, groupId)
+
+	return query, args
+}
+
+// GetGroupForUser returns a single group with the user's role computed.
+func (r *GroupRepo) GetGroupForUser(db DBTX, groupId, userId string) (types.Group, error) {
+	if db == nil {
+		db = r.DB
+	}
+
+	group := types.Group{}
+	query, args := r.getGroupForUserQuery(groupId, userId)
+
+	err := db.QueryRow(query, args...).Scan(
+		&group.Id, &group.CreatorId, &group.Title, &group.Description,
+		&group.CoverPath, &group.CreatedAt, &group.MembersCount, &group.Role,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return types.Group{}, nil
+		}
+		return types.Group{}, fmt.Errorf("%s.GetGroupForUser: %w", groupRepoName, err)
+	}
+	return group, nil
+}
+
+// getGroupsQuery builds the filtered query for listing groups.
+// Appends tab and search conditions dynamically.
 func (r *GroupRepo) getGroupsQuery(userId, tab, search string) (string, []any) {
-	query := r.groupBaseQuery() + `WHERE 1=1`
-	args := []any{userId, userId, userId}
+	query, args := r.groupBaseQuery(userId)
 
 	if search != "" {
-		query += ` AND g.title LIKE '%' || ? || '%'`
+		query += `
+		AND g.title LIKE '%' || ? || '%'`
 		args = append(args, search)
 	}
 
 	switch tab {
+	case "discover":
+		query += `
+		AND NOT EXISTS(
+    	    SELECT 1 FROM group_members gm
+    	    WHERE gm.user_id = ? AND gm.group_id = g.id
+    	)
+		AND NOT EXISTS(
+    	    SELECT 1 FROM group_join_requests gjr
+    	    WHERE gjr.user_id = ? AND gjr.group_id = g.id
+    	)`
+		args = append(args, userId, userId)
+
 	case "joined":
 		query += `
 		AND EXISTS(
@@ -112,6 +170,7 @@ func (r *GroupRepo) getGroupsQuery(userId, tab, search string) (string, []any) {
 	return query, args
 }
 
+// ListGroups returns groups filtered by tab and optional search term.
 func (r *GroupRepo) ListGroups(userId, tab, search string) ([]types.Group, error) {
 	query, args := r.getGroupsQuery(userId, tab, search)
 
@@ -126,7 +185,7 @@ func (r *GroupRepo) ListGroups(userId, tab, search string) ([]types.Group, error
 		group := types.Group{}
 		err := rows.Scan(
 			&group.Id, &group.CreatorId, &group.Title, &group.Description,
-			&group.CoverPath, &group.CreatedAt, &group.MembersCnt, &group.Role,
+			&group.CoverPath, &group.CreatedAt, &group.MembersCount, &group.Role,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("%s.ListGroups: Scanning: %w", groupRepoName, err)
@@ -136,6 +195,7 @@ func (r *GroupRepo) ListGroups(userId, tab, search string) ([]types.Group, error
 	return groups, nil
 }
 
+// GroupExists returns true if a group with the given ID exists.
 func (r *GroupRepo) GroupExists(groupId string) (bool, error) {
 	var exists bool
 	err := r.DB.QueryRow(`
@@ -149,28 +209,12 @@ func (r *GroupRepo) GroupExists(groupId string) (bool, error) {
 	return exists, nil
 }
 
-func (r *GroupRepo) getGroupForUserQuery(groupId, userId string) (string, []any) {
-	query := r.groupBaseQuery() + `WHERE g.id = ?`
-	args := []any{userId, userId, userId, groupId}
-	return query, args
-}
+// ============================================================
+// Join Requests
+// ============================================================
 
-func (r *GroupRepo) GetGroupForUser(groupId, userId string) (types.Group, error) {
-	group := types.Group{}
-	query, args := r.getGroupForUserQuery(groupId, userId)
-
-	err := r.DB.QueryRow(query, args...).Scan(
-		&group.Id, &group.CreatorId, &group.Title, &group.Description,
-		&group.CoverPath, &group.CreatedAt, &group.MembersCnt, &group.Role,
-	)
-	if err != nil {
-		return types.Group{}, fmt.Errorf("%s.GetGroupForUser: %w", groupRepoName, err)
-	}
-	return group, nil
-}
-
-// ===== Join requests
-
+// InsertJoinRequest creates a join request for a user.
+// Silently ignores duplicates.
 func (r *GroupRepo) InsertJoinRequest(groupId, userId string) error {
 	_, err := r.DB.Exec(`
 	INSERT OR IGNORE INTO group_join_requests 
@@ -183,10 +227,11 @@ func (r *GroupRepo) InsertJoinRequest(groupId, userId string) error {
 	return nil
 }
 
+// DeleteJoinRequest removes a user's join request.
 func (r *GroupRepo) DeleteJoinRequest(groupId, userId string) error {
 	_, err := r.DB.Exec(`
-	DELETE FROM group_join_requests 
-	WHERE group_id = ? AND user_id = ?
+		DELETE FROM group_join_requests 
+		WHERE group_id = ? AND user_id = ?
 	`, groupId, userId)
 	if err != nil {
 		return fmt.Errorf("%s.DeleteJoinRequest: %w", groupRepoName, err)
@@ -194,20 +239,23 @@ func (r *GroupRepo) DeleteJoinRequest(groupId, userId string) error {
 	return nil
 }
 
-// ===== Invitations
+// ============================================================
+// Invitations
+// ============================================================
 
+// ListInvitableUsersForGroup returns all non-members with an IsInvited flag.
 func (r *GroupRepo) ListInvitableUsersForGroup(groupId, userId string) ([]types.InvitableUser, error) {
 	rows, err := r.DB.Query(`
-		SELECT u.id, u.first_name, u.last_name, u.avatar,
-		EXISTS(SELECT 1 FROM group_invitations WHERE group_id = ? AND user_id = u.id)
-
-		FROM users u
-		WHERE
-		NOT EXISTS(
-			SELECT 1 FROM group_members WHERE group_id = ? AND user_id = u.id 
-		)
-		AND u.id != ?
-	`, groupId, groupId, userId)
+    SELECT u.id, u.first_name, u.last_name, u.avatar,
+    gi.user_id IS NOT NULL AS is_invited
+    FROM users u
+    LEFT JOIN group_invitations gi ON gi.group_id = ? AND gi.user_id = u.id 
+    WHERE u.id != ?
+    AND NOT EXISTS (
+        SELECT 1 FROM group_members gm 
+        WHERE gm.group_id = ? AND gm.user_id = u.id
+    )
+`, groupId, userId, groupId)
 	if err != nil {
 		return nil, fmt.Errorf("%s.ListInvitableUsersForGroup: Reading: %w", groupRepoName, err)
 	}
@@ -224,6 +272,8 @@ func (r *GroupRepo) ListInvitableUsersForGroup(groupId, userId string) ([]types.
 	return invitableUsers, nil
 }
 
+// InsertGroupInvitation creates an invitation from inviterId to invitedUserId.
+// Silently ignores duplicates.
 func (r *GroupRepo) InsertGroupInvitation(groupId, inviterId, invitedUserId string) error {
 	_, err := r.DB.Exec(`
 		INSERT OR IGNORE INTO group_invitations 
@@ -236,6 +286,7 @@ func (r *GroupRepo) InsertGroupInvitation(groupId, inviterId, invitedUserId stri
 	return nil
 }
 
+// DeleteGroupInvitation removes an invitation for a user in a group.
 func (r *GroupRepo) DeleteGroupInvitation(groupId, userId string) error {
 	_, err := r.DB.Exec(`
 		DELETE FROM group_invitations 
@@ -247,41 +298,40 @@ func (r *GroupRepo) DeleteGroupInvitation(groupId, userId string) error {
 	return nil
 }
 
-// ===== Role
+// ============================================================
+// Role
+// ============================================================
 
+// GetUserGroupRole returns the user's role in the group:
+// CREATOR | MEMBER
 func (r *GroupRepo) GetUserGroupRole(groupId, userId string) (string, error) {
 	var role string
 	err := r.DB.QueryRow(`
-		SELECT CASE
-			WHEN EXISTS(
-				SELECT 1 FROM group_members
-				WHERE group_id = ? AND user_id = ? AND is_creator = 1
-			) THEN 'CREATOR'
-
-			WHEN EXISTS(
-				SELECT 1 FROM group_members
-				WHERE group_id = ? AND user_id = ?
-			) THEN 'MEMBER'
-
-			WHEN EXISTS(
-				SELECT 1 FROM group_join_requests
-				WHERE group_id = ? AND user_id = ?
-			) THEN 'PENDING'
-
-			ELSE 'NONE'
-		END
-	`, groupId, userId, groupId, userId, groupId, userId).Scan(&role)
+		SELECT 
+    	CASE 
+        	WHEN gm.is_creator = 1 THEN 'CREATOR'
+        	ELSE 'MEMBER'
+    	END AS role
+	FROM group_members gm
+	WHERE gm.group_id = ? AND user_id = ?
+	`, groupId, userId).Scan(&role)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return "NONE", nil
+		}
 		return "", fmt.Errorf("%s.GetUserGroupRole: %w", groupRepoName, err)
 	}
 	return role, nil
 }
 
-// ===== Join request users list
+// ============================================================
+// Join Request Users List
+// ============================================================
 
+// ListJoinRequestUsersForGroup returns all users with pending join requests.
 func (r *GroupRepo) ListJoinRequestUsersForGroup(groupId string) ([]types.JoinRequestUser, error) {
 	rows, err := r.DB.Query(`
-		SELECT u.id, u.first_name, u.last_name, u.avatar,
+		SELECT u.id, u.first_name, u.last_name, u.avatar
 		FROM group_join_requests gjr
 		LEFT JOIN users u ON gjr.user_id = u.id
 		WHERE gjr.group_id = ?
@@ -302,9 +352,18 @@ func (r *GroupRepo) ListJoinRequestUsersForGroup(groupId string) ([]types.JoinRe
 	return requests, nil
 }
 
-func (r *GroupRepo) InsertEvent(tx *sql.Tx, groupId string, event types.Event) (string, error) {
-	res, err := tx.Exec(`
-		INSERT OR IGNORE INTO events
+// ============================================================
+// Events
+// ============================================================
+
+// InsertEvent inserts a new event and returns its generated ID.
+func (r *GroupRepo) InsertEvent(db DBTX, groupId string, event types.Event) (string, error) {
+	if db == nil {
+		db = r.DB
+	}
+
+	res, err := db.Exec(`
+		INSERT INTO events
 		(group_id, title, description, date) VALUES (?, ?, ?, ?)
 	`, groupId, event.Title, event.Description, event.Date)
 	if err != nil {
@@ -319,6 +378,8 @@ func (r *GroupRepo) InsertEvent(tx *sql.Tx, groupId string, event types.Event) (
 	return strconv.Itoa(int(eventId)), nil
 }
 
+// eventBaseQuery returns the shared SELECT for event queries.
+// Includes aggregated GOING and NOT_GOING counts.
 func (r *GroupRepo) eventBaseQuery() string {
 	return `
 	SELECT 
@@ -329,24 +390,29 @@ func (r *GroupRepo) eventBaseQuery() string {
 		
 	FROM events e
 	LEFT JOIN event_responses er ON er.event_id = e.id
-	WHERE group_id = ?
 	`
 }
 
-func (r *GroupRepo) GetEventForUser(tx *sql.Tx, eventId string) (types.Event, error) {
+// GetEventForUser returns a single event with aggregated RSVP counts.
+func (r *GroupRepo) GetEventForUser(db DBTX, eventId string) (types.Event, error) {
+	if db == nil {
+		db = r.DB
+	}
+
 	event := types.Event{}
 
-	query := r.eventBaseQuery() + "WHERE e.id = ?"
-	err := tx.QueryRow(query, eventId).Scan(&event.Id, &event.Title, &event.Description, &event.Date, &event.GoingCnt, &event.NotGoingCnt)
+	query := r.eventBaseQuery() + "WHERE e.id = ? GROUP BY e.id"
+	err := db.QueryRow(query, eventId).Scan(&event.Id, &event.Title, &event.Description, &event.Date, &event.GoingCnt, &event.NotGoingCnt)
 	if err != nil {
 		return types.Event{}, fmt.Errorf("%s.GetEventById: %w", groupRepoName, err)
 	}
 	return event, err
 }
 
+// ListEvents returns all events for a group with aggregated RSVP counts.
 func (r *GroupRepo) ListEvents(groupId, userId string) ([]types.Event, error) {
-	query := r.eventBaseQuery() + "GROUP BY e.id"
-	rows, err := r.DB.Query(query)
+	query := r.eventBaseQuery() + "WHERE e.group_id = ? GROUP BY e.id"
+	rows, err := r.DB.Query(query, groupId)
 	if err != nil {
 		return nil, fmt.Errorf("%s.ListEvents: Reading: %w", groupRepoName, err)
 	}
@@ -362,4 +428,34 @@ func (r *GroupRepo) ListEvents(groupId, userId string) ([]types.Event, error) {
 		events = append(events, event)
 	}
 	return events, nil
+}
+
+// UpdateEventStatus inserts or updates the user's RSVP for an event.
+// Uses upsert — updates status if a response already exists.
+func (r *GroupRepo) UpdateEventStatus(eventId, userId, status string) error {
+	_, err := r.DB.Exec(`
+		INSERT INTO event_responses (event_id, user_id, status) 
+		VALUES (?, ?, ?)
+		ON CONFLICT(event_id, user_id) DO UPDATE SET
+			status = excluded.status
+	`, eventId, userId, status)
+	if err != nil {
+		return fmt.Errorf("%s.UpdateEventStatus: %w", groupRepoName, err)
+	}
+	return nil
+}
+
+// EventBelongsToGroup returns true if the event exists within the given group.
+func (r *GroupRepo) EventBelongsToGroup(eventId, groupId string) (bool, error) {
+	var exists bool
+	err := r.DB.QueryRow(`
+		SELECT EXISTS(
+			SELECT 1 FROM events WHERE id = ? AND group_id = ?
+		)
+	`, eventId, groupId).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("%s.EventBelongsToGroup: %w", groupRepoName, err)
+	}
+
+	return exists, nil
 }

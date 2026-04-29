@@ -1,3 +1,5 @@
+"use client";
+
 import type {
   EventFormErrors,
   EventFormInput,
@@ -6,12 +8,17 @@ import type {
 } from "../types/group";
 
 export function validateGroup(data: GroupFormInput): GroupFormErrors | null {
-  const errors: GroupFormErrors = {};
+  const errors: GroupFormErrors = {
+    title: [],
+    description: [],
+    coverImage: [],
+  };
 
   const title = data.title;
   if (!title || !(title.length >= 3 && title.length <= 100)) {
-    errors.title =
-      "Title cannot be empty and must be between 3 and 100 letters.";
+    errors.title?.push(
+      "Title cannot be empty and must be between 3 and 100 letters.",
+    );
   }
 
   const description = data.description;
@@ -19,24 +26,26 @@ export function validateGroup(data: GroupFormInput): GroupFormErrors | null {
     !description ||
     !(description.length >= 10 && description.length <= 500)
   ) {
-    errors.description =
-      "Description cannot be empty and must be between 10 and 500 letters.";
+    errors.description?.push(
+      "Description cannot be empty and must be between 10 and 500 letters.",
+    );
   }
 
   const file = data.coverImage;
   if (file && file.size > 0) {
     const maxSize = 2 * 1024 * 1024;
     if (file.size > maxSize) {
-      errors.coverImage = "Image must be less than 2MB";
+      errors.coverImage?.push("Image must be less than 2MB");
     }
 
     const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
-      errors.coverImage = "Only JPG, PNG or WEBP images are allowed";
+      errors.coverImage?.push("Only JPG, PNG or WEBP images are allowed");
     }
   }
 
-  return Object.keys(errors).length > 0 ? errors : null;
+  const hasErrors = Object.values(errors).some((arr) => arr && arr.length > 0);
+  return hasErrors ? errors : null;
 }
 
 export function validateEvent(data: EventFormInput): EventFormErrors | null {

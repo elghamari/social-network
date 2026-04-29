@@ -14,21 +14,19 @@ func HandleError(w http.ResponseWriter, err error) {
 
 	switch {
 	case errors.As(err, &ve):
-		utils.WriteJson(w, map[string]any{
-			"status": http.StatusBadRequest,
+		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
 			"fields": ve.Fields,
 		})
 
 	case errors.As(err, &ae):
-		utils.WriteJson(w, map[string]any{
-			"status": http.StatusBadRequest,
-			"error":  ae.Message,
+		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
+			"error": ae.Message,
 		})
 
 	default:
 		log.Println(err)
-		utils.WriteJson(w, map[string]any{
-			"status": http.StatusInternalServerError,
+		utils.WriteJson(w, http.StatusInternalServerError, map[string]any{
+			"error": "Something went wrong",
 		})
 	}
 }

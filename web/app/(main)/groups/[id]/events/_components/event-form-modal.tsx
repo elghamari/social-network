@@ -2,7 +2,7 @@
 
 import { createEvent } from "@/app/lib/services/group";
 import { Event, EventFormInput, EventFormErrors } from "@/app/lib/types/group";
-import { validateEvent } from "@/app/lib/utils/validators";
+import { validateEvent } from "@/app/lib/utils/validate";
 import { XCancelIcon } from "@/app/ui/icons";
 import { useRouter } from "next/navigation";
 import { useState } from "react";

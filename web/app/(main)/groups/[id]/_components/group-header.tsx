@@ -1,4 +1,4 @@
-import JoinButton from "../../_components/join-button";
+import JoinButton from "../../_components/group-join-button";
 
 import type { Group } from "@/app/lib/types/group";
 

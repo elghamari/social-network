@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS groups (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     creator_id TEXT NOT NULL,
-    title TEXT NOT NULL UNIQUE,
+    title TEXT NOT NULL,
     description TEXT NOT NULL,
     cover_path TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

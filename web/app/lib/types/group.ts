@@ -20,9 +20,9 @@ export type GroupFormInput = {
 };
 
 export type GroupFormErrors = {
-  title?: string;
-  description?: string;
-  coverImage?: string;
+  title?: string[];
+  description?: string[];
+  coverImage?: string[];
 };
 
 // ===== Group Details

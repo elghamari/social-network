@@ -1,12 +1,12 @@
 package types
 
 type FormError struct {
-	Fields map[string]string
+	Fields map[string][]string
 }
 
 func NewFormError() *FormError {
 	return &FormError{
-		Fields: make(map[string]string),
+		Fields: make(map[string][]string),
 	}
 }
 
@@ -15,7 +15,12 @@ func (e FormError) Error() string {
 }
 
 func (e *FormError) HasErrors() bool {
-	return len(e.Fields) > 0
+	for _, errs := range e.Fields {
+		if len(errs) > 0 {
+			return true
+		}
+	}
+	return false
 }
 
 type ActionError struct {

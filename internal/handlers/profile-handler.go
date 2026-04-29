@@ -12,9 +12,8 @@ func (h *Handler) GetMe(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.Services.Auth.GetUserById(userID)
 	if err != nil {
-		utils.WriteJson(w, map[string]any{
-			"status": http.StatusNotFound,
-			"error":  "user not found",
+		utils.WriteJson(w, http.StatusNotFound, map[string]any{
+			"error": "user not found",
 		})
 		return
 	}
@@ -23,8 +22,7 @@ func (h *Handler) GetMe(w http.ResponseWriter, r *http.Request) {
 	following, _ := h.Services.Follow.GetFollowing(userID)
 	pending, _ := h.Services.Follow.GetPendingRequests(userID)
 
-	utils.WriteJson(w, map[string]any{
-		"status": http.StatusOK,
+	utils.WriteJson(w, http.StatusOK, map[string]any{
 		"user": types.UserProfileResponse{
 			ID:              user.ID,
 			FirstName:       user.FirstName,
@@ -44,18 +42,16 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	targetID := r.URL.Query().Get("profile_id")
 
 	if targetID == "" {
-		utils.WriteJson(w, map[string]any{
-			"status": http.StatusBadRequest,
-			"error":  "profile_id is required",
+		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
+			"error": "profile_id is required",
 		})
 		return
 	}
 
 	target, err := h.Services.Auth.GetUserById(targetID)
 	if err != nil {
-		utils.WriteJson(w, map[string]any{
-			"status": http.StatusNotFound,
-			"error":  "user not found",
+		utils.WriteJson(w, http.StatusNotFound, map[string]any{
+			"error": "user not found",
 		})
 		return
 	}
@@ -73,8 +69,7 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	utils.WriteJson(w, map[string]any{
-		"status": http.StatusOK,
+	utils.WriteJson(w, http.StatusOK, map[string]any{
 		"user": types.UserProfileResponse{
 			ID:              target.ID,
 			FirstName:       target.FirstName,

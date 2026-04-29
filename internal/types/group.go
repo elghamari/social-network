@@ -12,14 +12,14 @@ type GroupInput struct {
 }
 
 type Group struct {
-	Id          string `json:"id"`
-	CreatorId   string `json:"creatorId"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	CoverPath   string `json:"coverPath"`
-	CreatedAt   string `json:"createdAt"`
-	MembersCnt  int    `json:"memberCount"`
-	Role        string `json:"role"`
+	Id           string `json:"id"`
+	CreatorId    string `json:"creatorId"`
+	Title        string `json:"title"`
+	Description  string `json:"description"`
+	CoverPath    string `json:"coverPath"`
+	CreatedAt    string `json:"createdAt"`
+	MembersCount int    `json:"memberCount"`
+	Role         string `json:"role"`
 }
 
 type JoinRequest struct {
@@ -55,4 +55,9 @@ type Event struct {
 	Resp        string `json:"resp"`
 	GoingCnt    int    `json:"goingCnt"`
 	NotGoingCnt int    `json:"notGoingCnt"`
+}
+
+type EventStatus struct {
+	EventId string `json:"eventId"`
+	Status  string `json:"Status"`
 }

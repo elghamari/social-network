@@ -102,10 +102,6 @@
   margin-bottom: 4px;
 }
 
-.groups-empty__text {
-  font-size: 13px;
-}
-
 /* ===== Button ===== */
 .btn-primary {
   display: inline-flex;
@@ -189,7 +185,7 @@
   color: var(--text-muted);
 }
 
-/* ===== Card badge ===== */
+/* ===== Card Badge ===== */
 .group-card__badge {
   padding: 6px 12px;
   font-size: 12px;
@@ -230,7 +226,7 @@
   cursor: not-allowed;
 }
 
-/* ===== Card skeleton ===== */
+/* ===== Card Skeleton ===== */
 @keyframes shimmer {
   0% {
     background-position: -600px 0;
@@ -307,5 +303,266 @@
 
   .groups-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ===================================================
+   GROUP FORM MODAL — Create Group
+   =================================================== */
+
+/* ===== Overlay ===== */
+.gf-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+}
+
+/* ===== Modal Box ===== */
+.gf-modal {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* ===== Modal Header ===== */
+.gf-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.gf-modal__title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.gf-modal__close {
+  color: var(--text-muted);
+  transition: color var(--transition-fast);
+}
+
+.gf-modal__close:hover {
+  color: var(--text-primary);
+}
+
+/* ===== Modal Form ===== */
+.gf-modal__form {
+  padding: 24px;
+}
+
+/* ===== Modal Field ===== */
+.gf-modal__field {
+  margin-bottom: 20px;
+}
+
+.gf-modal__field:last-of-type {
+  margin-bottom: 0;
+}
+
+.gf-modal__label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.gf-modal__input {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: border-color var(--transition-fast);
+}
+
+.gf-modal__input::placeholder {
+  color: var(--text-muted);
+}
+
+.gf-modal__input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+.gf-modal__input--error {
+  border-color: #ef4444;
+}
+
+.gf-modal__textarea {
+  resize: vertical;
+  min-height: 100px;
+  line-height: 1.5;
+}
+
+.gf-modal__error {
+  display: block;
+  font-size: 12px;
+  color: #ef4444;
+  margin-top: 6px;
+}
+
+/* ===== Modal Upload ===== */
+.gf-modal__upload {
+  display: block;
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+  overflow: hidden;
+}
+
+.gf-modal__upload:hover {
+  border-color: var(--accent-primary);
+}
+
+.gf-modal__upload--has-image {
+  border-style: solid;
+}
+
+.gf-modal__upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 32px;
+  color: var(--text-muted);
+}
+
+.gf-modal__upload-placeholder span {
+  font-size: 13px;
+}
+
+.gf-modal__upload-preview {
+  position: relative;
+  aspect-ratio: 3/1;
+}
+
+.gf-modal__upload-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gf-modal__upload-remove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+  border: none;
+  transition: background-color var(--transition-fast);
+}
+
+.gf-modal__upload-remove:hover {
+  background: #ef4444;
+}
+
+.gf-modal__upload input[type="file"] {
+  display: none;
+}
+
+/* ===== Modal Actions ===== */
+.gf-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.gf-modal__btn {
+  padding: 10px 20px;
+  font-size: 14px;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.gf-modal__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.gf-modal__btn--cancel {
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.gf-modal__btn--cancel:hover:not(:disabled) {
+  color: var(--text-primary);
+}
+
+.gf-modal__btn--submit {
+  padding: 10px 24px;
+  background: var(--accent-primary);
+  color: white;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 120px;
+}
+
+.gf-modal__btn--submit:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.gf-modal__spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: gf-modal-spin 0.6s linear infinite;
+}
+
+@keyframes gf-modal-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===== Modal Responsive ===== */
+@media (max-width: 768px) {
+  .gf-modal {
+    max-height: 95vh;
+  }
+
+  .gf-modal__form {
+    padding: 20px;
+  }
+
+  .gf-modal__actions {
+    flex-direction: column-reverse;
+  }
+
+  .gf-modal__btn {
+    width: 100%;
+    justify-content: center;
   }
 }

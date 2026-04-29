@@ -14,8 +14,7 @@ export default function GroupSearch() {
   const searchParams = useSearchParams();
   const activeTab = (searchParams.get("tab") as GroupTab) || "discover";
 
-
-  let timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   function setSearch(value: string) {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
