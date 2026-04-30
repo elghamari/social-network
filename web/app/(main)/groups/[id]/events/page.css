@@ -68,12 +68,12 @@
   color: var(--text-muted);
 }
 
-.gd-event__status {
+.gd-event__response {
   display: flex;
   gap: 8px;
 }
 
-.gd-status {
+.gd-response {
   padding: 6px 14px;
   font-size: 12px;
   font-weight: 500;
@@ -84,18 +84,18 @@
   transition: all var(--transition-fast);
 }
 
-.gd-status:hover {
+.gd-response:hover {
   border-color: var(--border-default);
   color: var(--text-primary);
 }
 
-.gd-status--active-going {
+.gd-response--active-going {
   background: rgba(16, 185, 129, 0.12);
   color: #10b981;
   border-color: rgba(16, 185, 129, 0.3);
 }
 
-.gd-status--active-not {
+.gd-response--active-not {
   background: rgba(239, 68, 68, 0.1);
   color: #ef4444;
   border-color: rgba(239, 68, 68, 0.3);
@@ -193,6 +193,11 @@
   color: var(--text-primary);
   font-size: 14px;
   transition: border-color var(--transition-fast);
+}
+
+.ef-field__input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.7);
+  cursor: pointer;
 }
 
 .ef-field__input::placeholder {

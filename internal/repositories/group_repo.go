@@ -28,6 +28,18 @@ var groupRepoName = "group-repo"
 // Groups
 // ============================================================
 
+func (r *GroupRepo) IsTitleTaken(title string) (bool, error) {
+	var exists bool
+	err := r.DB.QueryRow(`
+		SELECT EXISTS(SELECT 1 FROM groups WHERE title = ?)
+	`, title).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("%s.IsTitleTaken: %w", groupRepoName, err)
+	}
+
+	return exists, nil
+}
+
 // InsertGroup inserts a new group row and returns its generated ID.
 func (r *GroupRepo) InsertGroup(db DBTX, group types.Group, userId string) (string, error) {
 	if db == nil {
@@ -343,7 +355,7 @@ func (r *GroupRepo) ListJoinRequestUsersForGroup(groupId string) ([]types.JoinRe
 	requests := []types.JoinRequestUser{}
 	for rows.Next() {
 		req := types.JoinRequestUser{}
-		err := rows.Scan(&req.UserId, &req.FirstName, &req.LastName, &req.AvatarPath)
+		err := rows.Scan(&req.Id, &req.FirstName, &req.LastName, &req.AvatarPath)
 		if err != nil {
 			return nil, fmt.Errorf("%s.ListJoinRequestUsersForGroup: Scan: %w", groupRepoName, err)
 		}
@@ -355,6 +367,21 @@ func (r *GroupRepo) ListJoinRequestUsersForGroup(groupId string) ([]types.JoinRe
 // ============================================================
 // Events
 // ============================================================
+
+// EventBelongsToGroup returns true if the event exists within the given group.
+func (r *GroupRepo) EventBelongsToGroup(eventId, groupId string) (bool, error) {
+	var exists bool
+	err := r.DB.QueryRow(`
+		SELECT EXISTS(
+			SELECT 1 FROM events WHERE id = ? AND group_id = ?
+		)
+	`, eventId, groupId).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("%s.EventBelongsToGroup: %w", groupRepoName, err)
+	}
+
+	return exists, nil
+}
 
 // InsertEvent inserts a new event and returns its generated ID.
 func (r *GroupRepo) InsertEvent(db DBTX, groupId string, event types.Event) (string, error) {
@@ -380,29 +407,35 @@ func (r *GroupRepo) InsertEvent(db DBTX, groupId string, event types.Event) (str
 
 // eventBaseQuery returns the shared SELECT for event queries.
 // Includes aggregated GOING and NOT_GOING counts.
-func (r *GroupRepo) eventBaseQuery() string {
+func (r *GroupRepo) eventBaseQuery(userId string) (string, []any) {
 	return `
 	SELECT 
 		e.id, e.title, e.description, e.date,
 
-		COUNT(CASE WHEN er.status = 'GOING' THEN 1 END) AS going_cnt,
-		COUNT(CASE WHEN er.status = 'NOT_GOING' THEN 1 END) AS not_going_cnt
+		COALESCE(er.response,'NONE') AS response,
+
+		(SELECT COUNT(*) FROM event_responses WHERE response = 'GOING' AND event_id = e.id) AS going_cnt,
+		(SELECT COUNT(*) FROM event_responses WHERE response = 'NOT_GOING' AND event_id = e.id) AS not_going_cnt
 		
 	FROM events e
-	LEFT JOIN event_responses er ON er.event_id = e.id
-	`
+	LEFT JOIN event_responses er ON er.event_id = e.id AND er.user_id = ?
+	`, []any{userId}
 }
 
-// GetEventForUser returns a single event with aggregated RSVP counts.
-func (r *GroupRepo) GetEventForUser(db DBTX, eventId string) (types.Event, error) {
+// GetEventForUser returns a single event.
+func (r *GroupRepo) GetEventForUser(db DBTX, userId, eventId string) (types.Event, error) {
 	if db == nil {
 		db = r.DB
 	}
 
 	event := types.Event{}
 
-	query := r.eventBaseQuery() + "WHERE e.id = ? GROUP BY e.id"
-	err := db.QueryRow(query, eventId).Scan(&event.Id, &event.Title, &event.Description, &event.Date, &event.GoingCnt, &event.NotGoingCnt)
+	query, args := r.eventBaseQuery(userId)
+
+	query += "WHERE e.id = ?"
+	args = append(args, eventId)
+
+	err := db.QueryRow(query, args...).Scan(&event.Id, &event.Title, &event.Description, &event.Date, &event.Response, &event.GoingCnt, &event.NotGoingCnt)
 	if err != nil {
 		return types.Event{}, fmt.Errorf("%s.GetEventById: %w", groupRepoName, err)
 	}
@@ -411,8 +444,12 @@ func (r *GroupRepo) GetEventForUser(db DBTX, eventId string) (types.Event, error
 
 // ListEvents returns all events for a group with aggregated RSVP counts.
 func (r *GroupRepo) ListEvents(groupId, userId string) ([]types.Event, error) {
-	query := r.eventBaseQuery() + "WHERE e.group_id = ? GROUP BY e.id"
-	rows, err := r.DB.Query(query, groupId)
+	query, args := r.eventBaseQuery(userId)
+
+	query += "WHERE e.group_id = ?"
+	args = append(args, groupId)
+
+	rows, err := r.DB.Query(query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("%s.ListEvents: Reading: %w", groupRepoName, err)
 	}
@@ -421,7 +458,7 @@ func (r *GroupRepo) ListEvents(groupId, userId string) ([]types.Event, error) {
 	events := []types.Event{}
 	for rows.Next() {
 		event := types.Event{}
-		err := rows.Scan(&event.Id, &event.Title, &event.Description, &event.Date, &event.GoingCnt, &event.NotGoingCnt)
+		err := rows.Scan(&event.Id, &event.Title, &event.Description, &event.Date, &event.Response, &event.GoingCnt, &event.NotGoingCnt)
 		if err != nil {
 			return nil, fmt.Errorf("%s.ListEvents: Scanning: %w", groupRepoName, err)
 		}
@@ -430,32 +467,17 @@ func (r *GroupRepo) ListEvents(groupId, userId string) ([]types.Event, error) {
 	return events, nil
 }
 
-// UpdateEventStatus inserts or updates the user's RSVP for an event.
-// Uses upsert — updates status if a response already exists.
-func (r *GroupRepo) UpdateEventStatus(eventId, userId, status string) error {
+// UpsertEventResponse inserts or updates the user's response for an event.
+// Uses upsert — updates response if it already exists.
+func (r *GroupRepo) UpsertEventResponse(eventId, userId, response string) error {
 	_, err := r.DB.Exec(`
-		INSERT INTO event_responses (event_id, user_id, status) 
+		INSERT INTO event_responses (event_id, user_id, response) 
 		VALUES (?, ?, ?)
 		ON CONFLICT(event_id, user_id) DO UPDATE SET
-			status = excluded.status
-	`, eventId, userId, status)
+			response = excluded.response
+	`, eventId, userId, response)
 	if err != nil {
-		return fmt.Errorf("%s.UpdateEventStatus: %w", groupRepoName, err)
+		return fmt.Errorf("%s.UpsertEventResponse: %w", groupRepoName, err)
 	}
 	return nil
-}
-
-// EventBelongsToGroup returns true if the event exists within the given group.
-func (r *GroupRepo) EventBelongsToGroup(eventId, groupId string) (bool, error) {
-	var exists bool
-	err := r.DB.QueryRow(`
-		SELECT EXISTS(
-			SELECT 1 FROM events WHERE id = ? AND group_id = ?
-		)
-	`, eventId, groupId).Scan(&exists)
-	if err != nil {
-		return false, fmt.Errorf("%s.EventBelongsToGroup: %w", groupRepoName, err)
-	}
-
-	return exists, nil
 }

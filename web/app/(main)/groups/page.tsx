@@ -24,6 +24,11 @@ export default function GroupsPage() {
   const { groups, loading, actions } = useGroups(activeTab, query);
   const [showModal, setShowModal] = useState(false);
 
+  function handleCreated(group: Group) {
+    actions.addGroup(group);
+    setShowModal(false);
+  }
+
   return (
     <div className="groups-page">
       <div className="groups-page__header">
@@ -45,7 +50,7 @@ export default function GroupsPage() {
       {showModal && (
         <GroupFormModal
           onClose={() => setShowModal(false)}
-          onCreated={actions.addGroup}
+          onCreated={handleCreated}
         />
       )}
     </div>

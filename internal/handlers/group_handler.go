@@ -340,7 +340,7 @@ func (h *Handler) Events(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		h.CreateEvent(w, r)
 	case http.MethodPut:
-		h.UpdateEventStatus(w, r)
+		h.EventRespond(w, r)
 	default:
 		utils.WriteJson(w, http.StatusMethodNotAllowed, map[string]any{
 			"error": "Method not allowed",
@@ -391,22 +391,22 @@ func (h *Handler) GetEvents(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// UpdateEventStatus handles PUT /api/groups/{id}/events
-// Updates the authenticated user's RSVP status for an event.
-// Body: { eventId, status (GOING | NOT_GOING) }
-func (h *Handler) UpdateEventStatus(w http.ResponseWriter, r *http.Request) {
+// EventRespond handles PUT /api/groups/{id}/events
+// Usertes the authenticated user's Response for an event.
+// Body: { eventId, response (GOING | NOT_GOING) }
+func (h *Handler) EventRespond(w http.ResponseWriter, r *http.Request) {
 	userId := utils.GetUserId(r)
 	groupId := r.PathValue("id")
 
-	eventStatus := types.EventStatus{}
-	if err := json.NewDecoder(r.Body).Decode(&eventStatus); err != nil {
+	eventResponse := types.EventResponse{}
+	if err := json.NewDecoder(r.Body).Decode(&eventResponse); err != nil {
 		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
 			"error": "Invalid request body",
 		})
 		return
 	}
 
-	err := h.Services.Group.UpdateEventStatus(groupId, userId, eventStatus)
+	err := h.Services.Group.RespondToEvent(groupId, userId, eventResponse)
 	if err != nil {
 		HandleError(w, err)
 		return

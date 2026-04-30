@@ -9,7 +9,7 @@ class ClientApi {
       switch (resp.status) {
         case 200:
         case 404:
-          return data;
+          return data || true;
 
         case 400:
           if (data.fields) return data;

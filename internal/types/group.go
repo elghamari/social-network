@@ -28,7 +28,7 @@ type JoinRequest struct {
 }
 
 type JoinRequestUser struct {
-	UserId     string `json:"userId"`
+	Id         string `json:"id"`
 	FirstName  string `json:"firstName"`
 	AvatarPath string `json:"avatarPath"`
 	LastName   string `json:"lastName"`
@@ -52,12 +52,12 @@ type Event struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Date        string `json:"date"`
-	Resp        string `json:"resp"`
+	Response    string `json:"response"`
 	GoingCnt    int    `json:"goingCnt"`
 	NotGoingCnt int    `json:"notGoingCnt"`
 }
 
-type EventStatus struct {
-	EventId string `json:"eventId"`
-	Status  string `json:"Status"`
+type EventResponse struct {
+	EventId  string `json:"eventId"`
+	Response string `json:"response"`
 }

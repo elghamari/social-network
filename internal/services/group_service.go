@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"soc-net/internal/repositories"
 	"soc-net/internal/types"
+	"time"
 )
 
 type GroupService struct {
@@ -23,6 +24,34 @@ var groupServiceName = "group-service"
 // ============================================================
 // Guards — shared pre-condition checks
 // ============================================================
+
+// ensureGroupIsValid return a *FormError if it group is invalid.
+func (s *GroupService) ensureGroupIsValid(group types.Group) error {
+	formErr := types.NewFormError()
+
+	if !(len(group.Title) >= 3 && len(group.Title) <= 100) {
+		formErr.Fields["title"] = append(formErr.Fields["title"], "Title cannot be empty and must be between 3 and 100 letters.")
+	}
+
+	exists, err := s.Group.IsTitleTaken(group.Title)
+	if err != nil {
+		return err
+	}
+
+	if exists {
+		formErr.Fields["title"] = append(formErr.Fields["title"], "A group with this title already exists.")
+	}
+
+	if !(len(group.Description) >= 10 && len(group.Description) <= 500) {
+		formErr.Fields["description"] = append(formErr.Fields["description"], "Description cannot be empty and must be between 10 and 500 letters.")
+	}
+
+	if formErr.HasErrors() {
+		return formErr
+	}
+
+	return nil
+}
 
 // ensureUserExists returns an error if the user does not exist.
 func (s *GroupService) ensureUserExists(userId string) error {
@@ -98,6 +127,29 @@ func (s *GroupService) ensureEventIsInGroup(eventId, groupId string) error {
 	return nil
 }
 
+func (s *GroupService) ensureEventIsValid(event types.Event) error {
+	formErr := types.NewFormError()
+
+	if !(len(event.Title) >= 3 && len(event.Title) <= 100) {
+		formErr.Fields["title"] = append(formErr.Fields["title"], "Title cannot be empty and must be between 3 and 100 letters.")
+	}
+
+	if !(len(event.Description) >= 10 && len(event.Description) <= 500) {
+		formErr.Fields["description"] = append(formErr.Fields["description"], "Description cannot be empty and must be between 10 and 500 letters.")
+	}
+
+	_, err := time.Parse("2006-01-02T15:04", event.Date)
+	if err != nil {
+		formErr.Fields["date"] = append(formErr.Fields["date"], "Invalid date/time format")
+	}
+
+	if formErr.HasErrors() {
+		return formErr
+	}
+
+	return nil
+}
+
 // ============================================================
 // Groups
 // ============================================================
@@ -105,8 +157,8 @@ func (s *GroupService) ensureEventIsInGroup(eventId, groupId string) error {
 // CreateGroup validates input, creates the group, adds the creator
 // as a member, and returns the created group — all within a transaction.
 func (s *GroupService) CreateGroup(userId string, group types.Group) (types.Group, error) {
-	if formErr := ValidateGroup(group); formErr.HasErrors() {
-		return types.Group{}, formErr
+	if err := s.ensureGroupIsValid(group); err != nil {
+		return types.Group{}, err
 	}
 
 	tx, err := s.Group.DB.Begin()
@@ -148,9 +200,6 @@ func (s *GroupService) ListGroups(userId, tab, search string) ([]types.Group, er
 
 // GetGroup returns a single group with the current user's role.
 func (s *GroupService) GetGroup(groupId, userId string) (types.Group, error) {
-	// if err := s.ensureGroupExists(groupId); err != nil {
-	// 	return types.Group{}, err
-	// }
 	return s.Group.GetGroupForUser(nil, groupId, userId)
 }
 
@@ -294,7 +343,7 @@ func (s *GroupService) CreateEvent(groupId, userId string, event types.Event) (t
 		return types.Event{}, err
 	}
 
-	if err := ValidateEvent(event); err != nil {
+	if err := s.ensureEventIsValid(event); err != nil {
 		return types.Event{}, err
 	}
 
@@ -309,7 +358,7 @@ func (s *GroupService) CreateEvent(groupId, userId string, event types.Event) (t
 		return types.Event{}, err
 	}
 
-	event, err = s.Group.GetEventForUser(tx, eventId)
+	event, err = s.Group.GetEventForUser(tx, userId, eventId)
 	if err != nil {
 		return types.Event{}, err
 	}
@@ -333,20 +382,20 @@ func (s *GroupService) ListEvents(groupId, userId string) ([]types.Event, error)
 	return s.Group.ListEvents(groupId, userId)
 }
 
-// UpdateEventStatus sets or updates the user's RSVP for an event.
-// Status must be GOING or NOT_GOING. Members only.
-func (s *GroupService) UpdateEventStatus(groupId, userId string, es types.EventStatus) error {
+// RespondToEvent sets or updates the user's Response for an event.
+// Response must be GOING or NOT_GOING. Members only.
+func (s *GroupService) RespondToEvent(groupId, userId string, er types.EventResponse) error {
 	if err := s.ensureGroupExists(groupId); err != nil {
 		return err
 	}
 	if err := s.ensureUserIsMember(groupId, userId); err != nil {
 		return err
 	}
-	if err := s.ensureEventIsInGroup(es.EventId, groupId); err != nil {
+	if err := s.ensureEventIsInGroup(er.EventId, groupId); err != nil {
 		return err
 	}
-	if err := ValidateEventStatus(es); err != nil {
+	if err := ValidateEventStatus(er); err != nil {
 		return err
 	}
-	return s.Group.UpdateEventStatus(es.EventId, userId, es.Status)
+	return s.Group.UpsertEventResponse(er.EventId, userId, er.Response)
 }

@@ -43,21 +43,16 @@ export default function EventFormModal({ groupId, onClose, onCreated }: Props) {
 
     const resp = await createEvent(groupId, data);
     setLoading(false);
-    switch (resp.status) {
-      case 401:
-        router.push("/login");
-        break;
 
-      case 400:
-        setErrors(resp.fields);
-        break;
+    if (!resp) return;
 
-      case 500:
-        showToast("Something went wrong. Try again later.");
-        break;
+    if (resp.fields) {
+      setErrors(resp.fields);
+      return;
+    }
 
-      default:
-        onCreated(resp.event);
+    if (resp.event) {
+      onCreated(resp.event);
     }
   }
 

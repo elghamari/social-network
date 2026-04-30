@@ -1,14 +1,11 @@
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 
 import { getEvents } from "@/app/lib/services/group";
-import { showToast } from "@/app/ui/layout/toast-store";
-import { Event, EventStatus } from "@/app/lib/types/group";
+import { Event, EventResponse } from "@/app/lib/types/group";
+import { formatDate } from "@/app/lib/utils/format";
 
 export function useEvents(groupId: string) {
-  const router = useRouter();
-
-  const [events, setEvents] = useState<Event[] | null>(null);
+  const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -16,22 +13,9 @@ export function useEvents(groupId: string) {
 
     getEvents(groupId)
       .then((resp) => {
-        switch (resp.status) {
-          case 401:
-            router.push("/login");
-            break;
+        if (!resp) return;
 
-          case 400:
-            showToast(resp.error);
-            break;
-
-          case 500:
-            showToast("Something went wrong. Try again later.");
-            break;
-
-          default:
-            setEvents(resp.events);
-        }
+        setEvents(resp.events);
       })
       .finally(() => {
         setLoading(false);
@@ -39,17 +23,41 @@ export function useEvents(groupId: string) {
   }, []);
 
   function addEvent(event: Event) {
-    let newEvents = events || [];
-    newEvents.push(event);
-    setEvents(newEvents);
+    event.date = formatDate(event.date);
+
+    setEvents((prev) => [...prev, event]);
   }
 
-  function setEventStatus(eventId: string, status: EventStatus) {
-    setEvents(
-      (prev) =>
-        prev?.map((event) =>
-          event.id === eventId ? { ...event, status: status } : event,
-        ) ?? null,
+  async function updateEvent(eventId: string, response: EventResponse) {
+    setEvents((prev) =>
+      prev.map((event) => {
+        const prevResponse = event.response;
+
+        if (prevResponse === response) return event;
+
+        let newGoingCnt = event.goingCnt;
+        let newNotGoingCnt = event.notGoingCnt;
+
+        if (prevResponse === "GOING") {
+          newGoingCnt--;
+        } else if (prevResponse === "NOT_GOING") {
+          newNotGoingCnt--;
+        }
+
+        if (response === "GOING") {
+          newGoingCnt++;
+        } else if (response === "NOT_GOING") {
+          newNotGoingCnt++;
+        }
+        return event.id === eventId
+          ? {
+              ...event,
+              goingCnt: newGoingCnt,
+              notGoingCnt: newNotGoingCnt,
+              response: response,
+            }
+          : event;
+      }),
     );
   }
 
@@ -57,8 +65,8 @@ export function useEvents(groupId: string) {
     events,
     loading,
     actions: {
-      addEvent: addEvent,
-      setEventStatus: setEventStatus,
+      addEvent,
+      updateEvent,
     },
   };
 }

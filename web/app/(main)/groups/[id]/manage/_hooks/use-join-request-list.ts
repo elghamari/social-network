@@ -1,46 +1,59 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 
-import { showToast } from "@/app/ui/layout/toast-store";
-import { listJoinRequests } from "@/app/lib/services/group";
-import { JoinRequestItem } from "@/app/lib/types/group";
+import {
+  approveJoinRequest,
+  listJoinRequests,
+  rejectJoinRequest,
+} from "@/app/lib/services/group";
+import { JoinRequestUser } from "@/app/lib/types/group";
 
-export function useJoinRequestList(groupId: string) {
-  const router = useRouter();
+export type JoinRequestState = ReturnType<typeof useJoinRequestList>;
 
+export function useJoinRequestList(groupId: string, enabled: boolean) {
+  const [list, setList] = useState<JoinRequestUser[]>([]);
   const [loading, setLoading] = useState(true);
-  const [list, setList] = useState<JoinRequestItem[] | null>(null);
+  const [pendingId, setPendingId] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!enabled) {
+      setLoading(false);
+      return;
+    }
+
     listJoinRequests(groupId)
       .then((resp) => {
-        switch (resp.status) {
-          case 401:
-            router.push("/login");
-            break;
+        if (!resp) return;
 
-          case 400:
-            showToast(resp.error);
-            break;
-
-          case 500:
-            showToast("Something went wrong. Try again later.");
-            break;
-
-          default:
-            setList(resp.list);
-        }
+        setList(resp.list ?? []);
       })
       .finally(() => {
         setLoading(false);
       });
-  }, []);
+  }, [enabled]);
 
-  function removeJoinRequest(userId: string) {
-    setList((prev) => prev?.filter((r) => r.userId !== userId) ?? null);
+  async function approve(userId: string): Promise<boolean> {
+    setPendingId(userId);
+    const resp = await approveJoinRequest(groupId, userId);
+    setPendingId(null);
+
+    if (!resp) return false;
+
+    setList((prev) => prev.filter((user) => user.id !== userId));
+
+    return true;
   }
 
-  return { list, loading, removeJoinRequest };
+  async function reject(userId: string) {
+    setPendingId(userId);
+    const resp = await rejectJoinRequest(groupId, userId);
+    setPendingId(null);
+
+    if (!resp) return;
+
+    setList((prev) => prev.filter((user) => user.id !== userId));
+  }
+
+  return { list, loading, pendingId, approve, reject };
 }

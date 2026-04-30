@@ -9,13 +9,13 @@ import (
 )
 
 func HandleError(w http.ResponseWriter, err error) {
-	var ve *types.FormError
+	var fe *types.FormError
 	var ae *types.ActionError
 
 	switch {
-	case errors.As(err, &ve):
+	case errors.As(err, &fe):
 		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
-			"fields": ve.Fields,
+			"fields": fe.Fields,
 		})
 
 	case errors.As(err, &ae):

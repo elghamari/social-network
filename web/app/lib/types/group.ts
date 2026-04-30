@@ -37,15 +37,15 @@ export type InvitableUser = {
   isInvited: boolean;
 };
 
-export type JoinRequestItem = {
-  userId: string;
+export type JoinRequestUser = {
+  id: string;
   firstName: string;
   lastName: string;
   avatarPath?: string;
 };
 
 // Group Event
-export type EventStatus = "GOING" | "NOT_GOING" | null;
+export type EventResponse = "GOING" | "NOT_GOING" | null;
 
 export type EventFormInput = {
   title: string;
@@ -64,7 +64,7 @@ export type Event = {
   title: string;
   description: string;
   date: string;
-  status: EventStatus;
+  response: EventResponse;
   goingCnt: number;
   notGoingCnt: number;
 };
