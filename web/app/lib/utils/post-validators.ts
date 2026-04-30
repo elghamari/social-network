@@ -1,4 +1,4 @@
-import { FormState, PostErrors } from "../types/feed";
+import { CommentErrors, CommentState, FormState, PostErrors } from "../types/feed";
 
 export function validatePostForm(data: FormState): PostErrors | null {
   const errors: PostErrors = {};
@@ -29,5 +29,15 @@ export function validatePostForm(data: FormState): PostErrors | null {
       }
   }
 
+  return Object.keys(errors).length > 0 ? errors : null;
+}
+
+export function validateCommentForm(data: CommentState): CommentErrors | null {
+  const errors: CommentErrors = {};
+  const content = data.content.trim();
+  if (!content || content.length > 200) {
+    errors.content =
+      "Comment is required and must be under 200 characters.";
+  }
   return Object.keys(errors).length > 0 ? errors : null;
 }
