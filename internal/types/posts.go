@@ -52,7 +52,7 @@ type PostResponse struct {
 type CommentResponse struct {
 	Id        int          `json:"id"`
 	PostId    int          `json:"post_id"`
-	User      UserResponse `json:"user"`
+	User      UserResponse `json:"author"`
 	Content   string       `json:"content"`
 	ImageUrl  *string      `json:"image_url"`
 	CreatedAt time.Time    `json:"created_at"`
