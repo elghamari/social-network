@@ -41,7 +41,7 @@ export interface PostType {
     nickname: string;
     fistname: string;
     lastname: string;
-    avatar: string;
+    avatar?: string;
   };
   group_id?: number;
   title: string;
@@ -52,4 +52,30 @@ export interface PostType {
   is_liked: boolean;
   total_likes: number;
   total_comments: number;
+}
+
+export interface CommentState {
+  content: string;
+  postId: number;
+  image: File | null;
+}
+
+export type CommentErrors = {
+  content?: string;
+  image?: string;
+};
+
+export interface CommentType {
+  id: number;
+  post_id: number;
+  author: {
+    id: string;
+    nickname: string;
+    fistname: string;
+    lastname: string;
+    avatar?: string;
+  };
+  content: string;
+  image_url?: string;
+  created_at: string;
 }
