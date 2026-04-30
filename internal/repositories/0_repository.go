@@ -6,6 +6,7 @@ type Repos struct {
 	Auth   *AuthRepo
 	Group  *GroupRepo
 	Follow *FollowRepo
+	Post   *PostRepo
 }
 
 func New(db *sql.DB) *Repos {
@@ -13,5 +14,6 @@ func New(db *sql.DB) *Repos {
 		Auth:   NewAuthRepo(db),
 		Group:  NewGroupRepo(db),
 		Follow: NewFollowRepo(db),
+		Post:   NewPostRepo(db),
 	}
 }

@@ -6,6 +6,7 @@ type Services struct {
 	Auth   *AuthService
 	Group  *GroupService
 	Follow *FollowService
+	Post   *PostService
 }
 
 func New(r *repositories.Repos) *Services {

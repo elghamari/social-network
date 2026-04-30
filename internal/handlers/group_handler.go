@@ -169,6 +169,23 @@ func (h *Handler) CancelJoinRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 // ============================================================
+// GroupPosts — /api/groups/{id}/events
+// ============================================================
+
+func (h *Handler) GroupPosts(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		h.GetGroupPosts(w, r)
+	case http.MethodDelete:
+		// h.CancelJoinRequest(w, r)
+	default:
+		utils.WriteJson(w, http.StatusMethodNotAllowed, map[string]any{
+			"error": "Method not allowed",
+		})
+	}
+}
+
+// ============================================================
 // Invitations (member-facing) — /api/groups/{id}/manage/invite
 // ============================================================
 
@@ -329,11 +346,11 @@ func (h *Handler) RejectJoinRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 // ============================================================
-// Events — /api/groups/{id}/events
+// GroupEvents — /api/groups/{id}/events
 // ============================================================
 
 // Events routes GET, POST, PUT for /api/groups/{id}/events
-func (h *Handler) Events(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GroupEvents(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		h.GetEvents(w, r)
