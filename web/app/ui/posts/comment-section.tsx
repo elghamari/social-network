@@ -48,22 +48,22 @@ export default function CommentSection({ postId }: CommentSectionProps) {
     setFormErrors(null);
 
     try {
-      const CommentFrormData = new FormData();
-      CommentFrormData.append("content", inputForm.content);
-      CommentFrormData.append("postId", inputForm.postId.toString());
+      const CommentFormData = new FormData();
+      CommentFormData.append("content", inputForm.content);
+      CommentFormData.append("postId", inputForm.postId.toString());
 
       if (inputForm.image) {
-        CommentFrormData.append("image", inputForm.image);
+        CommentFormData.append("image", inputForm.image);
       }
 
-      const response = await CreateComment(CommentFrormData);
+      const response = await CreateComment(CommentFormData);
 
       if (response.status === 201) {
         console.log("Comment created successfully:");
         setInputForm({ content: "", postId: postId, image: null });
         setPreview(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
-        fetchPosts(postId, 0, true);
+        fetchComments(postId, 0, true);
       } else {
         showToast("Failed to create comment, try again.");
       }
@@ -78,7 +78,9 @@ export default function CommentSection({ postId }: CommentSectionProps) {
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
-  const fetchPosts = async (
+    const observerTarget = useRef<HTMLDivElement>(null);
+
+  const fetchComments = async (
     postId: number,
     currentCursor: number,
     isReset: boolean = false,
@@ -94,10 +96,10 @@ export default function CommentSection({ postId }: CommentSectionProps) {
         setComments((prev) => {
           if (isReset) return newComments;
           const existingIds = new Set(prev.map((p) => p.id));
-          const uniqueNewPosts = newComments.filter(
+          const uniqueNewComments = newComments.filter(
             (p) => !existingIds.has(p.id),
           );
-          return [...prev, ...uniqueNewPosts];
+          return [...prev, ...uniqueNewComments];
         });
         console.log("Comments ==> ", comments);
 
@@ -111,7 +113,7 @@ export default function CommentSection({ postId }: CommentSectionProps) {
         setHasMore(false);
       }
     } catch (error) {
-      console.log("Error fetching posts:", error);
+      console.log("Error fetching Comments:", error);
     } finally {
       setIsLoading(false);
     }
@@ -120,8 +122,30 @@ export default function CommentSection({ postId }: CommentSectionProps) {
   useEffect(() => {
     setHasMore(true);
     setCursor(0);
-    fetchPosts(postId, 0, true);
+    fetchComments(postId, 0, true);
   }, []);
+
+  useEffect( () => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoading) {
+          fetchComments(postId, cursor, false);
+        }
+      },
+      { threshold: 1.0 },
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => {
+      if (observerTarget.current) {
+        observer.unobserve(observerTarget.current)
+      }
+    };
+
+  }, [cursor, hasMore, isLoading] );
 
   return (
     <div className="comment-section-container">
@@ -138,7 +162,7 @@ export default function CommentSection({ postId }: CommentSectionProps) {
           }}
         />
 
-        <div className="create-post-tools">
+        <div>
           <input
             type="file"
             accept="image/*"
@@ -200,6 +224,7 @@ export default function CommentSection({ postId }: CommentSectionProps) {
           <div className="loading-spinner">Loading more comments...</div>
         )}
 
+        <div ref={observerTarget} style={{ height: "20px", width: "100%" }}></div>
       </div>
     </div>
   );
