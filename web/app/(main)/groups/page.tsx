@@ -18,10 +18,11 @@ import { Group, GroupTab } from "@/app/lib/types/group";
 export default function GroupsPage() {
   const searchParams = useSearchParams();
 
-  const activeTab = (searchParams.get("tab") as GroupTab) || "discover";
+  const tab = (searchParams.get("tab") as GroupTab) || "discover";
   const query = searchParams.get("query") || "";
 
-  const { groups, loading, actions } = useGroups(activeTab, query);
+  const { groups, status, actions, markerRef } = useGroups(tab, query);
+
   const [showModal, setShowModal] = useState(false);
 
   function handleCreated(group: Group) {
@@ -41,11 +42,16 @@ export default function GroupsPage() {
 
       <GroupTabs />
       <GroupSearch />
+
       <GroupList
         groups={groups}
-        loading={loading}
+        loading={status === "loading"}
         onRequest={actions.rmGroup}
       />
+
+      {status === "loading-more" && <LoadingMore />}
+
+      <div ref={markerRef} aria-hidden="true" />
 
       {showModal && (
         <GroupFormModal
@@ -53,6 +59,14 @@ export default function GroupsPage() {
           onCreated={handleCreated}
         />
       )}
+    </div>
+  );
+}
+
+function LoadingMore() {
+  return (
+    <div className="groups-loading-more">
+      <div className="groups-loading-more__spinner" />
     </div>
   );
 }

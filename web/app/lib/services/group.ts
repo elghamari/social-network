@@ -10,10 +10,15 @@ export async function createGroup(fd: FormData) {
   return await clientAPI.postForm("/groups", fd);
 }
 
-export async function getGroups(activeTab: GroupTab, query: string) {
+export async function getGroups(
+  activeTab: GroupTab,
+  query: string,
+  cursor: string,
+) {
   const params = new URLSearchParams({
-    tab: activeTab,
+    activeTab: activeTab,
     query: query,
+    cursor: cursor,
   });
 
   return await clientAPI.get(`/groups?${params.toString()}`);
@@ -34,6 +39,14 @@ export async function cancelJoinRequest(groupId: string) {
 
 export async function getGroup(id: string) {
   return await clientAPI.get(`/groups/${id}`);
+}
+
+export async function getGroupPosts(groupId: string) {
+  return await clientAPI.get(`/groups/${groupId}/posts`);
+}
+
+export async function createGroupPost(groupId: string) {
+  return await clientAPI.get(`/groups/${groupId}/posts`);
 }
 
 export async function getInvitableUsers(groupId: string) {

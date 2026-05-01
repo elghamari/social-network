@@ -60,11 +60,7 @@ export default function GroupCard({ group, onRequest }: Props) {
             </span>
           ) : (
             <button
-              className={
-                isPending
-                  ? "group-card__badge group-card__badge--pending"
-                  : "group-card__badge group-card__badge--request"
-              }
+              className={`group-card__badge group-card__badge--${isPending ? "pending" : "request"}`}
               onClick={handleRequest}
               disabled={loading}
             >

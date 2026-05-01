@@ -1,42 +1,95 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { getGroups } from "@/app/lib/services/group";
 import type { Group, GroupTab } from "@/app/lib/types/group";
 
-export function useGroups(activeTab: GroupTab, query: string) {
+type Status = "loading" | "loading-more" | "";
+
+export function useGroups(tab: GroupTab, query: string) {
   const [groups, setGroups] = useState<Group[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState<Status>("");
+  const [hasMore, setHasMore] = useState(false);
+  const [cursor, setCursor] = useState<string>("");
+
+  const stateRef = useRef({ tab, query, cursor, status, hasMore });
+  stateRef.current = { tab, query, cursor, status, hasMore };
+
+  // ── Initial fetch ──────────────────────────────────
+  useEffect(() => {
+    let canceled = false;
+
+    setStatus("loading");
+    setGroups([]);
+    setCursor("");
+    setHasMore(false);
+
+    getGroups(tab, query, cursor).then((resp) => {
+      if (!resp || canceled) return;
+
+      setGroups(resp.groups ?? []);
+      setHasMore(resp.hasMore ?? false);
+      setCursor(resp.cursor ?? "");
+      setStatus("");
+    });
+
+    return () => {
+      canceled = true;
+    };
+  }, [query, tab]);
+
+  // ── Load more ───────────────────────────────────────────────
+  const loadMore = useCallback(async () => {
+    const s = stateRef.current;
+    if (s.status || !s.hasMore) return;
+
+    setStatus("loading-more");
+
+    const resp = await getGroups(tab, query, cursor);
+    setStatus("");
+
+    if (!resp) return;
+
+    setGroups((prev) => [...prev, ...(resp.groups ?? [])]);
+    setHasMore(resp.hasMore ?? false);
+    setCursor(resp.cursor ?? "");
+  }, []);
+
+  // ── Intersection marker ───────────────────────────────────
+  const markerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
+    const el = markerRef.current;
+    if (!el) return;
 
-      const resp = await getGroups(activeTab, query);
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) loadMore();
+      },
+      { rootMargin: "200px" },
+    );
 
-      setLoading(false);
-      setGroups(resp.groups ?? []);
-    };
+    observer.observe(el);
+  }, []);
 
-    fetchData();
-  }, [query, activeTab]);
-
+  // ── Actions ───────────────────────────────────
   function addGroup(group: Group) {
-    if (activeTab !== "joined") return;
+    if (tab !== "joined") return;
 
     setGroups((prev) => [...prev, group]);
   }
 
   function removeGroup(groupId: string) {
-    if (activeTab === "joined") return;
+    if (tab === "joined") return;
 
     setGroups((prev) => prev.filter((g) => g.id !== groupId));
   }
 
   return {
     groups,
-    loading,
+    status,
+    markerRef,
     actions: {
       addGroup: addGroup,
       rmGroup: removeGroup,

@@ -1,76 +1,127 @@
-import "../layout.css";
+"use client";
 
-const MOCK_POSTS = [
-  {
-    id: "p1",
-    author: "Ava Morgan",
-    initials: "AM",
-    content:
-      "Just finished a full redesign of our onboarding flow — went from 9 steps to 4. Drop rate improved by 40%.",
-    createdAt: "2h ago",
-    commentCount: 8,
-  },
-  {
-    id: "p2",
-    author: "Noah Lee",
-    initials: "NL",
-    content:
-      "Has anyone experimented with variable fonts for UI? I've been using them for responsive type scaling and results are really clean.",
-    createdAt: "5h ago",
-    commentCount: 4,
-  },
-  {
-    id: "p3",
-    author: "You",
-    initials: "YO",
-    content:
-      "Reminder: critique session is this Thursday at 7 PM. Drop your screens below so I can queue them up.",
-    createdAt: "1d ago",
-    commentCount: 12,
-  },
-];
+import "./page.css";
 
-// TODO: replace with real membership check
-const IS_MEMBER = true;
+import { useState } from "react";
 
-export default function PostsPage() {
-  if (!IS_MEMBER) {
-    return (
-      <div className="gd-locked">
-        <p className="gd-locked__title">Members only</p>
-        <p className="gd-locked__text">
-          Join this group to see and create posts.
-        </p>
-      </div>
-    );
-  }
+import { useGroupContext } from "../_context/context";
+import { useGroupPosts } from "./_hooks/use-group-posts";
 
-  if (MOCK_POSTS.length === 0) {
-    return <div className="gd-empty">No posts yet. Be the first to post.</div>;
+import GroupPostCard from "./_components/group-post-card";
+import GroupPostFormModal from "./_components/group-post-form-modal";
+
+import type { PostType } from "@/app/lib/types/feed";
+
+export default function GroupPostsPage() {
+  const { id } = useGroupContext();
+  const { posts, loading, addPost } = useGroupPosts(id);
+  const [showModal, setShowModal] = useState(false);
+
+  if (loading) return <Skeleton />;
+
+  function handleCreated(post: PostType) {
+    addPost(post);
+    setShowModal(false);
   }
 
   return (
-    <div className="gd-posts">
-      {MOCK_POSTS.map((post) => (
-        <div key={post.id} className="gd-post">
-          <div className="gd-post__top">
-            <div className="gd-avatar">{post.initials}</div>
-            <div className="gd-post__meta">
-              <span className="gd-post__author">{post.author}</span>
-              <span className="gd-post__time">{post.createdAt}</span>
-            </div>
-          </div>
+    <div className="gd-card">
+      <div className="gd-card__header">
+        <h2 className="gd-card__title">Posts</h2>
+        <button
+          type="button"
+          className="gd-btn"
+          onClick={() => setShowModal(true)}
+        >
+          + Create Post
+        </button>
+      </div>
 
-          <p className="gd-post__content">{post.content}</p>
-
-          <div className="gd-post__footer">
-            <button className="gd-post__comment-btn">
-              💬 {post.commentCount}{" "}
-              {post.commentCount === 1 ? "comment" : "comments"}
-            </button>
+      <div className="gd-card__body">
+        {posts.length === 0 ? (
+          <div className="gd-empty">No posts yet.</div>
+        ) : (
+          <div className="gd-posts">
+            {posts.map((post) => (
+              <GroupPostCard key={post.id} post={post} />
+            ))}
           </div>
+        )}
+      </div>
+
+      {showModal && (
+        <GroupPostFormModal
+          groupId={id}
+          onClose={() => setShowModal(false)}
+          onCreated={handleCreated}
+        />
+      )}
+    </div>
+  );
+}
+
+function Skeleton() {
+  return (
+    <div className="gd-card">
+      <div className="gd-card__header">
+        <div className="skeleton" style={{ height: 16, width: 60 }} />
+        <div
+          className="skeleton"
+          style={{
+            height: 34,
+            width: 120,
+            borderRadius: "var(--radius-md)",
+          }}
+        />
+      </div>
+
+      <div className="gd-card__body">
+        <div className="gd-posts">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <PostSkeleton key={i} />
+          ))}
         </div>
-      ))}
+      </div>
+    </div>
+  );
+}
+
+function PostSkeleton() {
+  return (
+    <div className="gp-post">
+      <div className="gp-post__header">
+        <div className="skeleton gp-post__avatar" />
+        <div className="gp-post__meta">
+          <div className="skeleton" style={{ height: 14, width: "40%" }} />
+          <div
+            className="skeleton"
+            style={{ height: 12, width: "25%", marginTop: 4 }}
+          />
+        </div>
+      </div>
+
+      <div className="gp-post__body">
+        <div className="skeleton" style={{ height: 16, width: "60%" }} />
+        <div
+          className="skeleton"
+          style={{ height: 13, width: "90%", marginTop: 8 }}
+        />
+        <div
+          className="skeleton"
+          style={{ height: 13, width: "75%", marginTop: 4 }}
+        />
+      </div>
+
+      <div className="gp-post__footer">
+        <div
+          className="skeleton"
+          style={{ height: 28, width: 60, borderRadius: "var(--radius-sm)" }}
+        />
+        <div
+          className="skeleton"
+          style={{ height: 28, width: 80, borderRadius: "var(--radius-sm)" }}
+        />
+      </div>
     </div>
   );
 }

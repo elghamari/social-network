@@ -11,9 +11,7 @@ type Props = {
 };
 
 export default function GroupList({ groups, loading, onRequest }: Props) {
-  if (loading) {
-    return <Skeleton />;
-  }
+  if (loading) return <Skeleton />;
 
   if (groups.length === 0) {
     return (
@@ -32,10 +30,12 @@ export default function GroupList({ groups, loading, onRequest }: Props) {
   );
 }
 
+const SKELETON_COUNT = 6;
+
 function Skeleton() {
   return (
     <div className="groups-grid">
-      {Array.from({ length: 6 }).map((_, i) => (
+      {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
         <div key={i} className="group-card group-card--skeleton">
           <div className="skeleton group-card__cover" />
           <div className="group-card__content">
