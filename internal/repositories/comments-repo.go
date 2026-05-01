@@ -39,24 +39,21 @@ func (r *CommentsRepo) GetPostComments(postId int, cursor int) ([]types.CommentR
 	var query string
 	var args []interface{}
 
-	if cursor == 0 {
-		query = `
-        SELECT c.id, c.post_id, u.id, u.nickname, u.first_name, u.last_name, u.avatar, 
+	selectClause := `
+	    SELECT c.id, c.post_id, u.id, u.nickname, u.first_name, u.last_name, u.avatar, 
 		c.content, c.image_url, c.created_at
         FROM comments c
         INNER JOIN users u ON c.user_id = u.id
-        WHERE c.post_id = ?
-        ORDER BY c.id ASC LIMIT 20
+	`	
+
+	if cursor == 0 {
+		query = selectClause + ` WHERE c.post_id = ?
+        ORDER BY c.id DESC LIMIT 20
         `
 		args = []interface{}{postId}
 	} else {
-		query = `
-        SELECT c.id, c.post_id, u.id, u.nickname, u.first_name, u.last_name, u.avatar,
-		c.content, c.image_url, c.created_at
-        FROM comments c
-        INNER JOIN users u ON c.user_id = u.id
-        WHERE c.post_id = ? AND c.id > ? 
-        ORDER BY c.id ASC LIMIT 20
+		query = selectClause + ` WHERE c.post_id = ? AND c.id < ? 
+        ORDER BY c.id DESC LIMIT 20
         `
 		args = []interface{}{postId, cursor}
 	}
