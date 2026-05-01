@@ -1,3 +1,5 @@
+export type LoadingStatus = "loading" | "loading-more" | "";
+
 // ===== Groups
 export type GroupTab = "discover" | "joined" | "pending";
 

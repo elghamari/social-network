@@ -10,13 +10,9 @@ export async function createGroup(fd: FormData) {
   return await clientAPI.postForm("/groups", fd);
 }
 
-export async function getGroups(
-  activeTab: GroupTab,
-  query: string,
-  cursor: string,
-) {
+export async function getGroups(tab: GroupTab, query: string, cursor: string) {
   const params = new URLSearchParams({
-    activeTab: activeTab,
+    tab: tab,
     query: query,
     cursor: cursor,
   });
@@ -92,8 +88,12 @@ export async function createEvent(groupId: string, data: EventFormInput) {
   return await clientAPI.post(`/groups/${groupId}/events`, data);
 }
 
-export async function getEvents(groupId: string) {
-  return await clientAPI.get(`/groups/${groupId}/events`);
+export async function getEvents(groupId: string, cursor: string) {
+  const params = new URLSearchParams({
+    cursor: cursor,
+  });
+
+  return await clientAPI.get(`/groups/${groupId}/events?${params.toString()}`);
 }
 
 export async function respondToEvent(

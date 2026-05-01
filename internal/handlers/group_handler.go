@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"soc-net/internal/types"
 	"soc-net/internal/utils"
@@ -65,8 +66,9 @@ func (h *Handler) GetGroups(w http.ResponseWriter, r *http.Request) {
 	userId := utils.GetUserId(r)
 	tab := r.URL.Query().Get("tab")
 	query := r.URL.Query().Get("query")
+	cursor := r.URL.Query().Get("cursor")
 
-	groups, err := h.Services.Group.ListGroups(userId, tab, query)
+	groups, err := h.Services.Group.ListGroups(userId, tab, query, cursor)
 	if err != nil {
 		HandleError(w, err)
 		return
@@ -396,12 +398,15 @@ func (h *Handler) CreateEvent(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetEvents(w http.ResponseWriter, r *http.Request) {
 	userId := utils.GetUserId(r)
 	groupId := r.PathValue("id")
+	cursor := r.URL.Query().Get("cursor")
 
-	events, err := h.Services.Group.ListEvents(groupId, userId)
+	events, err := h.Services.Group.ListEvents(groupId, userId, cursor)
 	if err != nil {
 		HandleError(w, err)
 		return
 	}
+
+	fmt.Println(events[len(events)-1].Id)
 
 	utils.WriteJson(w, http.StatusOK, map[string]any{
 		"events": events,

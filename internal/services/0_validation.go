@@ -2,6 +2,7 @@ package services
 
 import (
 	"soc-net/internal/types"
+	"strconv"
 	"strings"
 )
 
@@ -10,6 +11,15 @@ func ValidateTab(tab string) *types.ActionError {
 
 	if !validTabs[tab] {
 		return types.NewActionError("Not a valid tab Try: (discover || joined || pending)")
+	}
+
+	return nil
+}
+
+func ValidateCursor(cursor string) *types.ActionError {
+	_, err := strconv.Atoi(cursor)
+	if err != nil && cursor != "" {
+		return types.NewActionError("Cursor must be a number")
 	}
 
 	return nil

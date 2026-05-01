@@ -51,7 +51,6 @@ func (r *AuthRepo) SetSession(userID, sessionID string) error {
 		SET session_id = ?, session_time = ?
 		WHERE id = ?
 	`, sessionID, expiresAt, userID)
-
 	if err != nil {
 		return fmt.Errorf("authRepo.SetSession: %w", err)
 	}
@@ -181,32 +180,37 @@ func (r *AuthRepo) CheckUserExists(id string) (bool, error) {
 	return exists, err
 }
 
-func (r *AuthRepo) ValidateSession(sessionID string) (string, bool) {
+func (s *AuthRepo) ValidateSession(sessionID string) (string, bool) {
 	var userID string
 	var sessionTime time.Time
 
 	query := `SELECT id, session_time FROM users WHERE session_id = ?`
-	err := r.DB.QueryRow(query, sessionID).Scan(&userID, &sessionTime)
+	err := s.DB.QueryRow(query, sessionID).Scan(&userID, &sessionTime)
 	if err != nil {
 		return "", false
 	}
 	if time.Now().After(sessionTime) {
-		r.DB.Exec(`UPDATE users SET session_id = NULL, session_time = NULL WHERE id = ?`, userID)
+		s.DB.Exec(`UPDATE users SET session_id = NULL, session_time = NULL WHERE id = ?`, userID)
 		return "", false
 	}
 	return userID, true
 }
 
-func (r *AuthRepo) UserExists(userId string) (bool, error) {
+func (r *AuthRepo) UpdatePrivacy(userID string, isPublic bool) error {
+	query := `UPDATE users SET is_public = ? WHERE id = ?`
+	_, err := r.DB.Exec(query, isPublic, userID)
+	return err
+}
+
+func (r *AuthRepo) UserExists(userID string) (bool, error) {
 	var exists bool
 	err := r.DB.QueryRow(`
 		SELECT EXISTS(
 			SELECT 1 FROM users WHERE id = ?
 		)
-	`, userId).Scan(&exists)
+	`, userID).Scan(&exists)
 	if err != nil {
-		return false, fmt.Errorf("authRepo.ValidateUserId: Scan: %w", err)
+		return false, fmt.Errorf("authRepo.UserExists: %w", err)
 	}
-
 	return exists, nil
 }

@@ -138,7 +138,7 @@ func (r *GroupRepo) GetGroupForUser(db DBTX, groupId, userId string) (types.Grou
 
 // getGroupsQuery builds the filtered query for listing groups.
 // Appends tab and search conditions dynamically.
-func (r *GroupRepo) getGroupsQuery(userId, tab, search string) (string, []any) {
+func (r *GroupRepo) getGroupsQuery(userId, tab, search, cursor string) (string, []any) {
 	query, args := r.groupBaseQuery(userId)
 
 	if search != "" {
@@ -179,12 +179,22 @@ func (r *GroupRepo) getGroupsQuery(userId, tab, search string) (string, []any) {
 		args = append(args, userId)
 	}
 
+	if cursor != "" {
+		query += `
+		AND g.id < ?`
+		args = append(args, cursor)
+	}
+
+	query += `
+	ORDER BY g.id DESC
+	LIMIT 20`
+
 	return query, args
 }
 
 // ListGroups returns groups filtered by tab and optional search term.
-func (r *GroupRepo) ListGroups(userId, tab, search string) ([]types.Group, error) {
-	query, args := r.getGroupsQuery(userId, tab, search)
+func (r *GroupRepo) ListGroups(userId, tab, search, cursor string) ([]types.Group, error) {
+	query, args := r.getGroupsQuery(userId, tab, search, cursor)
 
 	rows, err := r.DB.Query(query, args...)
 	if err != nil {
@@ -422,6 +432,15 @@ func (r *GroupRepo) eventBaseQuery(userId string) (string, []any) {
 	`, []any{userId}
 }
 
+func (r *GroupRepo) getEventForUserQuery(eventId, userId string) (string, []any) {
+	query, args := r.eventBaseQuery(userId)
+
+	query += "WHERE e.id = ?"
+	args = append(args, eventId)
+
+	return query, args
+}
+
 // GetEventForUser returns a single event.
 func (r *GroupRepo) GetEventForUser(db DBTX, userId, eventId string) (types.Event, error) {
 	if db == nil {
@@ -430,10 +449,7 @@ func (r *GroupRepo) GetEventForUser(db DBTX, userId, eventId string) (types.Even
 
 	event := types.Event{}
 
-	query, args := r.eventBaseQuery(userId)
-
-	query += "WHERE e.id = ?"
-	args = append(args, eventId)
+	query, args := r.getEventForUserQuery(eventId, userId)
 
 	err := db.QueryRow(query, args...).Scan(&event.Id, &event.Title, &event.Description, &event.Date, &event.Response, &event.GoingCnt, &event.NotGoingCnt)
 	if err != nil {
@@ -442,12 +458,28 @@ func (r *GroupRepo) GetEventForUser(db DBTX, userId, eventId string) (types.Even
 	return event, err
 }
 
-// ListEvents returns all events for a group with aggregated RSVP counts.
-func (r *GroupRepo) ListEvents(groupId, userId string) ([]types.Event, error) {
+func (r *GroupRepo) getEventsQuery(groupId, userId, cursor string) (string, []any) {
 	query, args := r.eventBaseQuery(userId)
 
 	query += "WHERE e.group_id = ?"
 	args = append(args, groupId)
+
+	if cursor != "" {
+		query += `
+		AND e.id < ?`
+		args = append(args, cursor)
+	}
+
+	query += `
+	ORDER BY e.id DESC
+	LIMIT 20`
+
+	return query, args
+}
+
+// ListEvents returns all events for a group with aggregated RSVP counts.
+func (r *GroupRepo) ListEvents(groupId, userId, cursor string) ([]types.Event, error) {
+	query, args := r.getEventsQuery(groupId, userId, cursor)
 
 	rows, err := r.DB.Query(query, args...)
 	if err != nil {

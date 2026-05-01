@@ -8,7 +8,7 @@ import (
 
 	"soc-net/internal/services"
 	"soc-net/internal/types"
-	"soc-net/internal/utils"
+	"soc-net/internal/utils"	
 )
 
 func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {

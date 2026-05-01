@@ -3,13 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { getGroups } from "@/app/lib/services/group";
-import type { Group, GroupTab } from "@/app/lib/types/group";
+import type { Group, GroupTab, LoadingStatus } from "@/app/lib/types/group";
 
-type Status = "loading" | "loading-more" | "";
+const LIST_SIZE = 20;
 
 export function useGroups(tab: GroupTab, query: string) {
-  const [groups, setGroups] = useState<Group[]>([]);
-  const [status, setStatus] = useState<Status>("");
+  const [list, setList] = useState<Group[]>([]);
+  const [status, setStatus] = useState<LoadingStatus>("");
   const [hasMore, setHasMore] = useState(false);
   const [cursor, setCursor] = useState<string>("");
 
@@ -20,19 +20,29 @@ export function useGroups(tab: GroupTab, query: string) {
   useEffect(() => {
     let canceled = false;
 
-    setStatus("loading");
-    setGroups([]);
-    setCursor("");
-    setHasMore(false);
+    async function run() {
+      setStatus("loading");
+      setList([]);
+      setCursor("");
+      setHasMore(false);
 
-    getGroups(tab, query, cursor).then((resp) => {
-      if (!resp || canceled) return;
+      try {
+        const resp = await getGroups(tab, query, "");
+        if (!resp || canceled) return;
 
-      setGroups(resp.groups ?? []);
-      setHasMore(resp.hasMore ?? false);
-      setCursor(resp.cursor ?? "");
-      setStatus("");
-    });
+        const groups = resp.groups ?? [];
+        const nextCursor = groups.at(-1)?.id ?? "";
+        const nextHasMore = groups.length === LIST_SIZE;
+
+        setList(groups);
+        setCursor(nextCursor);
+        setHasMore(nextHasMore);
+      } finally {
+        if (!canceled) setStatus("");
+      }
+    }
+
+    run();
 
     return () => {
       canceled = true;
@@ -46,14 +56,20 @@ export function useGroups(tab: GroupTab, query: string) {
 
     setStatus("loading-more");
 
-    const resp = await getGroups(tab, query, cursor);
-    setStatus("");
+    try {
+      const resp = await getGroups(s.tab, s.query, s.cursor);
+      if (!resp) return;
 
-    if (!resp) return;
+      const groups = resp.groups ?? [];
+      const nextCursor = groups.at(-1)?.id ?? "";
+      const nextHasMore = groups.length === LIST_SIZE;
 
-    setGroups((prev) => [...prev, ...(resp.groups ?? [])]);
-    setHasMore(resp.hasMore ?? false);
-    setCursor(resp.cursor ?? "");
+      setList((prev) => [...prev, ...groups]);
+      setCursor(nextCursor);
+      setHasMore(nextHasMore);
+    } finally {
+      setStatus("");
+    }
   }, []);
 
   // ── Intersection marker ───────────────────────────────────
@@ -71,23 +87,25 @@ export function useGroups(tab: GroupTab, query: string) {
     );
 
     observer.observe(el);
+
+    return () => observer.disconnect();
   }, []);
 
   // ── Actions ───────────────────────────────────
   function addGroup(group: Group) {
     if (tab !== "joined") return;
 
-    setGroups((prev) => [...prev, group]);
+    setList((prev) => [group, ...prev]);
   }
 
   function removeGroup(groupId: string) {
     if (tab === "joined") return;
 
-    setGroups((prev) => prev.filter((g) => g.id !== groupId));
+    setList((prev) => prev.filter((g) => g.id !== groupId));
   }
 
   return {
-    groups,
+    groups: list,
     status,
     markerRef,
     actions: {

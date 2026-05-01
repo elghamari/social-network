@@ -10,7 +10,7 @@ export function LoginForm() {
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  
+
   const [input, setInput] = useState<LoginInput>({
     email: "",
     password: "",
@@ -26,20 +26,11 @@ export function LoginForm() {
     setError("");
     setLoading(true);
 
-    try {
-      const res = await authService.login(input);
-      router.push("/");
-router.refresh();
-      if (res.status === 200) {
-        router.push("/");
-      } else {
-        setError(res.error || "Invalid email or password");
-      }
-    } catch (err: any) {
-      setError(err.message || "Connection error with Nexus server");
-    } finally {
-      setLoading(false);
-    }
+    const res = await authService.login(input);
+    if (!res) return;
+
+    router.push("/");
+    router.refresh();
   };
 
   return (
@@ -52,25 +43,25 @@ router.refresh();
       <form onSubmit={handleSubmit} className="nexus-form">
         <div className="nexus-group">
           <label className="nexus-label">Email Address</label>
-          <input 
-            type="email" 
-            name="email" 
-            className="nexus-input" 
-            placeholder="name@domain.com" 
-            required 
-            onChange={handleChange} 
+          <input
+            type="email"
+            name="email"
+            className="nexus-input"
+            placeholder="name@domain.com"
+            required
+            onChange={handleChange}
           />
         </div>
 
         <div className="nexus-group">
           <label className="nexus-label">Password</label>
-          <input 
-            type="password" 
-            name="password" 
-            className="nexus-input" 
-            placeholder="••••••••" 
-            required 
-            onChange={handleChange} 
+          <input
+            type="password"
+            name="password"
+            className="nexus-input"
+            placeholder="••••••••"
+            required
+            onChange={handleChange}
           />
         </div>
 
@@ -80,7 +71,10 @@ router.refresh();
       </form>
 
       <div className="nexus-footer">
-        Don't have an account? <a href="/register" className="nexus-link">Sign up</a>
+        Don't have an account?{" "}
+        <a href="/register" className="nexus-link">
+          Sign up
+        </a>
       </div>
     </div>
   );

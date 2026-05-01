@@ -1,4 +1,9 @@
-import { LoginInput, RegisterInput, LoginResponse, RegisterResponse } from "../types/auth";
+import {
+  LoginInput,
+  RegisterInput,
+  LoginResponse,
+  RegisterResponse,
+} from "../types/auth";
 import client from "./_client";
 
 export const authService = {
@@ -9,10 +14,9 @@ export const authService = {
     return await client.post("/register", data);
   },
   logout: async () => {
-    return await client.post("/logout", {});
+    return await client.post("/auth/logout", {});
   },
- getMe: async () => {
-    const res = await client.get("/auth/me");
-    return res;
-  }
+  getMe: async () => {
+    return await client.get("/auth/me");
+  },
 };

@@ -22,7 +22,6 @@ export default function GroupsPage() {
   const query = searchParams.get("query") || "";
 
   const { groups, status, actions, markerRef } = useGroups(tab, query);
-
   const [showModal, setShowModal] = useState(false);
 
   function handleCreated(group: Group) {
@@ -55,7 +54,7 @@ export default function GroupsPage() {
 
       {showModal && (
         <GroupFormModal
-          onClose={() => setShowModal(false)}
+          onClose={() => console.log()}
           onCreated={handleCreated}
         />
       )}

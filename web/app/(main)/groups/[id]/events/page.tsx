@@ -14,7 +14,7 @@ import { Event } from "@/app/lib/types/group";
 export default function EventsPage() {
   const { id } = useGroupContext();
 
-  const { events, loading, actions } = useEvents(id);
+  const { events, loading, markerRef, actions } = useEvents(id);
   const [showModal, setShowModal] = useState(false);
 
   if (loading) return <Skeleton />;
@@ -53,6 +53,10 @@ export default function EventsPage() {
           </div>
         )}
       </div>
+
+      {status === "loading-more" && <LoadingMore />}
+
+      <div ref={markerRef} aria-hidden="true" />
 
       {showModal && (
         <EventFormModal
@@ -127,6 +131,14 @@ function EventSkeleton() {
           />
         </div>
       </div>
+    </div>
+  );
+}
+
+function LoadingMore() {
+  return (
+    <div className="groups-loading-more">
+      <div className="groups-loading-more__spinner" />
     </div>
   );
 }

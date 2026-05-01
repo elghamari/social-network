@@ -1,35 +1,74 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { getEvents } from "@/app/lib/services/group";
-import { Event, EventResponse } from "@/app/lib/types/group";
+import { Event, EventResponse, LoadingStatus } from "@/app/lib/types/group";
 import { formatDate } from "@/app/lib/utils/format";
 
-export function useEvents(groupId: string) {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
+const LIST_SIZE = 20;
 
-  useEffect(() => {
+export function useEvents(groupId: string) {
+  const [list, setList] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [cursor, setCursor] = useState("");
+  const [hasMore, setHasMore] = useState(true);
+
+  const stateRef = useRef({ loading, cursor, hasMore });
+  stateRef.current = { loading, cursor, hasMore };
+
+  const loadMore = useCallback(async () => {
+    if (loading || !hasMore) return;
+    const s = stateRef.current;
+
     setLoading(true);
 
-    getEvents(groupId)
-      .then((resp) => {
-        if (!resp) return;
+    try {
+      const resp = await getEvents(groupId, s.cursor);
+      if (!resp) return;
 
-        setEvents(resp.events);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+      const events = resp.events ?? [];
+      const nextCursor = events.at(-1)?.id ?? "";
+      const nextHasMore = events.length === LIST_SIZE;
+
+      setList((prev) => [...prev, ...events]);
+      setCursor(nextCursor);
+      setHasMore(nextHasMore);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    loadMore();
+  }, []);
+
+  const markerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = markerRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) loadMore();
+      },
+      {
+        rootMargin: "200px",
+      },
+    );
+
+    observer.observe(el);
+
+    return () => observer.disconnect();
+  });
 
   function addEvent(event: Event) {
     event.date = formatDate(event.date);
 
-    setEvents((prev) => [...prev, event]);
+    setList((prev) => [...prev, event]);
   }
 
   async function updateEvent(eventId: string, response: EventResponse) {
-    setEvents((prev) =>
+    setList((prev) =>
       prev.map((event) => {
         const prevResponse = event.response;
 
@@ -62,8 +101,9 @@ export function useEvents(groupId: string) {
   }
 
   return {
-    events,
+    events: list,
     loading,
+    markerRef,
     actions: {
       addEvent,
       updateEvent,

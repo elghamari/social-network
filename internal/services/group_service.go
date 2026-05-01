@@ -53,18 +53,6 @@ func (s *GroupService) ensureGroupIsValid(group types.Group) error {
 	return nil
 }
 
-// ensureUserExists returns an error if the user does not exist.
-func (s *GroupService) ensureUserExists(userId string) error {
-	exists, err := s.Auth.UserExists(userId)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		return types.NewActionError("User does not exist.")
-	}
-	return nil
-}
-
 // ensureGroupExists returns an error if the group does not exist.
 func (s *GroupService) ensureGroupExists(groupId string) error {
 	exists, err := s.Group.GroupExists(groupId)
@@ -73,6 +61,18 @@ func (s *GroupService) ensureGroupExists(groupId string) error {
 	}
 	if !exists {
 		return types.NewActionError("Group does not exist.")
+	}
+	return nil
+}
+
+// ensureUserExists returns an error if the user does not exist.
+func (s *GroupService) ensureUserExists(userId string) error {
+	exists, err := s.Auth.UserExists(userId)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return types.NewActionError("User does not exist.")
 	}
 	return nil
 }
@@ -191,11 +191,16 @@ func (s *GroupService) CreateGroup(userId string, group types.Group) (types.Grou
 
 // ListGroups returns groups filtered by tab (discover | joined | pending)
 // and an optional search query.
-func (s *GroupService) ListGroups(userId, tab, search string) ([]types.Group, error) {
+func (s *GroupService) ListGroups(userId, tab, search, cursor string) ([]types.Group, error) {
 	if err := ValidateTab(tab); err != nil {
 		return nil, err
 	}
-	return s.Group.ListGroups(userId, tab, search)
+
+	if err := ValidateCursor(tab); err != nil {
+		return nil, err
+	}
+
+	return s.Group.ListGroups(userId, tab, search, cursor)
 }
 
 // GetGroup returns a single group with the current user's role.
@@ -372,14 +377,19 @@ func (s *GroupService) CreateEvent(groupId, userId string, event types.Event) (t
 }
 
 // ListEvents returns all events for the group. Members only.
-func (s *GroupService) ListEvents(groupId, userId string) ([]types.Event, error) {
+func (s *GroupService) ListEvents(groupId, userId, cursor string) ([]types.Event, error) {
 	if err := s.ensureGroupExists(groupId); err != nil {
 		return nil, err
 	}
 	if err := s.ensureUserIsMember(groupId, userId); err != nil {
 		return nil, err
 	}
-	return s.Group.ListEvents(groupId, userId)
+
+	if err := ValidateCursor(cursor); err != nil {
+		return nil, err
+	}
+
+	return s.Group.ListEvents(groupId, userId, cursor)
 }
 
 // RespondToEvent sets or updates the user's Response for an event.
