@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-const MaxImageSize = 5 * 1024 * 1024
+const MaxImageSize = 2 * 1024 * 1024
 
 func HandleImageUpload(r *http.Request, fieldName string) (*string, error) {
 	file, header, err := r.FormFile(fieldName)
