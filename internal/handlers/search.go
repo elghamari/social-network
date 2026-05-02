@@ -10,24 +10,21 @@ func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("q")
 
 	if len(query) < 2 {
-		utils.WriteJson(w, map[string]any{
-			"status": http.StatusOK,
-			"users":  []any{},
+		utils.WriteJson(w, http.StatusOK, map[string]any{
+			"users": []any{},
 		})
 		return
 	}
 
 	users, err := h.Services.Search.SearchUsers(query)
 	if err != nil {
-		utils.WriteJson(w, map[string]any{
-			"status": http.StatusInternalServerError,
-			"error":  err.Error(),
+		utils.WriteJson(w, http.StatusInternalServerError, map[string]any{
+			"error": err.Error(),
 		})
 		return
 	}
 
-	utils.WriteJson(w, map[string]any{
-		"status": http.StatusOK,
-		"users":  users,
+	utils.WriteJson(w, http.StatusOK, map[string]any{
+		"users": users,
 	})
 }

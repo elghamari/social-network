@@ -10,7 +10,7 @@ export function LoginForm() {
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  
+
   const [input, setInput] = useState<LoginInput>({
     email: "",
     password: "",
@@ -28,13 +28,16 @@ export function LoginForm() {
 
     try {
       const res = await authService.login(input);
-      router.push("/");
-router.refresh();
-      if (res.status === 200) {
-        router.push("/");
-      } else {
-        setError(res.error || "Invalid email or password");
+
+      if (!res) return
+
+      if (res.error) { 
+        setError(res.error)
+         return 
       }
+
+      router.push("/");
+
     } catch (err: any) {
       setError(err.message || "Connection error with Nexus server");
     } finally {
@@ -52,25 +55,25 @@ router.refresh();
       <form onSubmit={handleSubmit} className="nexus-form">
         <div className="nexus-group">
           <label className="nexus-label">Email Address</label>
-          <input 
-            type="email" 
-            name="email" 
-            className="nexus-input" 
-            placeholder="name@domain.com" 
-            required 
-            onChange={handleChange} 
+          <input
+            type="email"
+            name="email"
+            className="nexus-input"
+            placeholder="name@domain.com"
+            required
+            onChange={handleChange}
           />
         </div>
 
         <div className="nexus-group">
           <label className="nexus-label">Password</label>
-          <input 
-            type="password" 
-            name="password" 
-            className="nexus-input" 
-            placeholder="••••••••" 
-            required 
-            onChange={handleChange} 
+          <input
+            type="password"
+            name="password"
+            className="nexus-input"
+            placeholder="••••••••"
+            required
+            onChange={handleChange}
           />
         </div>
 

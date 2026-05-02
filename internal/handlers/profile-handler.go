@@ -15,9 +15,8 @@ func (h *Handler) GetMe(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.Services.Auth.GetUserById(userID)
 	if err != nil {
-		utils.WriteJson(w, map[string]any{
-			"status": http.StatusNotFound,
-			"error":  "user not found",
+		utils.WriteJson(w, http.StatusNotFound, map[string]any{
+			"error": "user not found",
 		})
 		return
 	}
@@ -29,20 +28,30 @@ func (h *Handler) GetMe(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("err------------------")
 		return
 	}
-	fmt.Println(pending)
-	utils.WriteJson(w, map[string]any{
-		"status": http.StatusOK,
+
+	aboutMe, nickname, avatar := "", "", ""
+	if user.AboutMe != nil {
+		aboutMe = *user.AboutMe
+	}
+	if user.Nickname != nil {
+		nickname = *user.Nickname
+	}
+	if user.Avatar != nil {
+		avatar = *user.Avatar
+	}
+
+	utils.WriteJson(w, http.StatusOK, map[string]any{
 		"user": types.UserProfileResponse{
 			ID:              user.ID,
 			FirstName:       user.FirstName,
 			LastName:        user.LastName,
 			IsPublic:        user.IsPublic,
 			Email:           user.Email,
-			AboutMe:         *user.AboutMe,
-			Nickname:        *user.Nickname,
+			AboutMe:         aboutMe,
+			Nickname:        nickname,
 			DateOfBirth:     user.DateOfBirth,
 			FollowStatus:    "owner",
-			Avatar:          *user.Avatar,
+			Avatar:          avatar,
 			Followers:       followers,
 			Following:       following,
 			PendingRequests: pending,
@@ -56,18 +65,16 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	targetID := r.URL.Query().Get("profile_id")
 
 	if targetID == "" {
-		utils.WriteJson(w, map[string]any{
-			"status": http.StatusBadRequest,
-			"error":  "profile_id is required",
+		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
+			"error": "profile_id is required",
 		})
 		return
 	}
 
 	target, err := h.Services.Auth.GetUserById(targetID)
 	if err != nil {
-		utils.WriteJson(w, map[string]any{
-			"status": http.StatusNotFound,
-			"error":  "user not found",
+		utils.WriteJson(w, http.StatusNotFound, map[string]any{
+			"error": "user not found",
 		})
 		return
 	}
@@ -87,22 +94,30 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 		following, _ = h.Services.Follow.GetFollowing(targetID)
 		if isOwner {
 			pending, _ = h.Services.Follow.GetPendingRequests(targetID)
-
-			fmt.Println(pending)
-
 		}
 	}
 
-	utils.WriteJson(w, map[string]any{
-		"status": http.StatusOK,
+	// حتى هنا خاصنا نـ checkiw على nil باش ما يطيحش السيرفر
+	aboutMe, nickname, avatar := "", "", ""
+	if target.AboutMe != nil {
+		aboutMe = *target.AboutMe
+	}
+	if target.Nickname != nil {
+		nickname = *target.Nickname
+	}
+	if target.Avatar != nil {
+		avatar = *target.Avatar
+	}
+
+	utils.WriteJson(w, http.StatusOK, map[string]any{
 		"user": types.UserProfileResponse{
 			ID:              target.ID,
 			FirstName:       target.FirstName,
 			LastName:        target.LastName,
-			Avatar:          *target.Avatar,
+			Avatar:          avatar,
 			Email:           target.Email,
-			AboutMe:         *target.AboutMe,
-			Nickname:        *target.Nickname,
+			AboutMe:         aboutMe,
+			Nickname:        nickname,
 			DateOfBirth:     target.DateOfBirth,
 			IsPublic:        target.IsPublic,
 			FollowStatus:    followStatus,
@@ -116,7 +131,7 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 // PUT /api/profile/privacy
 func (h *Handler) TogglePrivacy(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
-		utils.WriteJson(w, map[string]any{"status": http.StatusMethodNotAllowed})
+		utils.WriteJson(w, http.StatusMethodNotAllowed, map[string]any{"error": "Method not allowed"})
 		return
 	}
 
@@ -124,7 +139,7 @@ func (h *Handler) TogglePrivacy(w http.ResponseWriter, r *http.Request) {
 		IsPublic bool `json:"is_public"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
-		utils.WriteJson(w, map[string]any{"status": http.StatusBadRequest, "error": "Invalid payload"})
+		utils.WriteJson(w, http.StatusBadRequest, map[string]any{"error": "Invalid payload"})
 		return
 	}
 	defer r.Body.Close()
@@ -132,12 +147,11 @@ func (h *Handler) TogglePrivacy(w http.ResponseWriter, r *http.Request) {
 	userID := utils.GetUserId(r)
 
 	if err := h.Services.Auth.UpdatePrivacy(userID, payload.IsPublic); err != nil {
-		utils.WriteJson(w, map[string]any{"status": http.StatusInternalServerError, "error": "Update failed"})
+		utils.WriteJson(w, http.StatusInternalServerError, map[string]any{"error": "Update failed"})
 		return
 	}
 
-	utils.WriteJson(w, map[string]any{
-		"status":    http.StatusOK,
+	utils.WriteJson(w, http.StatusOK, map[string]any{
 		"is_public": payload.IsPublic,
 	})
 }

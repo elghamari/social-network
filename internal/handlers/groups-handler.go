@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+
 	"soc-net/internal/types"
 	"soc-net/internal/utils"
 )
@@ -17,14 +18,13 @@ func (h *Handler) Groups(w http.ResponseWriter, r *http.Request) {
 		h.CreateGroup(w, r)
 
 	default:
-		utils.WriteJson(w, map[string]any{
-			"status": http.StatusMethodNotAllowed,
+		utils.WriteJson(w, http.StatusMethodNotAllowed, map[string]any{
+			"error": "Method not allowed",
 		})
 	}
 }
 
 func (h *Handler) ListGroups(w http.ResponseWriter, r *http.Request) {
-
 	tab := r.URL.Query().Get("tab")
 	query := r.URL.Query().Get("query")
 
@@ -34,16 +34,15 @@ func (h *Handler) ListGroups(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJson(w, map[string]any{
-		"status": http.StatusOK,
+	utils.WriteJson(w, http.StatusOK, map[string]any{
 		"groups": groups,
 	})
 }
 
 func (h *Handler) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		utils.WriteJson(w, map[string]any{
-			"status": http.StatusMethodNotAllowed,
+		utils.WriteJson(w, http.StatusMethodNotAllowed, map[string]any{
+			"error": "Method not allowed",
 		})
 		return
 	}
@@ -51,8 +50,8 @@ func (h *Handler) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	input := types.GroupInput{}
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
-		utils.WriteJson(w, map[string]any{
-			"status": http.StatusBadRequest,
+		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
+			"error": "invalid request body",
 		})
 		return
 	}
@@ -66,16 +65,14 @@ func (h *Handler) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJson(w, map[string]any{
-		"status": http.StatusOK,
-		"group":  group,
+	utils.WriteJson(w, http.StatusOK, map[string]any{
+		"group": group,
 	})
 }
 
 // ===== JoinRequest Handlers
 
 func (h *Handler) JoinRequest(w http.ResponseWriter, r *http.Request) {
-
 	switch r.Method {
 	case http.MethodDelete:
 		h.DeleteJoinRequest(w, r)
@@ -84,8 +81,8 @@ func (h *Handler) JoinRequest(w http.ResponseWriter, r *http.Request) {
 		h.CreateJoinRequest(w, r)
 
 	default:
-		utils.WriteJson(w, map[string]any{
-			"status": http.StatusMethodNotAllowed,
+		utils.WriteJson(w, http.StatusMethodNotAllowed, map[string]any{
+			"error": "Method not allowed",
 		})
 	}
 }
@@ -94,8 +91,8 @@ func (h *Handler) CreateJoinRequest(w http.ResponseWriter, r *http.Request) {
 	req := types.JoinRequest{}
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		utils.WriteJson(w, map[string]any{
-			"status": http.StatusBadRequest,
+		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
+			"error": "Invalid Input",
 			"fields": map[string]string{
 				"input": "Invalid Input",
 			},
@@ -111,13 +108,12 @@ func (h *Handler) CreateJoinRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJson(w, map[string]any{
-		"status": http.StatusOK,
+	utils.WriteJson(w, http.StatusOK, map[string]any{
+		"message": "request created successfully",
 	})
 }
 
 func (h *Handler) DeleteJoinRequest(w http.ResponseWriter, r *http.Request) {
-
 	req := types.JoinRequest{
 		UserId:  "user",
 		GroupId: r.URL.Query().Get("groupId"),
@@ -129,7 +125,7 @@ func (h *Handler) DeleteJoinRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJson(w, map[string]any{
-		"status": http.StatusOK,
+	utils.WriteJson(w, http.StatusOK, map[string]any{
+		"message": "request deleted successfully",
 	})
 }

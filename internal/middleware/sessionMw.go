@@ -18,9 +18,9 @@ func (a *Mid) SessionLoader(next http.Handler) http.HandlerFunc {
 		}
 		user, err := a.AuthService.GetUser(cookie.Value)
 		if err != nil {
-			utils.WriteJson(w, map[string]any{
-				"ok":     false,
-				"status": http.StatusInternalServerError,
+			utils.WriteJson(w, http.StatusInternalServerError, map[string]any{
+				"ok":    false,
+				"error": "Internal server error",
 			})
 			log.Println(err)
 			return
@@ -49,9 +49,8 @@ func (a *Mid) GuestOnly(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userID := utils.GetUserId(r)
 		if userID != "" {
-			utils.WriteJson(w, map[string]any{
-				"status": http.StatusConflict,
-				"code":   "ALREADY_LOGGED",
+			utils.WriteJson(w, http.StatusConflict, map[string]any{
+				"code": "ALREADY_LOGGED",
 			})
 			return
 		}
@@ -63,9 +62,8 @@ func (a *Mid) AuthRequired(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userID := utils.GetUserId(r)
 		if userID == "" {
-			utils.WriteJson(w, map[string]any{
-				"status": http.StatusUnauthorized,
-				"code":   "UNAUTHORIZED",
+			utils.WriteJson(w, http.StatusUnauthorized, map[string]any{
+				"code": "UNAUTHORIZED",
 			})
 			return
 		}

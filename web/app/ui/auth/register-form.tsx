@@ -34,7 +34,9 @@ export function RegisterForm() {
         setError("Image size must be less than 5MB");
         return;
       }
-      
+
+      setError("");
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setInput((prev) => ({ ...prev, avatar: reader.result as string }));
@@ -43,21 +45,20 @@ export function RegisterForm() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const form = new FormData(e.currentTarget);
+
     setError("");
     setLoading(true);
 
     try {
-      const res = await authService.register(input);
-      
-      if (res.status === 201) {
-        router.push("/login");
-      } else {
-        setError(res.error || "Failed to create account");
+      const res = await authService.register(form);
+
+      if (!res) {
+        return;
       }
-    } catch (err: any) {
-      setError(err.message || "Connection error with Nexus server");
+      router.push("/login")
     } finally {
       setLoading(false);
     }
@@ -71,7 +72,7 @@ export function RegisterForm() {
 
         {error && <div className="nexus-error">{error}</div>}
 
-        <form onSubmit={handleSubmit} className="nexus-form">
+        <form onSubmit={handleSubmit} className="nexus-form" method="POST">
           <div className="nexus-row">
             <div className="nexus-group">
               <label className="nexus-label">First Name</label>
@@ -105,17 +106,18 @@ export function RegisterForm() {
           <div className="nexus-group">
             <label className="nexus-label">Profile Avatar</label>
             <div className="nexus-file-container">
-              <input 
-                type="file" 
-                accept="image/*" 
-                className="nexus-input" 
-                onChange={handleImageChange} 
+              <input
+                type="file"
+                name="avatar"
+                // accept="image/*"
+                className="nexus-input"
+                onChange={handleImageChange}
                 style={{ flex: 1 }}
               />
               {input.avatar && (
-                <img 
-                  src={input.avatar} 
-                  alt="Avatar Preview" 
+                <img
+                  src={input.avatar}
+                  alt="Avatar Preview"
                   className="nexus-avatar-preview"
                 />
               )}
@@ -129,7 +131,7 @@ export function RegisterForm() {
 
           <div className="nexus-group">
             <label className="nexus-label">About Me</label>
-            <textarea name="about_me" rows={3} className="nexus-input" onChange={handleChange} placeholder="Tell the world about yourself..." style={{resize: 'none'}} />
+            <textarea name="about_me" rows={3} className="nexus-input" onChange={handleChange} placeholder="Tell the world about yourself..." style={{ resize: 'none' }} />
           </div>
 
           <button type="submit" className="nexus-btn" disabled={loading}>

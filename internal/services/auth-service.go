@@ -11,7 +11,6 @@ import (
 
 	"soc-net/internal/repositories"
 	"soc-net/internal/types"
-	"soc-net/internal/utils"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -72,14 +71,7 @@ func validateRegisterInput(input types.RegisterInput) error {
 	if !dateRegex.MatchString(input.DateOfBirth) {
 		return errors.New("date of birth must be YYYY-MM-DD")
 	}
-	if input.Avatar != nil && *input.Avatar != "" {
-		avatarPath, err := utils.HandleBase64Image(*input.Avatar)
-		if err != nil {
-			fmt.Println(avatarPath)
-			return errors.New("Invalid image")
-		}
-		input.Avatar = avatarPath
-	}
+
 	if input.AboutMe != nil && *input.AboutMe != "" {
 		trimmed := strings.TrimSpace(*input.AboutMe)
 		input.AboutMe = &trimmed

@@ -1,65 +1,63 @@
-// client.ts
-const API_BASE = "http://localhost:8080/api";
+import { showToast } from "@/app/ui/layout/toast-store";
 
 class ClientApi {
-  async request(endPoint: string, options: RequestInit = {}, extraHeaders: Record<string, string> = {}) {
-    const config: RequestInit = {
-      ...options,
-      headers: {
-        "Content-type": "application/json",
-        ...extraHeaders,
-        ...options.headers,
-      },
-      credentials: "include",
-    };
-
+  private async request(endpoint: string, config: RequestInit = {}) {
     try {
-      const resp = await fetch(`${API_BASE}${endPoint}`, config);
+      const resp = await fetch(`/api${endpoint}`, config);
+      const data = await resp.json().catch(() => ({}));
+console.log(resp);
 
-      if (!resp.ok) {
-        const errorData = await resp.json().catch(() => ({}));
-        throw {
-          status: resp.status,
-          message: errorData.error || "Request Failed",
-        };
+      switch (resp.status) {
+        case 200:
+        case 201:
+        case 404:
+          return data || true;
+
+        case 400:
+          if (data.fields) return data;
+
+          showToast(data.error ?? "Bad request");
+          return null;
+
+        case 500:
+          showToast("Somthing went wrong. try again later");
+          return null;
+
+        default:
+          showToast("Unexpected error");
+          return null;
       }
-
-      return resp.json();
-
-    } catch (err: any) {
-      console.log("ClientApi Error:", err);
-
-      if (err.status) throw err;
-      throw {
-        status: 0,
-        message: "Search error",
-        error: err,
-      };
+    } catch (err) {
+      throw new Error("Network Error");
     }
   }
 
-  get(endPoint: string, extraHeaders?: Record<string, string>) {
-    return this.request(endPoint, {}, extraHeaders);
+  get(endpoint: string) {
+    return this.request(endpoint);
   }
 
-  post(endPoint: string, data: any, extraHeaders?: Record<string, string>) {
-    return this.request(endPoint, {
+  post(endpoint: string, data: {}) {
+    return this.request(endpoint, {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
-    }, extraHeaders);
+    });
   }
 
-  put(endPoint: string, data: any, extraHeaders?: Record<string, string>) {
-    return this.request(endPoint, {
+  postForm(endpoint: string, formData: FormData) {
+    return this.request(endpoint, { method: "POST", body: formData });
+  }
+
+  put(endpoint: string, data: {}) {
+    return this.request(endpoint, {
       method: "PUT",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
-    }, extraHeaders);
+    });
   }
 
-  delete(endPoint: string, extraHeaders?: Record<string, string>) {
-    return this.request(endPoint, {
-      method: "DELETE",
-    }, extraHeaders);
+  delete(endpoint: string) {
+    return this.request(endpoint, { method: "DELETE" });
   }
 }
 
