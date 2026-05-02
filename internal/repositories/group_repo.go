@@ -18,8 +18,6 @@ type GroupRepo struct {
 	DB *sql.DB
 }
 
-
-
 func NewGroupRepo(db *sql.DB) *GroupRepo {
 	return &GroupRepo{DB: db}
 }
@@ -267,9 +265,8 @@ func (r *GroupRepo) DeleteJoinRequest(groupId, userId string) error {
 // Invitations
 // ============================================================
 
-// ListInvitableUsersForGroup returns all non-members with an IsInvited flag.
-func (r *GroupRepo) ListInvitableUsersForGroup(groupId, userId string) ([]types.InvitableUser, error) {
-	rows, err := r.DB.Query(`
+func (r *GroupRepo) getInvitableUsersQuery(groupId, userId, search, cursor string) {
+	query := `
     SELECT u.id, u.first_name, u.last_name, u.avatar,
     gi.user_id IS NOT NULL AS is_invited
     FROM users u
@@ -279,7 +276,28 @@ func (r *GroupRepo) ListInvitableUsersForGroup(groupId, userId string) ([]types.
         SELECT 1 FROM group_members gm 
         WHERE gm.group_id = ? AND gm.user_id = u.id
     )
-`, groupId, userId, groupId)
+`
+
+	args := []any{groupId, userId, groupId}
+
+	if query !
+
+	if cursor != "" {
+		query += `
+		AND g.id < ?`
+		args = append(args, cursor)
+	}
+
+	query += `
+	ORDER BY g.id DESC
+	LIMIT 20`
+}
+
+// ListInvitableUsersForGroup returns all non-members with an IsInvited flag.
+func (r *GroupRepo) ListInvitableUsersForGroup(groupId, userId string) ([]types.InvitableUser, error) {
+	query, args := r.getInvitableUsersQuery()
+
+	rows, err := r.DB.Query(query)
 	if err != nil {
 		return nil, fmt.Errorf("%s.ListInvitableUsersForGroup: Reading: %w", groupRepoName, err)
 	}

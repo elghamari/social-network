@@ -18,7 +18,7 @@ const MaxImageSize = 5 * 1024 * 1024
 func isImageExtension(fileName string) bool {
 	ext := strings.ToLower(filepath.Ext(fileName))
 	switch ext {
-	case ".jpg", ".jpeg", ".png", ".webp":
+	case ".jpg", ".jpeg", ".png", ".webp", ".gif":
 		return true
 	default:
 		return false
@@ -53,7 +53,7 @@ func HandleImageUpload(r *http.Request, fieldName string) (*string, error) {
 	formErr := types.NewFormError()
 
 	if !isImageExtension(header.Filename) {
-		formErr.Fields["coverImage"] = append(formErr.Fields["coverImage"], "Only JPG, JPEG, PNG or WEBP images are allowed")
+		formErr.Fields["coverImage"] = append(formErr.Fields["coverImage"], "Only JPG, JPEG, PNG, WEBP or GIF images are allowed")
 	}
 
 	isValidContent, err := isImageContent(file)
@@ -73,7 +73,7 @@ func HandleImageUpload(r *http.Request, fieldName string) (*string, error) {
 	}
 
 	fileName := fmt.Sprintf("%d%s", time.Now().UnixNano(), filepath.Ext(header.Filename))
-	savePath := filepath.Join("data/uploads", fileName)
+	savePath := filepath.Join("web/public/uploads", fileName)
 
 	outFile, err := os.Create(savePath)
 	if err != nil {

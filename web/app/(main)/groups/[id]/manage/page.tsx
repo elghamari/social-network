@@ -18,8 +18,9 @@ export default function ManagePage() {
 
   async function handleApprove(userId: string) {
     const resp = await requests.approve(userId);
+    if (!resp) return;
 
-    if (resp) invites.removeUser(userId);
+    invites.removeUser(userId);
   }
 
   return (

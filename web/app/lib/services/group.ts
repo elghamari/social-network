@@ -47,8 +47,19 @@ export async function createGroupPost(groupId: string) {
   return await clientAPI.get(`/groups/${groupId}/posts`);
 }
 
-export async function getInvitableUsers(groupId: string) {
-  return await clientAPI.get(`/groups/${groupId}/manage/invite`);
+export async function getInvitableUsers(
+  groupId: string,
+  query: string,
+  cursor: string,
+) {
+  const params = new URLSearchParams({
+    query: query,
+    cursor: cursor,
+  });
+
+  return await clientAPI.get(
+    `/groups/${groupId}/manage/invite?${params.toString()}`,
+  );
 }
 
 export async function submitGroupInvitation(groupId: string, userId: string) {

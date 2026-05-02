@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { getEvents } from "@/app/lib/services/group";
 import { Event, EventResponse, LoadingStatus } from "@/app/lib/types/group";
 import { formatDate } from "@/app/lib/utils/format";
+import { useIntersectionObserver } from "../../_hooks/use-intersection-observer";
 
 const LIST_SIZE = 20;
 
@@ -69,25 +70,7 @@ export function useEvents(groupId: string) {
     }
   }, []);
 
-  const markerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = markerRef.current;
-    if (!el) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) loadMore();
-      },
-      {
-        rootMargin: "200px",
-      },
-    );
-
-    observer.observe(el);
-
-    return () => observer.disconnect();
-  });
+  const markerRef = useIntersectionObserver(loadMore, hasMore && !status);
 
   function addEvent(event: Event) {
     event.date = formatDate(event.date);

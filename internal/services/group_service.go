@@ -238,13 +238,17 @@ func (s *GroupService) CancelJoinRequest(req types.JoinRequest) error {
 
 // GetInvitableUsers returns non-members that can be invited,
 // with an IsInvited flag for already-invited users.
-func (s *GroupService) GetInvitableUsers(groupId, userId string) ([]types.InvitableUser, error) {
+func (s *GroupService) GetInvitableUsers(groupId, userId, query, cursor string) ([]types.InvitableUser, error) {
 	if err := s.ensureGroupExists(groupId); err != nil {
 		return nil, err
 	}
 	if err := s.ensureUserIsMember(groupId, userId); err != nil {
 		return nil, err
 	}
+	if err := ValidateCursor(cursor); err != nil {
+		return nil, err
+	}
+
 	return s.Group.ListInvitableUsersForGroup(groupId, userId)
 }
 

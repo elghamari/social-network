@@ -38,9 +38,17 @@ export function validateGroup(data: GroupFormInput): GroupFormErrors | null {
       errors.coverImage?.push("Image must be less than 2MB");
     }
 
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    const allowedTypes = [
+      "image/jpg",
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/gif",
+    ];
     if (!allowedTypes.includes(file.type)) {
-      errors.coverImage?.push("Only JPG, PNG or WEBP images are allowed");
+      errors.coverImage?.push(
+        "Only JPG, JPEG, PNG, WEBP or GIF images are allowed",
+      );
     }
   }
 

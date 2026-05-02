@@ -54,7 +54,7 @@ export default function GroupsPage() {
 
       {showModal && (
         <GroupFormModal
-          onClose={() => console.log()}
+          onClose={() => setShowModal(false)}
           onCreated={handleCreated}
         />
       )}

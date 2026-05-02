@@ -211,15 +211,17 @@ func (h *Handler) GroupInvitations(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetInvitableUsers(w http.ResponseWriter, r *http.Request) {
 	userId := utils.GetUserId(r)
 	groupId := r.PathValue("id")
+	query := r.URL.Query().Get("query")
+	cursor := r.URL.Query().Get("cursor")
 
-	list, err := h.Services.Group.GetInvitableUsers(groupId, userId)
+	list, err := h.Services.Group.GetInvitableUsers(groupId, userId, query, cursor)
 	if err != nil {
 		HandleError(w, err)
 		return
 	}
 
 	utils.WriteJson(w, http.StatusOK, map[string]any{
-		"list": list,
+		"users": list,
 	})
 }
 

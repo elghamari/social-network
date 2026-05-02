@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { getGroups } from "@/app/lib/services/group";
 import type { Group, GroupTab, LoadingStatus } from "@/app/lib/types/group";
+import { useIntersectionObserver } from "../[id]/_hooks/use-intersection-observer";
 
 const LIST_SIZE = 20;
 
@@ -73,23 +74,7 @@ export function useGroups(tab: GroupTab, query: string) {
   }, []);
 
   // ── Intersection marker ───────────────────────────────────
-  const markerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = markerRef.current;
-    if (!el) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) loadMore();
-      },
-      { rootMargin: "200px" },
-    );
-
-    observer.observe(el);
-
-    return () => observer.disconnect();
-  }, []);
+  const markerRef = useIntersectionObserver(loadMore, hasMore && !status);
 
   // ── Actions ───────────────────────────────────
   function addGroup(group: Group) {
