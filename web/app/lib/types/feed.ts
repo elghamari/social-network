@@ -79,3 +79,8 @@ export interface CommentType {
   image_url?: string;
   created_at: string;
 }
+
+export interface PostListProps {
+  refreshKey: number;
+  fetchData: (cursor: number) => Promise<any>; 
+}

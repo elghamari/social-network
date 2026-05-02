@@ -101,7 +101,6 @@ export default function CommentSection({ postId }: CommentSectionProps) {
           );
           return [...prev, ...uniqueNewComments];
         });
-        console.log("Comments ==> ", comments);
 
         if (newComments.length < 20) {
           setHasMore(false);
