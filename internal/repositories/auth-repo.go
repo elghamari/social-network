@@ -196,3 +196,16 @@ func (s *AuthRepo) ValidateSession(sessionID string) (string, bool) {
 	}
 	return userID, true
 }
+
+func (r *AuthRepo) UserExists(userID string) (bool, error) {
+	var exists bool
+	err := r.DB.QueryRow(`
+		SELECT EXISTS(
+			SELECT 1 FROM users WHERE id = ?
+		)
+	`, userID).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("authRepo.UserExists: %w", err)
+	}
+	return exists, nil
+}

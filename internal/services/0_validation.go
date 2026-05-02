@@ -1,34 +1,34 @@
 package services
 
 import (
+	"strconv"
 	"strings"
 
 	"soc-net/internal/types"
 )
 
-func ValidateGroupInput(input types.GroupInput) error {
-	err := types.NewFormError()
+func ValidateTab(tab string) *types.ActionError {
+	validTabs := map[string]bool{"discover": true, "joined": true, "pending": true}
 
-	if !(len(input.Title) >= 3 && len(input.Title) <= 100) {
-		err.Fields["title"] = "Title cannot be empty and must be between 3 and 100 letters."
-	}
-
-	if !(len(input.Description) >= 10 && len(input.Description) <= 500) {
-		err.Fields["description"] = "Description cannot be empty and must be between 10 and 500 letters."
-	}
-
-	if len(err.Fields) > 0 {
-		return err
+	if !validTabs[tab] {
+		return types.NewActionError("Not a valid tab Try: (discover || joined || pending)")
 	}
 
 	return nil
 }
 
-func ValidateTab(tab string) error {
-	validTabs := map[string]bool{"discover": true, "joined": true, "pending": true}
+func ValidateCursor(cursor string) *types.ActionError {
+	_, err := strconv.Atoi(cursor)
+	if err != nil && cursor != "" {
+		return types.NewActionError("Cursor must be a number")
+	}
 
-	if !validTabs[tab] {
-		return types.NewActionError("Not a valid tab Try: (discover || joined || pending)")
+	return nil
+}
+
+func ValidateEventStatus(er types.EventResponse) *types.ActionError {
+	if er.Response != "GOING" && er.Response != "NOT_GOING" {
+		return types.NewActionError("Response must be GOING or NOT_GOING")
 	}
 
 	return nil

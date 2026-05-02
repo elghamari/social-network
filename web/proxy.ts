@@ -6,7 +6,7 @@ export async function proxy(request: NextRequest) {
   const sessionId = request.cookies.get('sessionId')?.value;
   const path = request.nextUrl.pathname;
 
-  const isProtectedRoute = path === '/' || path.startsWith('/profile') || path.startsWith('/chat');
+  const isProtectedRoute = path === '/' || path.startsWith('/profile') || path.startsWith('/chat') || path.startsWith('/groups');
   const isAuthRoute = path === '/login' || path === '/register';
 
   if (isProtectedRoute) {
@@ -23,7 +23,7 @@ export async function proxy(request: NextRequest) {
 
       if (!res.ok) {
         const response = NextResponse.redirect(new URL('/login', request.url));
-        response.cookies.delete('sessionId'); 
+        response.cookies.delete('sessionId');
         return response;
       }
     } catch (err) {
@@ -46,6 +46,8 @@ export const config = {
     '/register',
     '/posts/:path*',
     '/chat/:path*',
-    '/chat'
+    '/chat',
+    '/groups',
+    '/groups/:path*'
   ],
 };

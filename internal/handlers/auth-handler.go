@@ -12,51 +12,54 @@ import (
 // POST /api/auth/register
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		utils.WriteJson(w, map[string]any{"status": http.StatusMethodNotAllowed})
+		utils.WriteJson(w, http.StatusMethodNotAllowed, map[string]any{
+			"error": "method not allowed",
+		})
 		return
 	}
 
 	var input types.RegisterInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		utils.WriteJson(w, map[string]any{
-			"status": http.StatusBadRequest,
-			"error":  "invalid request body",
+		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
+			"error": "invalid request body",
 		})
 		return
 	}
 
 	if err := h.Services.Auth.Register(input); err != nil {
-		utils.WriteJson(w, map[string]any{
-			"status": http.StatusBadRequest,
-			"error":  err.Error(),
+		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
+			"error": err.Error(),
 		})
 		fmt.Println(err)
 		return
 	}
-	utils.WriteJson(w, map[string]any{"status": http.StatusCreated})
+
+	utils.WriteJson(w, http.StatusCreated, map[string]any{
+		"message": "user created",
+	})
 }
 
 // POST /api/auth/login
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		utils.WriteJson(w, map[string]any{"status": http.StatusMethodNotAllowed})
+		utils.WriteJson(w, http.StatusMethodNotAllowed, map[string]any{
+			"error": "method not allowed",
+		})
 		return
 	}
 
 	var input types.LoginInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		utils.WriteJson(w, map[string]any{
-			"status": http.StatusBadRequest,
-			"error":  "invalid request body",
+		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
+			"error": "invalid request body",
 		})
 		return
 	}
 
 	user, sessionID, err := h.Services.Auth.Login(input)
 	if err != nil {
-		utils.WriteJson(w, map[string]any{
-			"status": http.StatusUnauthorized,
-			"error":  "invalid credentials",
+		utils.WriteJson(w, http.StatusUnauthorized, map[string]any{
+			"error": "invalid credentials",
 		})
 		return
 	}
@@ -69,8 +72,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		MaxAge:   86400, // 24h
 	})
 
-	utils.WriteJson(w, map[string]any{
-		"status": http.StatusOK,
+	utils.WriteJson(w, http.StatusOK, map[string]any{
 		"user": map[string]any{
 			"id":         user.ID,
 			"first_name": user.FirstName,
@@ -84,7 +86,9 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 // POST /api/auth/logout
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		utils.WriteJson(w, map[string]any{"status": http.StatusMethodNotAllowed})
+		utils.WriteJson(w, http.StatusMethodNotAllowed, map[string]any{
+			"error": "method not allowed",
+		})
 		return
 	}
 
@@ -99,22 +103,29 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 		MaxAge: -1,
 	})
 
-	utils.WriteJson(w, map[string]any{"status": http.StatusOK})
+	utils.WriteJson(w, http.StatusOK, map[string]any{
+		"message": "logged out",
+	})
 }
+
 func (h *Handler) CheckSession(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("sessionId")
 	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
+		utils.WriteJson(w, http.StatusUnauthorized, map[string]any{
+			"error": "unauthorized",
+		})
 		return
 	}
-	userID, isValid := h.Services.Auth.ValidateSession(cookie.Value)
 
+	userID, isValid := h.Services.Auth.ValidateSession(cookie.Value)
 	if !isValid {
-		w.WriteHeader(http.StatusUnauthorized)
+		utils.WriteJson(w, http.StatusUnauthorized, map[string]any{
+			"error": "invalid session",
+		})
 		return
 	}
-	utils.WriteJson(w, map[string]any{
-		"status": http.StatusOK,
+
+	utils.WriteJson(w, http.StatusOK, map[string]any{
 		"userId": userID,
 	})
 }

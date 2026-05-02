@@ -57,8 +57,8 @@ func RateLimit(ls *LimiterStore, next http.Handler) http.Handler {
 		key := GetVisitorKey(r)
 
 		if !ls.Allow(key) {
-			utils.WriteJson(w, map[string]any{
-				"status": http.StatusTooManyRequests,
+			utils.WriteJson(w, http.StatusTooManyRequests, map[string]any{
+				"error": "Too many requests",
 			})
 			return
 		}

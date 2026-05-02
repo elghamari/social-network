@@ -1,5 +1,5 @@
 import { LoginInput, RegisterInput, LoginResponse, RegisterResponse } from "../types/auth";
-import client from "./client";
+import client from "./_client";
 
 export const authService = {
   login: async (data: LoginInput): Promise<LoginResponse> => {

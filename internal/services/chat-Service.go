@@ -10,14 +10,16 @@ import (
 )
 
 type ChatService struct {
-	Chat   *repositories.ChatRepo
-	Groups *repositories.GroupsRepo
+	Auth  *repositories.AuthRepo
+	Chat  *repositories.ChatRepo
+	Group *repositories.GroupRepo
 }
 
-func NewChatService(chat *repositories.ChatRepo, groups *repositories.GroupsRepo) *ChatService {
+func NewChatService(auth *repositories.AuthRepo, chat *repositories.ChatRepo, group *repositories.GroupRepo) *ChatService {
 	return &ChatService{
-		Chat:   chat,
-		Groups: groups,
+		Chat:  chat,
+		Group: group,
+		Auth:  auth,
 	}
 }
 
@@ -30,7 +32,7 @@ func (s *ChatService) ProcessPrivateMessage(senderId string, input types.Incomin
 		return types.Message{}, ErrSelfChat
 	}
 
-	userExists, err := s.Groups.UserExists(input.ReceiverID)
+	userExists, err := s.Auth.UserExists(input.ReceiverID)
 	if err != nil {
 		return types.Message{}, fmt.Errorf("ChatService.ProcessPrivateMessage (Check User): %w", err)
 	}
@@ -74,7 +76,7 @@ func (s *ChatService) ProcessGroupMessage(senderId string, groupId int, input ty
 		return types.Message{}, nil, err
 	}
 
-	groupExists, isMember, err := s.Groups.CheckGroupAndMembership(groupId, senderId)
+	groupExists, isMember, err := s.Group.CheckGroupAndMembership(groupId, senderId)
 	if err != nil {
 		return types.Message{}, nil, fmt.Errorf("ChatService.ProcessGroupMessage (Check Group/Member): %w", err)
 	}
@@ -142,7 +144,7 @@ func (s *ChatService) GetPrivateHistory(currentUserId string, targetUserId strin
 		return nil, fmt.Errorf("invalid cursor: must be zero or positive")
 	}
 
-	userExists, err := s.Groups.UserExists(targetUserId)
+	userExists, err := s.Auth.UserExists(targetUserId)
 	if err != nil {
 		return nil, fmt.Errorf("ChatService.GetPrivateHistory (Check User): %w", err)
 	}
@@ -166,7 +168,7 @@ func (s *ChatService) GetGroupHistory(groupId int, currentUserId string, cursor 
 		return nil, fmt.Errorf("invalid cursor: must be zero or positive")
 	}
 
-	groupExists, isMember, err := s.Groups.CheckGroupAndMembership(groupId, currentUserId)
+	groupExists, isMember, err := s.Group.CheckGroupAndMembership(groupId, currentUserId)
 	if err != nil {
 		return nil, fmt.Errorf("ChatService.GetGroupHistory (Check Group/Member): %w", err)
 	}
@@ -185,7 +187,7 @@ func (s *ChatService) GetGroupHistory(groupId int, currentUserId string, cursor 
 	lastReadId, err := s.Chat.GetGroupLastRead(groupId, currentUserId)
 	if err != nil {
 		log.Println("Error getting last read:", err)
-		lastReadId = 0 
+		lastReadId = 0
 	}
 
 	return map[string]any{
@@ -198,9 +200,8 @@ func (s *ChatService) MarkMessagesAsRead(currentUserId string, senderId string) 
 	return s.Chat.MarkPrivateAsRead(senderId, currentUserId)
 }
 
-
 func (s *ChatService) MarkGroupAsRead(groupId int, userId string, lastMessageId int64) error {
-	groupExists, isMember, err := s.Groups.CheckGroupAndMembership(groupId, userId)
+	groupExists, isMember, err := s.Group.CheckGroupAndMembership(groupId, userId)
 	if err != nil {
 		return fmt.Errorf("ChatService.MarkGroupAsRead (Check): %w", err)
 	}

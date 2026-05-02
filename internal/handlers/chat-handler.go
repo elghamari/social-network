@@ -47,35 +47,37 @@ func (h *Handler) ServeWs(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetRecentContacts(w http.ResponseWriter, r *http.Request) {
-    if r.Method != http.MethodGet {
-        utils.WriteJson(w, map[string]any{"status": http.StatusMethodNotAllowed})
-        return
-    }
+	if r.Method != http.MethodGet {
+		utils.WriteJson(w, http.StatusMethodNotAllowed, map[string]any{
+			"error": "method not allowed",
+		})
+		return
+	}
 
-    userId := utils.GetUserId(r)
+	userId := utils.GetUserId(r)
 
-    contacts, err := h.Services.Chat.GetRecentContacts(userId)
-    if err != nil {
-        utils.WriteJson(w, map[string]any{
-            "status": http.StatusBadRequest,
-            "error":  err.Error(),
-        })
-        return
-    }
+	contacts, err := h.Services.Chat.GetRecentContacts(userId)
+	if err != nil {
+		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
+			"error": err.Error(),
+		})
+		return
+	}
 
-    for i := range contacts {
-        contacts[i].IsOnline = h.Hub.IsUserOnline(contacts[i].UserID)
-    }
+	for i := range contacts {
+		contacts[i].IsOnline = h.Hub.IsUserOnline(contacts[i].UserID)
+	}
 
-    utils.WriteJson(w, map[string]any{
-        "status": http.StatusOK,
-        "data":   contacts,
-    })
+	utils.WriteJson(w, http.StatusOK, map[string]any{
+		"data": contacts,
+	})
 }
 
 func (h *Handler) GetPrivateHistory(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		utils.WriteJson(w, map[string]any{"status": http.StatusMethodNotAllowed})
+		utils.WriteJson(w, http.StatusMethodNotAllowed, map[string]any{
+			"error": "method not allowed",
+		})
 		return
 	}
 
@@ -83,9 +85,8 @@ func (h *Handler) GetPrivateHistory(w http.ResponseWriter, r *http.Request) {
 
 	targetUserId := r.URL.Query().Get("targetId")
 	if targetUserId == "" {
-		utils.WriteJson(w, map[string]any{
-			"status": http.StatusBadRequest,
-			"error":  "targetId is required",
+		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
+			"error": "targetId is required",
 		})
 		return
 	}
@@ -95,48 +96,49 @@ func (h *Handler) GetPrivateHistory(w http.ResponseWriter, r *http.Request) {
 
 	history, err := h.Services.Chat.GetPrivateHistory(currentUserId, targetUserId, cursor)
 	if err != nil {
-		utils.WriteJson(w, map[string]any{
-			"status": http.StatusBadRequest,
-			"error":  err.Error(),
+		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
+			"error": err.Error(),
 		})
 		return
 	}
 
-	utils.WriteJson(w, map[string]any{
-		"status": http.StatusOK,
-		"data":   history,
+	utils.WriteJson(w, http.StatusOK, map[string]any{
+		"data": history,
 	})
 }
 
 func (h *Handler) GetAvailableChatUsers(w http.ResponseWriter, r *http.Request) {
-    if r.Method != http.MethodGet {
-        utils.WriteJson(w, map[string]any{"status": http.StatusMethodNotAllowed})
-        return
-    }
+	if r.Method != http.MethodGet {
+		utils.WriteJson(w, http.StatusMethodNotAllowed, map[string]any{
+			"error": "method not allowed",
+		})
+		return
+	}
 
-    userId := utils.GetUserId(r)
+	userId := utils.GetUserId(r)
 
-    users, err := h.Services.Chat.GetAvailableChatUsers(userId)
-    if err != nil {
-        utils.WriteJson(w, map[string]any{
-            "status": http.StatusBadRequest,
-            "error":  err.Error(),
-        })
-        return
-    }
-    for i := range users {
-        users[i].IsOnline = h.Hub.IsUserOnline(users[i].UserID)
-    }
-    
-    utils.WriteJson(w, map[string]any{
-        "status": http.StatusOK,
-        "data":   users,
-    })
+	users, err := h.Services.Chat.GetAvailableChatUsers(userId)
+	if err != nil {
+		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	for i := range users {
+		users[i].IsOnline = h.Hub.IsUserOnline(users[i].UserID)
+	}
+
+	utils.WriteJson(w, http.StatusOK, map[string]any{
+		"data": users,
+	})
 }
 
 func (h *Handler) GetGroupHistory(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		utils.WriteJson(w, map[string]any{"status": http.StatusMethodNotAllowed})
+		utils.WriteJson(w, http.StatusMethodNotAllowed, map[string]any{
+			"error": "method not allowed",
+		})
 		return
 	}
 
@@ -144,18 +146,16 @@ func (h *Handler) GetGroupHistory(w http.ResponseWriter, r *http.Request) {
 
 	groupIdStr := r.URL.Query().Get("groupId")
 	if groupIdStr == "" {
-		utils.WriteJson(w, map[string]any{
-			"status": http.StatusBadRequest,
-			"error":  "groupId is required",
+		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
+			"error": "groupId is required",
 		})
 		return
 	}
 
 	groupId, err := strconv.Atoi(groupIdStr)
 	if err != nil {
-		utils.WriteJson(w, map[string]any{
-			"status": http.StatusBadRequest,
-			"error":  "invalid groupId format",
+		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
+			"error": "invalid groupId format",
 		})
 		return
 	}
@@ -165,22 +165,22 @@ func (h *Handler) GetGroupHistory(w http.ResponseWriter, r *http.Request) {
 
 	history, err := h.Services.Chat.GetGroupHistory(groupId, currentUserId, cursor)
 	if err != nil {
-		utils.WriteJson(w, map[string]any{
-			"status": http.StatusBadRequest,
-			"error":  err.Error(),
+		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
+			"error": err.Error(),
 		})
 		return
 	}
 
-	utils.WriteJson(w, map[string]any{
-		"status": http.StatusOK,
-		"data":   history,
+	utils.WriteJson(w, http.StatusOK, map[string]any{
+		"data": history,
 	})
 }
 
 func (h *Handler) MarkAsRead(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		utils.WriteJson(w, map[string]any{"status": http.StatusMethodNotAllowed})
+		utils.WriteJson(w, http.StatusMethodNotAllowed, map[string]any{
+			"error": "method not allowed",
+		})
 		return
 	}
 
@@ -191,26 +191,23 @@ func (h *Handler) MarkAsRead(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		utils.WriteJson(w, map[string]any{
-			"status": http.StatusBadRequest,
-			"error":  "Invalid request body",
+		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
+			"error": "invalid request body",
 		})
 		return
 	}
 
 	if input.SenderId == "" {
-		utils.WriteJson(w, map[string]any{
-			"status": http.StatusBadRequest,
-			"error":  "senderId is required",
+		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
+			"error": "senderId is required",
 		})
 		return
 	}
 
 	err := h.Services.Chat.MarkMessagesAsRead(currentUserId, input.SenderId)
 	if err != nil {
-		utils.WriteJson(w, map[string]any{
-			"status": http.StatusInternalServerError,
-			"error":  err.Error(),
+		utils.WriteJson(w, http.StatusInternalServerError, map[string]any{
+			"error": err.Error(),
 		})
 		return
 	}
@@ -222,60 +219,56 @@ func (h *Handler) MarkAsRead(w http.ResponseWriter, r *http.Request) {
 		Payload: payloadBytes,
 	}
 
-	utils.WriteJson(w, map[string]any{
-		"status":  http.StatusOK,
-		"message": "Messages marked as read",
+	utils.WriteJson(w, http.StatusOK, map[string]any{
+		"message": "messages marked as read",
 	})
 }
 
-
 func (h *Handler) MarkGroupAsRead(w http.ResponseWriter, r *http.Request) {
-    if r.Method != http.MethodPost {
-        utils.WriteJson(w, map[string]any{"status": http.StatusMethodNotAllowed})
-        return
-    }
+	if r.Method != http.MethodPost {
+		utils.WriteJson(w, http.StatusMethodNotAllowed, map[string]any{
+			"error": "method not allowed",
+		})
+		return
+	}
 
-    currentUserId := utils.GetUserId(r)
+	currentUserId := utils.GetUserId(r)
 
-    var input struct {
-        GroupId       int   `json:"groupId"`
-        LastMessageId int64 `json:"lastMessageId"`
-    }
+	var input struct {
+		GroupId       int   `json:"groupId"`
+		LastMessageId int64 `json:"lastMessageId"`
+	}
 
-    if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-        utils.WriteJson(w, map[string]any{
-            "status": http.StatusBadRequest,
-            "error":  "Invalid request body",
-        })
-        return
-    }
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
+			"error": "invalid request body",
+		})
+		return
+	}
 
-    if input.GroupId == 0 {
-        utils.WriteJson(w, map[string]any{
-            "status": http.StatusBadRequest,
-            "error":  "groupId is required",
-        })
-        return
-    }
+	if input.GroupId == 0 {
+		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
+			"error": "groupId is required",
+		})
+		return
+	}
 
-    err := h.Services.Chat.MarkGroupAsRead(input.GroupId, currentUserId, input.LastMessageId)
-    if err != nil {
-        utils.WriteJson(w, map[string]any{
-            "status": http.StatusBadRequest,
-            "error":  err.Error(),
-        })
-        return
-    }
+	err := h.Services.Chat.MarkGroupAsRead(input.GroupId, currentUserId, input.LastMessageId)
+	if err != nil {
+		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
+			"error": err.Error(),
+		})
+		return
+	}
 
 	payloadBytes, _ := json.Marshal(map[string]int{"groupId": input.GroupId})
-    h.Hub.events <- Event{
-        Kind:    "mark_group_as_read",
-        OwnerID: currentUserId,
-        Payload: payloadBytes,
-    }
+	h.Hub.events <- Event{
+		Kind:    "mark_group_as_read",
+		OwnerID: currentUserId,
+		Payload: payloadBytes,
+	}
 
-    utils.WriteJson(w, map[string]any{
-        "status":  http.StatusOK,
-        "message": "Group messages marked as read",
-    })
+	utils.WriteJson(w, http.StatusOK, map[string]any{
+		"message": "group messages marked as read",
+	})
 }

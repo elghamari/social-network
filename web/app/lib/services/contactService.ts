@@ -1,4 +1,4 @@
-import client from "./client"; 
+import client from "./_client"; 
 import { Contact } from "../types/chat";
 
 

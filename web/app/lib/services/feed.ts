@@ -1,4 +1,4 @@
-import client from "./client";
+import client from "./_client";
 
 export async function GetFeedPosts():Promise<any> {
 return await client.get("/posts/feed")
