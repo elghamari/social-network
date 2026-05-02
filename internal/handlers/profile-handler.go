@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"soc-net/internal/types"
@@ -22,8 +24,12 @@ func (h *Handler) GetMe(w http.ResponseWriter, r *http.Request) {
 
 	followers, _ := h.Services.Follow.GetFollowers(userID)
 	following, _ := h.Services.Follow.GetFollowing(userID)
-	pending, _ := h.Services.Follow.GetPendingRequests(userID)
-
+	pending, err := h.Services.Follow.GetPendingRequests(userID)
+	if err != nil {
+		fmt.Println("err------------------")
+		return
+	}
+	fmt.Println(pending)
 	utils.WriteJson(w, map[string]any{
 		"status": http.StatusOK,
 		"user": types.UserProfileResponse{
@@ -31,7 +37,12 @@ func (h *Handler) GetMe(w http.ResponseWriter, r *http.Request) {
 			FirstName:       user.FirstName,
 			LastName:        user.LastName,
 			IsPublic:        user.IsPublic,
+			Email:           user.Email,
+			AboutMe:         *user.AboutMe,
+			Nickname:        *user.Nickname,
+			DateOfBirth:     user.DateOfBirth,
 			FollowStatus:    "owner",
+			Avatar:          *user.Avatar,
 			Followers:       followers,
 			Following:       following,
 			PendingRequests: pending,
@@ -63,6 +74,11 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 
 	followStatus, _ := h.Services.Follow.GetFollowStatus(viewerID, targetID)
 	isOwner := viewerID == targetID
+
+	if isOwner {
+		followStatus = "owner"
+	}
+
 	canView := target.IsPublic || followStatus == "following" || isOwner
 
 	var followers, following, pending []types.FollowerInfo
@@ -71,6 +87,9 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 		following, _ = h.Services.Follow.GetFollowing(targetID)
 		if isOwner {
 			pending, _ = h.Services.Follow.GetPendingRequests(targetID)
+
+			fmt.Println(pending)
+
 		}
 	}
 
@@ -80,11 +99,45 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 			ID:              target.ID,
 			FirstName:       target.FirstName,
 			LastName:        target.LastName,
+			Avatar:          *target.Avatar,
+			Email:           target.Email,
+			AboutMe:         *target.AboutMe,
+			Nickname:        *target.Nickname,
+			DateOfBirth:     target.DateOfBirth,
 			IsPublic:        target.IsPublic,
 			FollowStatus:    followStatus,
 			Followers:       followers,
 			Following:       following,
 			PendingRequests: pending,
 		},
+	})
+}
+
+// PUT /api/profile/privacy
+func (h *Handler) TogglePrivacy(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPut {
+		utils.WriteJson(w, map[string]any{"status": http.StatusMethodNotAllowed})
+		return
+	}
+
+	var payload struct {
+		IsPublic bool `json:"is_public"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		utils.WriteJson(w, map[string]any{"status": http.StatusBadRequest, "error": "Invalid payload"})
+		return
+	}
+	defer r.Body.Close()
+
+	userID := utils.GetUserId(r)
+
+	if err := h.Services.Auth.UpdatePrivacy(userID, payload.IsPublic); err != nil {
+		utils.WriteJson(w, map[string]any{"status": http.StatusInternalServerError, "error": "Update failed"})
+		return
+	}
+
+	utils.WriteJson(w, map[string]any{
+		"status":    http.StatusOK,
+		"is_public": payload.IsPublic,
 	})
 }

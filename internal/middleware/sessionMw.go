@@ -51,7 +51,7 @@ func (a *Mid) GuestOnly(next http.Handler) http.Handler {
 		if userID != "" {
 			utils.WriteJson(w, map[string]any{
 				"status": http.StatusConflict,
-				"error":   "ALREADY_LOGGED",
+				"code":   "ALREADY_LOGGED",
 			})
 			return
 		}
@@ -65,7 +65,7 @@ func (a *Mid) AuthRequired(next http.Handler) http.Handler {
 		if userID == "" {
 			utils.WriteJson(w, map[string]any{
 				"status": http.StatusUnauthorized,
-				"error":   "UNAUTHORIZED",
+				"code":   "UNAUTHORIZED",
 			})
 			return
 		}

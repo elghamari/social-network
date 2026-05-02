@@ -80,6 +80,10 @@ func validateRegisterInput(input types.RegisterInput) error {
 		}
 		input.Avatar = avatarPath
 	}
+	if input.AboutMe != nil && *input.AboutMe != "" {
+		trimmed := strings.TrimSpace(*input.AboutMe)
+		input.AboutMe = &trimmed
+	}
 	return nil
 }
 
@@ -122,4 +126,8 @@ func generateUUID() string {
 
 func (s *AuthService) ValidateSession(sessionID string) (string, bool) {
 	return s.Auth.ValidateSession(sessionID)
+}
+
+func (s *AuthService) UpdatePrivacy(userID string, isPublic bool) error {
+	return s.Auth.UpdatePrivacy(userID, isPublic)
 }

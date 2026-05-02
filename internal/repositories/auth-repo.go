@@ -51,7 +51,6 @@ func (r *AuthRepo) SetSession(userID, sessionID string) error {
 		SET session_id = ?, session_time = ?
 		WHERE id = ?
 	`, sessionID, expiresAt, userID)
-	
 	if err != nil {
 		return fmt.Errorf("authRepo.SetSession: %w", err)
 	}
@@ -195,4 +194,10 @@ func (s *AuthRepo) ValidateSession(sessionID string) (string, bool) {
 		return "", false
 	}
 	return userID, true
+}
+
+func (r *AuthRepo) UpdatePrivacy(userID string, isPublic bool) error {
+	query := `UPDATE users SET is_public = ? WHERE id = ?`
+	_, err := r.DB.Exec(query, isPublic, userID)
+	return err
 }

@@ -9,6 +9,7 @@ type Services struct {
 	Comments  *CommentsService
 	Reactions *ReactionsService
 	Follow    *FollowService
+	Search    *SearchServs
 }
 
 func New(r *repositories.Repos) *Services {
@@ -19,5 +20,6 @@ func New(r *repositories.Repos) *Services {
 		Comments:  NewCommentsService(r.Comments, r.Posts),
 		Reactions: NewReactionsService(r.Reactions, r.Posts),
 		Follow:    NewFollowService(r.Follow, r.Auth),
+		Search:    NewSearchServs(r.Search),
 	}
 }
