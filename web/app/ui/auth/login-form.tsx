@@ -28,15 +28,9 @@ export function LoginForm() {
 
     try {
       const res = await authService.login(input);
-      router.push("/");
-router.refresh();
-      if (res.status === 200) {
+      if (res) {
         router.push("/");
-      } else {
-        setError(res.error || "Invalid email or password");
       }
-    } catch (err: any) {
-      setError(err.message || "Connection error with Nexus server");
     } finally {
       setLoading(false);
     }

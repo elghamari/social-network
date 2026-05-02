@@ -12,6 +12,7 @@ import (
 )
 
 func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("------------> ", r.Method)
 	if r.Method != http.MethodPost {
 		utils.WriteJson(w, map[string]any{
 			"status": http.StatusMethodNotAllowed,
@@ -24,6 +25,7 @@ func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
+		fmt.Println("111111111111111111")
 		utils.WriteJson(w, map[string]any{
 			"status": http.StatusBadRequest,
 			"error":  "failed to parse form data, file might be too large",
@@ -41,15 +43,17 @@ func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
 	if groupIdStr != "" {
 		id, err := strconv.Atoi(groupIdStr)
 		if err != nil {
+
+			fmt.Println("222222222222222222")
 			utils.WriteJson(w, map[string]any{"status": http.StatusBadRequest, "error": "invalid group ID"})
 			return
 		}
 		groupId = &id
 	}
 
-
 	imageUrl, err := utils.HandleImageUpload(r, "image")
 	if err != nil {
+		fmt.Println("333333333333333333")
 		utils.WriteJson(w, map[string]any{
 			"status": http.StatusBadRequest,
 			"error":  err.Error(),

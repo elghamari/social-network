@@ -1,6 +1,6 @@
 "use server";
 
-import clientAPI from "./client";
+import clientAPI from "./_client";
 
 import { State, Tab } from "../types/groups";
 import { redirect } from "next/navigation";

@@ -1,4 +1,4 @@
-import client from "./client";
+import client from "./_client";
 
 export const GetFeedPosts = async (cursor: number = 0) => {
   return await client.get(`/posts/feed?cursor=${cursor}`);
