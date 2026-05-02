@@ -6,7 +6,7 @@ export async function proxy(request: NextRequest) {
   const sessionId = request.cookies.get('sessionId')?.value;
   const path = request.nextUrl.pathname;
 
-  const isProtectedRoute = path === '/' || path.startsWith('/profile');
+  const isProtectedRoute = path === '/' || path.startsWith('/profile') || path.startsWith('/chat');
   const isAuthRoute = path === '/login' || path === '/register';
 
   if (isProtectedRoute) {
@@ -44,6 +44,8 @@ export const config = {
     '/profile/:path*',
     '/login',
     '/register',
-    '/posts/create'
+    '/posts/:path*',
+    '/chat/:path*',
+    '/chat'
   ],
 };
