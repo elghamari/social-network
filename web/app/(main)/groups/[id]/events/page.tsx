@@ -14,10 +14,10 @@ import { Event } from "@/app/lib/types/group";
 export default function EventsPage() {
   const { id } = useGroupContext();
 
-  const { events, loading, markerRef, actions } = useEvents(id);
+  const { events, status, markerRef, actions } = useEvents(id);
   const [showModal, setShowModal] = useState(false);
 
-  if (loading) return <Skeleton />;
+  if (status === "loading") return <Skeleton />;
 
   function handleCreated(event: Event) {
     actions.addEvent(event);

@@ -17,6 +17,7 @@ func ValidateTab(tab string) *types.ActionError {
 }
 
 func ValidateCursor(cursor string) *types.ActionError {
+
 	_, err := strconv.Atoi(cursor)
 	if err != nil && cursor != "" {
 		return types.NewActionError("Cursor must be a number")

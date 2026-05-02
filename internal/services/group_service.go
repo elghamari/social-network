@@ -196,7 +196,7 @@ func (s *GroupService) ListGroups(userId, tab, search, cursor string) ([]types.G
 		return nil, err
 	}
 
-	if err := ValidateCursor(tab); err != nil {
+	if err := ValidateCursor(cursor); err != nil {
 		return nil, err
 	}
 

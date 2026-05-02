@@ -8,18 +8,50 @@ const LIST_SIZE = 20;
 
 export function useEvents(groupId: string) {
   const [list, setList] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<LoadingStatus>("");
   const [cursor, setCursor] = useState("");
   const [hasMore, setHasMore] = useState(true);
 
-  const stateRef = useRef({ loading, cursor, hasMore });
-  stateRef.current = { loading, cursor, hasMore };
+  useEffect(() => {
+    let canceled = false;
+
+    async function run() {
+      setStatus("loading");
+      setList([]);
+      setCursor("");
+      setHasMore(false);
+
+      try {
+        const resp = await getEvents(groupId, "");
+        if (!resp || canceled) return;
+
+        const events = resp.events ?? [];
+        const nextCursor = events.at(-1)?.id ?? "";
+        const nextHasMore = events.length === LIST_SIZE;
+
+        setList(events);
+        setCursor(nextCursor);
+        setHasMore(nextHasMore);
+      } finally {
+        if (!canceled) setStatus("");
+      }
+    }
+
+    run();
+
+    return () => {
+      canceled = true;
+    };
+  }, []);
+
+  const stateRef = useRef({ status, cursor, hasMore });
+  stateRef.current = { status, cursor, hasMore };
 
   const loadMore = useCallback(async () => {
-    if (loading || !hasMore) return;
     const s = stateRef.current;
+    if (s.status || !s.hasMore) return;
 
-    setLoading(true);
+    setStatus("loading-more");
 
     try {
       const resp = await getEvents(groupId, s.cursor);
@@ -33,12 +65,8 @@ export function useEvents(groupId: string) {
       setCursor(nextCursor);
       setHasMore(nextHasMore);
     } finally {
-      setLoading(false);
+      setStatus("");
     }
-  }, []);
-
-  useEffect(() => {
-    loadMore();
   }, []);
 
   const markerRef = useRef<HTMLDivElement>(null);
@@ -102,7 +130,7 @@ export function useEvents(groupId: string) {
 
   return {
     events: list,
-    loading,
+    status,
     markerRef,
     actions: {
       addEvent,

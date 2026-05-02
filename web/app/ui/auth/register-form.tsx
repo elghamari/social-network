@@ -22,7 +22,9 @@ export function RegisterForm() {
     about_me: "",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     const { name, value } = e.target;
     setInput((prev) => ({ ...prev, [name]: value }));
   };
@@ -34,7 +36,7 @@ export function RegisterForm() {
         setError("Image size must be less than 5MB");
         return;
       }
-      
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setInput((prev) => ({ ...prev, avatar: reader.result as string }));
@@ -50,12 +52,9 @@ export function RegisterForm() {
 
     try {
       const res = await authService.register(input);
-      
-      if (res.status === 201) {
-        router.push("/login");
-      } else {
-        setError(res.error || "Failed to create account");
-      }
+      if (!res )
+
+      router.push("/login");
     } catch (err: any) {
       setError(err.message || "Connection error with Nexus server");
     } finally {
@@ -67,7 +66,9 @@ export function RegisterForm() {
     <div className="register-page">
       <div className="nexus-register-card">
         <h1 className="nexus-title">Join Nexus</h1>
-        <p className="nexus-subtitle">Create your account to start connecting.</p>
+        <p className="nexus-subtitle">
+          Create your account to start connecting.
+        </p>
 
         {error && <div className="nexus-error">{error}</div>}
 
@@ -75,27 +76,61 @@ export function RegisterForm() {
           <div className="nexus-row">
             <div className="nexus-group">
               <label className="nexus-label">First Name</label>
-              <input type="text" name="first_name" className="nexus-input" required onChange={handleChange} placeholder="John" />
+              <input
+                type="text"
+                name="first_name"
+                className="nexus-input"
+                required
+                onChange={handleChange}
+                placeholder="John"
+              />
             </div>
             <div className="nexus-group">
               <label className="nexus-label">Last Name</label>
-              <input type="text" name="last_name" className="nexus-input" required onChange={handleChange} placeholder="Doe" />
+              <input
+                type="text"
+                name="last_name"
+                className="nexus-input"
+                required
+                onChange={handleChange}
+                placeholder="Doe"
+              />
             </div>
           </div>
 
           <div className="nexus-group">
             <label className="nexus-label">Email Address</label>
-            <input type="email" name="email" className="nexus-input" required onChange={handleChange} placeholder="john@example.com" />
+            <input
+              type="email"
+              name="email"
+              className="nexus-input"
+              required
+              onChange={handleChange}
+              placeholder="john@example.com"
+            />
           </div>
 
           <div className="nexus-group">
             <label className="nexus-label">Password</label>
-            <input type="password" name="password" className="nexus-input" required onChange={handleChange} placeholder="••••••••" />
+            <input
+              type="password"
+              name="password"
+              className="nexus-input"
+              required
+              onChange={handleChange}
+              placeholder="••••••••"
+            />
           </div>
 
           <div className="nexus-group">
             <label className="nexus-label">Date of Birth</label>
-            <input type="date" name="date_of_birth" className="nexus-input" required onChange={handleChange} />
+            <input
+              type="date"
+              name="date_of_birth"
+              className="nexus-input"
+              required
+              onChange={handleChange}
+            />
           </div>
 
           <div className="nexus-divider">
@@ -105,17 +140,17 @@ export function RegisterForm() {
           <div className="nexus-group">
             <label className="nexus-label">Profile Avatar</label>
             <div className="nexus-file-container">
-              <input 
-                type="file" 
-                accept="image/*" 
-                className="nexus-input" 
-                onChange={handleImageChange} 
+              <input
+                type="file"
+                accept="image/*"
+                className="nexus-input"
+                onChange={handleImageChange}
                 style={{ flex: 1 }}
               />
               {input.avatar && (
-                <img 
-                  src={input.avatar} 
-                  alt="Avatar Preview" 
+                <img
+                  src={input.avatar}
+                  alt="Avatar Preview"
                   className="nexus-avatar-preview"
                 />
               )}
@@ -124,12 +159,25 @@ export function RegisterForm() {
 
           <div className="nexus-group">
             <label className="nexus-label">Nickname</label>
-            <input type="text" name="nickname" className="nexus-input" onChange={handleChange} placeholder="johnny_dev" />
+            <input
+              type="text"
+              name="nickname"
+              className="nexus-input"
+              onChange={handleChange}
+              placeholder="johnny_dev"
+            />
           </div>
 
           <div className="nexus-group">
             <label className="nexus-label">About Me</label>
-            <textarea name="about_me" rows={3} className="nexus-input" onChange={handleChange} placeholder="Tell the world about yourself..." style={{resize: 'none'}} />
+            <textarea
+              name="about_me"
+              rows={3}
+              className="nexus-input"
+              onChange={handleChange}
+              placeholder="Tell the world about yourself..."
+              style={{ resize: "none" }}
+            />
           </div>
 
           <button type="submit" className="nexus-btn" disabled={loading}>

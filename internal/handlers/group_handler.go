@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"soc-net/internal/types"
 	"soc-net/internal/utils"
@@ -177,7 +176,7 @@ func (h *Handler) CancelJoinRequest(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GroupPosts(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		h.GetGroupPosts(w, r)
+		// h.GetGroupPosts(w, r)
 	case http.MethodDelete:
 		// h.CancelJoinRequest(w, r)
 	default:
@@ -405,8 +404,6 @@ func (h *Handler) GetEvents(w http.ResponseWriter, r *http.Request) {
 		HandleError(w, err)
 		return
 	}
-
-	fmt.Println(events[len(events)-1].Id)
 
 	utils.WriteJson(w, http.StatusOK, map[string]any{
 		"events": events,

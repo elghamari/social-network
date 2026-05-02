@@ -17,6 +17,8 @@ export async function getGroups(tab: GroupTab, query: string, cursor: string) {
     cursor: cursor,
   });
 
+  console.log(params.toString());
+
   return await clientAPI.get(`/groups?${params.toString()}`);
 }
 
