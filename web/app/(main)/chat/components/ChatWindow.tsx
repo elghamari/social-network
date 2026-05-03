@@ -21,7 +21,18 @@ export default function ChatWindow({ selectedContact, messages, isLoadingMore, o
   return (
     <div className={styles.chatCard}>
       <div className={styles.chatHeader}>
-        <div className={styles.headerAvatar}>{getInitials(selectedContact.firstName, selectedContact.lastName)}</div>
+        {selectedContact.avatar ? (
+           <img 
+             src={selectedContact.avatar} 
+             alt="avatar" 
+             className={styles.headerAvatar} 
+             style={{ objectFit: 'cover' }} 
+           />
+        ) : (
+           <div className={styles.headerAvatar}>
+             {getInitials(selectedContact.firstName, selectedContact.lastName)}
+           </div>
+        )}
         <div className={styles.headerInfo}>
           <h3>{selectedContact.firstName} {selectedContact.lastName}</h3>
           <span style={{ color: selectedContact.isOnline ? '#10b981' : '#9ca3af', fontSize: '12px' }}>
