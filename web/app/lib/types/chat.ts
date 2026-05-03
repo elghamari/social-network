@@ -10,11 +10,11 @@ export interface Contact {
     isOnline?: boolean;
 }
 
-
 export interface Message {
   id: number;
   senderId: string;
   senderName?: string; 
+  avatar?: string;      
   receiverId?: string;
   groupId?: number;
   content: string;
