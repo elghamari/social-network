@@ -27,14 +27,18 @@ export default function ChatInput({ onSendMessage }: Props) {
   }, []);
 
   const handleSend = () => {
-    if (!text.trim()) return;
-    onSendMessage(text);
+    const trimmedText = text.trim();
+    if (!trimmedText || trimmedText.length > 500) return;
+    
+    onSendMessage(trimmedText);
     setText(""); 
     setShowEmoji(false); 
   };
 
   const handleEmojiClick = (emoji: string) => {
-    setText(prev => prev + emoji);
+    if (text.length + emoji.length <= 500) {
+      setText(prev => prev + emoji);
+    }
   };
 
   return (
@@ -109,9 +113,14 @@ export default function ChatInput({ onSendMessage }: Props) {
         value={text} 
         onChange={(e) => setText(e.target.value)} 
         onKeyDown={(e) => e.key === 'Enter' && handleSend()} 
+        maxLength={500} 
       />
       
-      <button className={styles.sendArrowBtn} onClick={handleSend}>
+      <button 
+        className={styles.sendArrowBtn} 
+        onClick={handleSend}
+        disabled={!text.trim() || text.trim().length > 500} 
+      >
         <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
           <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
         </svg>
