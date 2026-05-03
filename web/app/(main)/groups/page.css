@@ -1,7 +1,10 @@
+<<<<<<< HEAD
 /* ===================================================
    GROUPS LISTING PAGE — /groups
    =================================================== */
 
+=======
+>>>>>>> origin/feed
 /* ===== Page ===== */
 .groups-page {
   padding-right: 32px;
@@ -56,7 +59,11 @@
 .groups-search__icon {
   position: absolute;
   left: 14px;
+<<<<<<< HEAD
   top: 57%;
+=======
+  top: 50%;
+>>>>>>> origin/feed
   transform: translateY(-50%);
   color: var(--text-muted);
 }
@@ -102,6 +109,13 @@
   margin-bottom: 4px;
 }
 
+<<<<<<< HEAD
+=======
+.groups-empty__text {
+  font-size: 13px;
+}
+
+>>>>>>> origin/feed
 /* ===== Button ===== */
 .btn-primary {
   display: inline-flex;
@@ -120,6 +134,30 @@
   opacity: 0.9;
 }
 
+<<<<<<< HEAD
+=======
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .groups-page {
+    padding-right: 0;
+  }
+
+  .groups-page__header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .groups-search {
+    max-width: 100%;
+  }
+
+  .groups-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+>>>>>>> origin/feed
 /* ===== Card ===== */
 .group-card {
   background: var(--bg-surface);
@@ -127,7 +165,11 @@
   border-radius: var(--radius-md);
   overflow: hidden;
   transition: border-color var(--transition-fast);
+<<<<<<< HEAD
   cursor: pointer;
+=======
+  cursor: pointer; /* 👈 whole card is clickable */
+>>>>>>> origin/feed
 }
 
 .group-card:hover {
@@ -185,12 +227,17 @@
   color: var(--text-muted);
 }
 
+<<<<<<< HEAD
 /* ===== Card Badge ===== */
 .group-card__badge {
+=======
+.group-card__action {
+>>>>>>> origin/feed
   padding: 6px 12px;
   font-size: 12px;
   font-weight: 500;
   border-radius: var(--radius-sm);
+<<<<<<< HEAD
   min-width: 80px;
   text-align: center;
 }
@@ -205,17 +252,41 @@
 }
 
 .group-card__badge--pending {
+=======
+  transition: all var(--transition-fast);
+  min-width: 80px;
+  text-align: center;
+  cursor: pointer; /* 👈 button is always clickable */
+}
+
+.group-card__action--request {
+  background: var(--accent-primary);
+  color: white;
+}
+
+.group-card__action--request:hover {
+  opacity: 0.9;
+}
+
+.group-card__action--pending {
+>>>>>>> origin/feed
   background: var(--bg-elevated);
   color: var(--text-muted);
   border: 1px solid var(--border-subtle);
 }
 
+<<<<<<< HEAD
 .group-card__badge--pending:hover:not(:disabled) {
+=======
+/* 👇 hover on pending shows cancel intent */
+.group-card__action--pending:hover {
+>>>>>>> origin/feed
   background: rgba(239, 68, 68, 0.1);
   color: #ef4444;
   border-color: rgba(239, 68, 68, 0.3);
 }
 
+<<<<<<< HEAD
 .group-card__badge--member {
   background: rgba(16, 185, 129, 0.12);
   color: #10b981;
@@ -580,4 +651,11 @@
     width: 100%;
     justify-content: center;
   }
+=======
+.group-card__action--member {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  cursor: default;
+  pointer-events: none; /* 👈 can't click "Joined" */
+>>>>>>> origin/feed
 }

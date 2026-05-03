@@ -20,5 +20,4 @@ func main() {
 
 	log.Println("Server started on :" + config.Port)
 	log.Fatal(appStore.Start())
-
 }

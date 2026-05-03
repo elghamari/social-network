@@ -6,6 +6,10 @@ import { useState } from "react";
 import { ToggleLikePost } from "@/app/lib/services/feed";
 import { showToast } from "../layout/toast-store";
 import CommentSection from "./comment-section";
+<<<<<<< HEAD
+=======
+import Image from "next/image";
+>>>>>>> origin/feed
 
 export default function PostCard({ post }: { post: PostType }) {
 
@@ -35,11 +39,22 @@ export default function PostCard({ post }: { post: PostType }) {
     }
   };
 
+<<<<<<< HEAD
 
   return (
     <article className="post-card">
       <div className="post-card-header">
         <div className="post-card-avatar">{post.author.avatar ? post.author.avatar : post.author.fistname?.[0]?.toUpperCase() || "?"}</div>
+=======
+  console.log("*********************** ", post.author.avatar);
+  
+  return (
+    <article className="post-card">
+      <div className="post-card-header">
+          {/* <Image className="post-card-avatar" src={post.author.avatar ?? ''} alt={`${post.author.nickname}'s avatar`}/> */}
+          <div className="post-card-avatar">{post.author.nickname[0]}</div>
+
+>>>>>>> origin/feed
         
         <div className="post-card-meta">
           <div className="post-author-info">

@@ -3,6 +3,7 @@ package repositories
 import (
 	"database/sql"
 	"fmt"
+
 	"soc-net/internal/types"
 )
 
@@ -14,8 +15,8 @@ func NewFollowRepo(db *sql.DB) *FollowRepo {
 	return &FollowRepo{DB: db}
 }
 
-func (f *FollowRepo) getUsersByQuery(query, userID string) ([]types.FollowerInfo, error) {
-	rows, err := f.DB.Query(query, userID)
+func (f *FollowRepo) getUsersByQuery(query string, args ...any) ([]types.FollowerInfo, error) {
+	rows, err := f.DB.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -24,30 +25,56 @@ func (f *FollowRepo) getUsersByQuery(query, userID string) ([]types.FollowerInfo
 	list := []types.FollowerInfo{}
 	for rows.Next() {
 		var info types.FollowerInfo
-		if err := rows.Scan(&info.ID, &info.FirstName, &info.LastName); err != nil {
+		var avatar, nickname, aboutMe sql.NullString
+		var dob sql.NullTime
+
+		if err := rows.Scan(
+			&info.ID,
+			&info.FirstName,
+			&info.LastName,
+			&avatar,
+			&info.Email,
+			&dob,
+			&nickname,
+			&aboutMe,
+		); err != nil {
 			return nil, err
 		}
+
+		if avatar.Valid {
+			info.Avatar = avatar.String
+		}
+		if nickname.Valid {
+			info.Nickname = nickname.String
+		}
+		if aboutMe.Valid {
+			info.AboutMe = aboutMe.String
+		}
+		if dob.Valid {
+			info.DateOfBirth = dob.Time
+		}
+
 		list = append(list, info)
 	}
 	return list, nil
 }
 
 func (f *FollowRepo) GetFollowers(userID string) ([]types.FollowerInfo, error) {
-	q := `SELECT u.id, u.first_name, u.last_name
-	      FROM followers fl JOIN users u ON fl.follower_id = u.id
-	      WHERE fl.following_id = ?`
+	q := `SELECT u.id, u.first_name, u.last_name, u.avatar, u.email, u.date_of_birth, u.nickname, u.about_me
+          FROM followers fl JOIN users u ON fl.follower_id = u.id
+          WHERE fl.following_id = ?`
 	return f.getUsersByQuery(q, userID)
 }
 
 func (f *FollowRepo) GetFollowing(userID string) ([]types.FollowerInfo, error) {
-	q := `SELECT u.id, u.first_name, u.last_name
-	      FROM followers fl JOIN users u ON fl.following_id = u.id
-	      WHERE fl.follower_id = ?`
+	q := `SELECT u.id, u.first_name, u.last_name, u.avatar, u.email, u.date_of_birth, u.nickname, u.about_me
+          FROM followers fl JOIN users u ON fl.following_id = u.id
+          WHERE fl.follower_id = ?`
 	return f.getUsersByQuery(q, userID)
 }
 
 func (f *FollowRepo) GetPendingRequests(userID string) ([]types.FollowerInfo, error) {
-	q := `SELECT u.id, u.first_name, u.last_name
+	q := `SELECT u.id, u.first_name, u.last_name  , u.avatar, u.email, u.date_of_birth, u.nickname, u.about_me
 	      FROM follow_requests fr JOIN users u ON fr.sender_id = u.id
 	      WHERE fr.receiver_id = ?`
 	return f.getUsersByQuery(q, userID)

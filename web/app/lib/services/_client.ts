@@ -8,6 +8,10 @@ class ClientApi {
 
       switch (resp.status) {
         case 200:
+<<<<<<< HEAD
+=======
+        case 201:
+>>>>>>> origin/feed
         case 404:
           return data || true;
 

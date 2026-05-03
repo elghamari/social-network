@@ -48,6 +48,7 @@ export default function CommentSection({ postId }: CommentSectionProps) {
     setFormErrors(null);
 
     try {
+<<<<<<< HEAD
       const CommentFrormData = new FormData();
       CommentFrormData.append("content", inputForm.content);
       CommentFrormData.append("postId", inputForm.postId.toString());
@@ -57,13 +58,28 @@ export default function CommentSection({ postId }: CommentSectionProps) {
       }
 
       const response = await CreateComment(CommentFrormData);
+=======
+      const CommentFormData = new FormData();
+      CommentFormData.append("content", inputForm.content);
+      CommentFormData.append("postId", inputForm.postId.toString());
+
+      if (inputForm.image) {
+        CommentFormData.append("image", inputForm.image);
+      }
+
+      const response = await CreateComment(CommentFormData);
+>>>>>>> origin/feed
 
       if (response.status === 201) {
         console.log("Comment created successfully:");
         setInputForm({ content: "", postId: postId, image: null });
         setPreview(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
+<<<<<<< HEAD
         fetchPosts(postId, 0, true);
+=======
+        fetchComments(postId, 0, true);
+>>>>>>> origin/feed
       } else {
         showToast("Failed to create comment, try again.");
       }
@@ -78,7 +94,13 @@ export default function CommentSection({ postId }: CommentSectionProps) {
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
+<<<<<<< HEAD
   const fetchPosts = async (
+=======
+    const observerTarget = useRef<HTMLDivElement>(null);
+
+  const fetchComments = async (
+>>>>>>> origin/feed
     postId: number,
     currentCursor: number,
     isReset: boolean = false,
@@ -94,12 +116,20 @@ export default function CommentSection({ postId }: CommentSectionProps) {
         setComments((prev) => {
           if (isReset) return newComments;
           const existingIds = new Set(prev.map((p) => p.id));
+<<<<<<< HEAD
           const uniqueNewPosts = newComments.filter(
             (p) => !existingIds.has(p.id),
           );
           return [...prev, ...uniqueNewPosts];
         });
         console.log("Comments ==> ", comments);
+=======
+          const uniqueNewComments = newComments.filter(
+            (p) => !existingIds.has(p.id),
+          );
+          return [...prev, ...uniqueNewComments];
+        });
+>>>>>>> origin/feed
 
         if (newComments.length < 20) {
           setHasMore(false);
@@ -111,7 +141,11 @@ export default function CommentSection({ postId }: CommentSectionProps) {
         setHasMore(false);
       }
     } catch (error) {
+<<<<<<< HEAD
       console.log("Error fetching posts:", error);
+=======
+      console.log("Error fetching Comments:", error);
+>>>>>>> origin/feed
     } finally {
       setIsLoading(false);
     }
@@ -120,9 +154,37 @@ export default function CommentSection({ postId }: CommentSectionProps) {
   useEffect(() => {
     setHasMore(true);
     setCursor(0);
+<<<<<<< HEAD
     fetchPosts(postId, 0, true);
   }, []);
 
+=======
+    fetchComments(postId, 0, true);
+  }, []);
+
+  useEffect( () => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoading) {
+          fetchComments(postId, cursor, false);
+        }
+      },
+      { threshold: 1.0 },
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => {
+      if (observerTarget.current) {
+        observer.unobserve(observerTarget.current)
+      }
+    };
+
+  }, [cursor, hasMore, isLoading] );
+
+>>>>>>> origin/feed
   return (
     <div className="comment-section-container">
       <div className="comment-input-wrapper">
@@ -138,7 +200,11 @@ export default function CommentSection({ postId }: CommentSectionProps) {
           }}
         />
 
+<<<<<<< HEAD
         <div className="create-post-tools">
+=======
+        <div>
+>>>>>>> origin/feed
           <input
             type="file"
             accept="image/*"
@@ -200,6 +266,10 @@ export default function CommentSection({ postId }: CommentSectionProps) {
           <div className="loading-spinner">Loading more comments...</div>
         )}
 
+<<<<<<< HEAD
+=======
+        <div ref={observerTarget} style={{ height: "20px", width: "100%" }}></div>
+>>>>>>> origin/feed
       </div>
     </div>
   );

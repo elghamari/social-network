@@ -1,4 +1,5 @@
 "use client";
+<<<<<<< HEAD
 import { PostType } from "@/app/lib/types/feed";
 import PostCard from "./post-card";
 import "./posts.css";
@@ -6,6 +7,14 @@ import { useEffect, useRef, useState } from "react";
 import { GetFeedPosts } from "@/app/lib/services/feed";
 
 export default function PostList({ refreshKey }: { refreshKey: number }) {
+=======
+import { PostListProps, PostType } from "@/app/lib/types/feed";
+import PostCard from "./post-card";
+import "./posts.css";
+import { useEffect, useRef, useState } from "react";
+
+export default function PostList({ refreshKey, fetchData }: PostListProps) {
+>>>>>>> origin/feed
   const [posts, setPosts] = useState<PostType[]>([]);
   const [cursor, setCursor] = useState(0);
   const [hasMore, setHasMore] = useState(true);
@@ -21,7 +30,11 @@ export default function PostList({ refreshKey }: { refreshKey: number }) {
     setIsLoading(true);
 
     try {
+<<<<<<< HEAD
       const response = await GetFeedPosts(currentCursor);
+=======
+      const response = await fetchData(currentCursor);
+>>>>>>> origin/feed
       if (response && response.posts) {
         const newPosts: PostType[] = response.posts;
         

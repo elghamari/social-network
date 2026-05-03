@@ -1,0 +1,113 @@
+.nexus-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+  background-color: #1a1a24;
+  border-bottom: 1px solid #2d2d3d;
+  color: white;
+  position: sticky;
+  width: 100%;
+  top: 0;
+  z-index: 1000;
+}
+
+.nexus-nav-brand a {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #4f46e5;
+  text-decoration: none;
+}
+
+.nexus-search-container {
+  position: relative;
+  width: 400px;
+}
+
+.nexus-search-input {
+  width: 100%;
+  padding: 10px 16px;
+  background-color: #2a2a35;
+  border: 1px solid #2d2d3d;
+  border-radius: 8px;
+  color: white;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.nexus-search-input:focus {
+  border-color: #4f46e5;
+}
+
+.nexus-search-dropdown {
+  position: absolute;
+  top: 110%;
+  left: 0;
+  right: 0;
+  background-color: #1a1a24;
+  border: 1px solid #2d2d3d;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+.nexus-search-item {
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  border-bottom: 1px solid #2d2d3d;
+  transition: background-color 0.2s;
+}
+
+.nexus-search-item:hover {
+  background-color: #252533;
+}
+
+.nexus-search-item:last-child {
+  border-bottom: none;
+}
+
+.item-type {
+  font-size: 0.75rem;
+  color: #a0a0b5;
+  text-transform: uppercase;
+  background: #2d2d3d;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.nexus-nav-links {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.nexus-nav-links a {
+  color: #a0a0b5;
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.nexus-nav-links a:hover {
+  color: white;
+}
+
+.nexus-logout-btn {
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.nexus-logout-btn:hover {
+  background-color: #dc2626;
+}

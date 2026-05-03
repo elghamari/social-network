@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"soc-net/internal/types"
@@ -213,4 +214,28 @@ func (r *AuthRepo) UserExists(userID string) (bool, error) {
 		return false, fmt.Errorf("authRepo.UserExists: %w", err)
 	}
 	return exists, nil
+}
+
+func (r *AuthRepo) CheckAllUsersExist(userIds []string) (bool, error) {
+	if len(userIds) == 0 {
+		return true, nil
+	}
+
+	placeholders := make([]string, len(userIds))
+	args := make([]interface{}, len(userIds))
+
+	for i, id := range userIds {
+		placeholders[i] = "?"
+		args[i] = id
+	}
+
+	query := fmt.Sprintf("SELECT COUNT(id) FROM users WHERE id IN (%s)", strings.Join(placeholders, ","))
+
+	var count int
+	err := r.DB.QueryRow(query, args...).Scan(&count)
+	if err != nil {
+		return false, fmt.Errorf("CheckAllUsersExist (QueryRow): %w", err)
+	}
+
+	return count == len(userIds), nil
 }

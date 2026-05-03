@@ -45,7 +45,11 @@ export interface PostType {
   };
   group_id?: number;
   title: string;
+<<<<<<< HEAD
   content: string;
+=======
+  description: string;
+>>>>>>> origin/feed
   privacy: string;
   image_url?: string;
   created_at: string;
@@ -79,3 +83,11 @@ export interface CommentType {
   image_url?: string;
   created_at: string;
 }
+<<<<<<< HEAD
+=======
+
+export interface PostListProps {
+  refreshKey: number;
+  fetchData: (cursor: number) => Promise<any>; 
+}
+>>>>>>> origin/feed

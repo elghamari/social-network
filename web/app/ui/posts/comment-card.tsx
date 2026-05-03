@@ -27,6 +27,16 @@ export default function CommentCard({ comment }: { comment: CommentType }) {
         </div>
 
         <div className="comment-body">{comment.content}</div>
+<<<<<<< HEAD
+=======
+
+        {comment.image_url && (
+          <div className="post-image-container">
+            <img src={comment.image_url} alt="Post content" className="comment-image" />
+          </div>
+        )}
+
+>>>>>>> origin/feed
       </div>
     </div>
   );

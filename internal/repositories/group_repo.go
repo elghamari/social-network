@@ -41,6 +41,22 @@ func (r *GroupRepo) IsTitleTaken(title string) (bool, error) {
 	return exists, nil
 }
 
+func (r *GroupRepo) CheckGroupAndMembership(groupId int, userId string) (bool, bool, error) {
+	var groupExists, isMember bool
+
+	query := `
+        SELECT 
+            EXISTS(SELECT 1 FROM groups WHERE id = ?),
+            EXISTS(SELECT 1 FROM group_members WHERE group_id = ? AND user_id = ?)
+    `
+	err := r.DB.QueryRow(query, groupId, groupId, userId).Scan(&groupExists, &isMember)
+	if err != nil {
+		return false, false, fmt.Errorf("GroupsRepo.CheckGroupAndMembership: %w", err)
+	}
+
+	return groupExists, isMember, nil
+}
+
 // InsertGroup inserts a new group row and returns its generated ID.
 func (r *GroupRepo) InsertGroup(db DBTX, group types.Group, userId string) (string, error) {
 	if db == nil {

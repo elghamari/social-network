@@ -3,17 +3,23 @@ package repositories
 import "database/sql"
 
 type Repos struct {
-	Auth   *AuthRepo
-	Group  *GroupRepo
-	Follow *FollowRepo
-	Post   *PostRepo
+	Auth      *AuthRepo
+	Group     *GroupRepo
+	Posts     *PostsRepo
+	Comments  *CommentsRepo
+	Reactions *ReactionsRepo
+	Follow    *FollowRepo
+	Search    *SearchRepo
 }
 
 func New(db *sql.DB) *Repos {
 	return &Repos{
-		Auth:   NewAuthRepo(db),
-		Group:  NewGroupRepo(db),
-		Follow: NewFollowRepo(db),
-		Post:   NewPostRepo(db),
+		Auth:      NewAuthRepo(db),
+		Group:     NewGroupRepo(db),
+		Posts:     NewPostsRepo(db),
+		Comments:  NewCommentsRepo(db),
+		Reactions: NewReactionsRepo(db),
+		Follow:    NewFollowRepo(db),
+		Search:    NewSearchRepo(db),
 	}
 }
