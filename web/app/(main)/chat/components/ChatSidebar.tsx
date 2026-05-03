@@ -24,7 +24,18 @@ export default function ChatSidebar({ showAvailable, contacts, availableUsers, o
         {((showAvailable ? availableUsers : contacts) || []).map((c) => (
           <div key={c.id} className={styles.contactItem} onClick={() => onSelectContact(c)}>
             <div className={styles.avatarContainer}>
-              <div className={styles.contactAvatar}>{getInitials(c.firstName, c.lastName)}</div>
+              {c.avatar ? (
+                 <img 
+                   src={c.avatar} 
+                   alt="avatar" 
+                   className={styles.contactAvatar} 
+                   style={{ objectFit: 'cover', borderRadius: '50%' }} 
+                 />
+              ) : (
+                 <div className={styles.contactAvatar}>
+                   {getInitials(c.firstName, c.lastName)}
+                 </div>
+              )}
               
               {c.isOnline && <div className={styles.statusBadge}></div>}
             </div>
