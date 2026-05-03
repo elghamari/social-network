@@ -79,7 +79,7 @@ func (r *ChatRepo) GetGroupHistory(groupID int, cursor int64) ([]types.Message, 
 
 	if cursor == 0 {
 		query := `
-			SELECT gm.message_id, gm.sender_id, u.first_name, gm.content, gm.created_at 
+			SELECT gm.message_id, gm.sender_id, u.first_name || ' ' || u.last_name, COALESCE(u.avatar, ''), gm.content, gm.created_at 
 			FROM group_messages gm
 			JOIN users u ON gm.sender_id = u.id
 			WHERE gm.group_id = ? 
@@ -87,7 +87,7 @@ func (r *ChatRepo) GetGroupHistory(groupID int, cursor int64) ([]types.Message, 
 		rows, err = r.DB.Query(query, groupID)
 	} else {
 		query := `
-			SELECT gm.message_id, gm.sender_id, u.first_name, gm.content, gm.created_at 
+			SELECT gm.message_id, gm.sender_id, u.first_name || ' ' || u.last_name, COALESCE(u.avatar, ''), gm.content, gm.created_at 
 			FROM group_messages gm
 			JOIN users u ON gm.sender_id = u.id
 			WHERE gm.group_id = ? AND gm.message_id < ? 
@@ -103,7 +103,7 @@ func (r *ChatRepo) GetGroupHistory(groupID int, cursor int64) ([]types.Message, 
 	var messages []types.Message
 	for rows.Next() {
 		var msg types.Message
-		if err := rows.Scan(&msg.MessageID, &msg.SenderID, &msg.SenderName, &msg.Content, &msg.CreatedAt); err != nil {
+		if err := rows.Scan(&msg.MessageID, &msg.SenderID, &msg.SenderName, &msg.Avatar, &msg.Content, &msg.CreatedAt); err != nil {
 			return nil, err
 		}
 		msg.GroupID = &groupID 
@@ -232,12 +232,11 @@ func (r *ChatRepo) GetAvailableChatUsers(userID string) ([]types.Contact, error)
 func (r *ChatRepo) FetchGroupMessageByID(tx *sql.Tx, messageID int64) (types.Message, error) {
 	var msg types.Message
 	query := `
-		SELECT gm.message_id, gm.group_id, gm.sender_id, u.first_name, gm.content, gm.created_at 
+		SELECT gm.message_id, gm.group_id, gm.sender_id, u.first_name || ' ' || u.last_name, COALESCE(u.avatar, ''), gm.content, gm.created_at 
 		FROM group_messages gm
 		JOIN users u ON gm.sender_id = u.id
 		WHERE gm.message_id = ?`
-		
-	err := tx.QueryRow(query, messageID).Scan(&msg.MessageID, &msg.GroupID, &msg.SenderID, &msg.SenderName, &msg.Content, &msg.CreatedAt)
+	err := tx.QueryRow(query, messageID).Scan(&msg.MessageID, &msg.GroupID, &msg.SenderID, &msg.SenderName, &msg.Avatar, &msg.Content, &msg.CreatedAt)
 	return msg, err
 }
 
