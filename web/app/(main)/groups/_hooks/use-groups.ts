@@ -1,28 +1,27 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { getGroups } from "@/app/lib/services/group";
-import type { Group, GroupTab, LoadingStatus } from "@/app/lib/types/group";
+import type { Group, GroupTab } from "@/app/lib/types/group";
 import { useIntersectionObserver } from "../[id]/_hooks/use-intersection-observer";
 
-const LIST_SIZE = 20;
+const PAGE_SIZE = 20;
 
 export function useGroups(tab: GroupTab, query: string) {
   const [list, setList] = useState<Group[]>([]);
-  const [status, setStatus] = useState<LoadingStatus>("");
+  const [loading, setLoading] = useState(false);
+  const [cursor, setCursor] = useState("");
   const [hasMore, setHasMore] = useState(false);
-  const [cursor, setCursor] = useState<string>("");
 
-  const stateRef = useRef({ tab, query, cursor, status, hasMore });
-  stateRef.current = { tab, query, cursor, status, hasMore };
+  const fetchingRef = useRef(false);
 
-  // ── Initial fetch ──────────────────────────────────
   useEffect(() => {
     let canceled = false;
 
     async function run() {
-      setStatus("loading");
+      fetchingRef.current = true;
+      setLoading(true);
       setList([]);
       setCursor("");
       setHasMore(false);
@@ -32,14 +31,13 @@ export function useGroups(tab: GroupTab, query: string) {
         if (!resp || canceled) return;
 
         const groups = resp.groups ?? [];
-        const nextCursor = groups.at(-1)?.id ?? "";
-        const nextHasMore = groups.length === LIST_SIZE;
 
         setList(groups);
-        setCursor(nextCursor);
-        setHasMore(nextHasMore);
+        setCursor(groups.at(-1)?.id ?? "");
+        setHasMore(groups.length === PAGE_SIZE);
       } finally {
-        if (!canceled) setStatus("");
+        fetchingRef.current = false;
+        if (!canceled) setLoading(false);
       }
     }
 
@@ -48,54 +46,46 @@ export function useGroups(tab: GroupTab, query: string) {
     return () => {
       canceled = true;
     };
-  }, [query, tab]);
+  }, [tab, query]);
 
-  // ── Load more ───────────────────────────────────────────────
-  const loadMore = useCallback(async () => {
-    const s = stateRef.current;
-    if (s.status || !s.hasMore) return;
+  async function loadMore() {
+    if (fetchingRef.current || !hasMore) return;
 
-    setStatus("loading-more");
+    fetchingRef.current = true;
+    setLoading(true);
 
     try {
-      const resp = await getGroups(s.tab, s.query, s.cursor);
+      const resp = await getGroups(tab, query, cursor);
       if (!resp) return;
 
       const groups = resp.groups ?? [];
-      const nextCursor = groups.at(-1)?.id ?? "";
-      const nextHasMore = groups.length === LIST_SIZE;
 
       setList((prev) => [...prev, ...groups]);
-      setCursor(nextCursor);
-      setHasMore(nextHasMore);
+      setCursor(groups.at(-1)?.id ?? "");
+      setHasMore(groups.length === PAGE_SIZE);
     } finally {
-      setStatus("");
+      fetchingRef.current = false;
+      setLoading(false);
     }
-  }, []);
+  }
 
-  // ── Intersection marker ───────────────────────────────────
-  const markerRef = useIntersectionObserver(loadMore, hasMore && !status);
+  const markerRef = useIntersectionObserver(loadMore, hasMore);
 
-  // ── Actions ───────────────────────────────────
   function addGroup(group: Group) {
-    if (tab !== "joined") return;
-
     setList((prev) => [group, ...prev]);
   }
 
   function removeGroup(groupId: string) {
-    if (tab === "joined") return;
-
     setList((prev) => prev.filter((g) => g.id !== groupId));
   }
 
   return {
-    groups: list,
-    status,
+    list,
+    loading,
     markerRef,
     actions: {
-      addGroup: addGroup,
-      rmGroup: removeGroup,
+      addGroup,
+      removeGroup,
     },
   };
 }

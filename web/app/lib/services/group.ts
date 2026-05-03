@@ -1,5 +1,7 @@
 import clientAPI from "./_client";
 
+import { sleep } from "../utils/utils";
+
 import type {
   EventFormInput,
   EventResponse,
@@ -17,8 +19,7 @@ export async function getGroups(tab: GroupTab, query: string, cursor: string) {
     cursor: cursor,
   });
 
-  console.log(params.toString());
-
+  await sleep();
   return await clientAPI.get(`/groups?${params.toString()}`);
 }
 
@@ -43,9 +44,9 @@ export async function getGroupPosts(groupId: string) {
   return await clientAPI.get(`/groups/${groupId}/posts`);
 }
 
-export async function createGroupPost(groupId: string) {
-  return await clientAPI.get(`/groups/${groupId}/posts`);
-}
+// export async function createGroupPost(groupId: string) {
+//   return await clientAPI.get(`/groups/${groupId}/posts`);
+// }
 
 export async function getInvitableUsers(
   groupId: string,
@@ -57,6 +58,7 @@ export async function getInvitableUsers(
     cursor: cursor,
   });
 
+  await sleep();
   return await clientAPI.get(
     `/groups/${groupId}/manage/invite?${params.toString()}`,
   );
@@ -78,8 +80,15 @@ export async function cancelGroupInvitation(groupId: string, userId: string) {
   );
 }
 
-export async function listJoinRequests(groupId: string) {
-  return await clientAPI.get(`/groups/${groupId}/manage/requests`);
+export async function getJoinRequests(groupId: string, cursor: string) {
+  const params = new URLSearchParams({
+    cursor: cursor,
+  });
+
+  await sleep();
+  return await clientAPI.get(
+    `/groups/${groupId}/manage/requests?${params.toString()}`,
+  );
 }
 
 export async function approveJoinRequest(groupId: string, userId: string) {
@@ -106,6 +115,7 @@ export async function getEvents(groupId: string, cursor: string) {
     cursor: cursor,
   });
 
+  await sleep();
   return await clientAPI.get(`/groups/${groupId}/events?${params.toString()}`);
 }
 

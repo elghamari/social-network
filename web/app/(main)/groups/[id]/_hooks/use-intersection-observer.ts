@@ -1,11 +1,14 @@
 import { useEffect, useRef } from "react";
 
 export function useIntersectionObserver(
-  action: () => Promise<void>,
+  action: () => void | Promise<void>,
   enabled = true,
   rootMargin = "200px",
 ) {
   const markerRef = useRef<HTMLDivElement>(null);
+  const actionRef = useRef(action);
+
+  actionRef.current = action;
 
   useEffect(() => {
     if (!enabled) return;
@@ -15,17 +18,17 @@ export function useIntersectionObserver(
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) action();
+        if (entry.isIntersecting) {
+          void actionRef.current();
+        }
       },
-      {
-        rootMargin,
-      },
+      { rootMargin },
     );
 
     observer.observe(el);
 
     return () => observer.disconnect();
-  });
+  }, [enabled, rootMargin]);
 
   return markerRef;
 }

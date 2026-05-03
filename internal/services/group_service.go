@@ -196,7 +196,7 @@ func (s *GroupService) ListGroups(userId, tab, search, cursor string) ([]types.G
 		return nil, err
 	}
 
-	if err := ValidateCursor(cursor); err != nil {
+	if err := ValidateIntegerCursor(cursor); err != nil {
 		return nil, err
 	}
 
@@ -238,18 +238,22 @@ func (s *GroupService) CancelJoinRequest(req types.JoinRequest) error {
 
 // GetInvitableUsers returns non-members that can be invited,
 // with an IsInvited flag for already-invited users.
+
 func (s *GroupService) GetInvitableUsers(groupId, userId, query, cursor string) ([]types.InvitableUser, error) {
+
 	if err := s.ensureGroupExists(groupId); err != nil {
 		return nil, err
 	}
 	if err := s.ensureUserIsMember(groupId, userId); err != nil {
 		return nil, err
 	}
-	if err := ValidateCursor(cursor); err != nil {
+
+	cursor, err := NormalizeDateCursor(cursor)
+	if err != nil {
 		return nil, err
 	}
 
-	return s.Group.ListInvitableUsersForGroup(groupId, userId)
+	return s.Group.GetInvitableUsersForGroup(groupId, userId, query, cursor)
 }
 
 // CreateGroupInvitation sends an invitation to a user.
@@ -291,14 +295,20 @@ func (s *GroupService) RevokeGroupInvitation(groupId, revokerId string, inv type
 
 // ListJoinRequestUsers returns all users with pending join requests.
 // Creator only.
-func (s *GroupService) ListJoinRequestUsers(groupId, userId string) ([]types.JoinRequestUser, error) {
+func (s *GroupService) GetJoinRequestUsers(groupId, userId, cursor string) ([]types.JoinRequestUser, error) {
 	if err := s.ensureGroupExists(groupId); err != nil {
 		return nil, err
 	}
 	if err := s.ensureUserIsCreator(groupId, userId); err != nil {
 		return nil, err
 	}
-	return s.Group.ListJoinRequestUsersForGroup(groupId)
+
+	cursor, err := NormalizeDateCursor(cursor)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.Group.GetJoinRequestUsersForGroup(groupId, cursor)
 }
 
 // ApproveJoinRequest adds the user as a member, removes their join request,
@@ -389,7 +399,7 @@ func (s *GroupService) ListEvents(groupId, userId, cursor string) ([]types.Event
 		return nil, err
 	}
 
-	if err := ValidateCursor(cursor); err != nil {
+	if err := ValidateIntegerCursor(cursor); err != nil {
 		return nil, err
 	}
 

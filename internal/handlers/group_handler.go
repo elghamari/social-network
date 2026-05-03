@@ -214,14 +214,14 @@ func (h *Handler) GetInvitableUsers(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("query")
 	cursor := r.URL.Query().Get("cursor")
 
-	list, err := h.Services.Group.GetInvitableUsers(groupId, userId, query, cursor)
+	users, err := h.Services.Group.GetInvitableUsers(groupId, userId, query, cursor)
 	if err != nil {
 		HandleError(w, err)
 		return
 	}
 
 	utils.WriteJson(w, http.StatusOK, map[string]any{
-		"users": list,
+		"users": users,
 	})
 }
 
@@ -276,7 +276,7 @@ func (h *Handler) RevokeGroupInvitation(w http.ResponseWriter, r *http.Request) 
 func (h *Handler) GroupJoinRequests(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		h.ListJoinRequestUsers(w, r)
+		h.GetJoinRequestUsers(w, r)
 	case http.MethodPost:
 		h.ApproveJoinRequest(w, r)
 	case http.MethodDelete:
@@ -288,20 +288,21 @@ func (h *Handler) GroupJoinRequests(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// ListJoinRequestUsers handles GET /api/groups/{id}/manage/requests
+// GetJoinRequestUsers handles GET /api/groups/{id}/manage/requests
 // Returns all users with pending join requests. Creator only.
-func (h *Handler) ListJoinRequestUsers(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetJoinRequestUsers(w http.ResponseWriter, r *http.Request) {
 	userId := utils.GetUserId(r)
 	groupId := r.PathValue("id")
+	cursor := r.URL.Query().Get("cursor")
 
-	list, err := h.Services.Group.ListJoinRequestUsers(groupId, userId)
+	users, err := h.Services.Group.GetJoinRequestUsers(groupId, userId, cursor)
 	if err != nil {
 		HandleError(w, err)
 		return
 	}
 
 	utils.WriteJson(w, http.StatusOK, map[string]any{
-		"list": list,
+		"users": users,
 	})
 }
 

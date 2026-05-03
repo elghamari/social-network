@@ -14,7 +14,7 @@ export default function ManagePage() {
   const isCreator = role === "CREATOR";
 
   const invites = useInviteList(id);
-  const requests = useJoinRequestList(id, isCreator);
+  const requests = useJoinRequestList(id);
 
   async function handleApprove(userId: string) {
     const resp = await requests.approve(userId);

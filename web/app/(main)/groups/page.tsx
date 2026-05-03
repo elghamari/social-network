@@ -21,7 +21,7 @@ export default function GroupsPage() {
   const tab = (searchParams.get("tab") as GroupTab) || "discover";
   const query = searchParams.get("query") || "";
 
-  const { groups, status, actions, markerRef } = useGroups(tab, query);
+  const { list, loading, markerRef, actions } = useGroups(tab, query);
   const [showModal, setShowModal] = useState(false);
 
   function handleCreated(group: Group) {
@@ -43,14 +43,11 @@ export default function GroupsPage() {
       <GroupSearch />
 
       <GroupList
-        groups={groups}
-        loading={status === "loading"}
-        onRequest={actions.rmGroup}
+        groups={list}
+        loading={loading}
+        markerRef={markerRef}
+        onRequest={actions.removeGroup}
       />
-
-      {status === "loading-more" && <LoadingMore />}
-
-      <div ref={markerRef} aria-hidden="true" />
 
       {showModal && (
         <GroupFormModal
@@ -58,14 +55,6 @@ export default function GroupsPage() {
           onCreated={handleCreated}
         />
       )}
-    </div>
-  );
-}
-
-function LoadingMore() {
-  return (
-    <div className="groups-loading-more">
-      <div className="groups-loading-more__spinner" />
     </div>
   );
 }

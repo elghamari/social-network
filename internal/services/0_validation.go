@@ -4,6 +4,7 @@ import (
 	"soc-net/internal/types"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func ValidateTab(tab string) *types.ActionError {
@@ -16,7 +17,7 @@ func ValidateTab(tab string) *types.ActionError {
 	return nil
 }
 
-func ValidateCursor(cursor string) *types.ActionError {
+func ValidateIntegerCursor(cursor string) *types.ActionError {
 
 	_, err := strconv.Atoi(cursor)
 	if err != nil && cursor != "" {
@@ -24,6 +25,21 @@ func ValidateCursor(cursor string) *types.ActionError {
 	}
 
 	return nil
+}
+
+const sqliteDateLayout = "2006-01-02 15:04:05"
+
+func NormalizeDateCursor(cursor string) (string, error) {
+	if cursor == "" {
+		return "", nil
+	}
+
+	t, err := time.Parse(time.RFC3339, cursor)
+	if err != nil {
+		return "", types.NewActionError("Cursor must be a RFC3339 formated date")
+	}
+
+	return t.UTC().Format(sqliteDateLayout), nil
 }
 
 func ValidateEventStatus(er types.EventResponse) *types.ActionError {

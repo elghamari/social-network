@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"soc-net/internal/types"
 	"strconv"
+	"strings"
 )
 
 // DBTX allows repo methods to accept both *sql.DB and *sql.Tx.
@@ -265,9 +266,9 @@ func (r *GroupRepo) DeleteJoinRequest(groupId, userId string) error {
 // Invitations
 // ============================================================
 
-func (r *GroupRepo) getInvitableUsersQuery(groupId, userId, search, cursor string) {
-	query := `
-    SELECT u.id, u.first_name, u.last_name, u.avatar,
+func (r *GroupRepo) getInvitableUsersSQL(groupId, userId, query, cursor string) (string, []any) {
+	sql := `
+    SELECT u.id, u.first_name, u.last_name, u.created_at, u.avatar,
     gi.user_id IS NOT NULL AS is_invited
     FROM users u
     LEFT JOIN group_invitations gi ON gi.group_id = ? AND gi.user_id = u.id 
@@ -275,43 +276,49 @@ func (r *GroupRepo) getInvitableUsersQuery(groupId, userId, search, cursor strin
     AND NOT EXISTS (
         SELECT 1 FROM group_members gm 
         WHERE gm.group_id = ? AND gm.user_id = u.id
-    )
-`
-
+    )`
 	args := []any{groupId, userId, groupId}
 
-	if query !
+	query = strings.ToLower(query)
+	if query != "" {
+		sql += `
+		AND (u.first_name || ' ' || u.last_name) LIKE ?`
+		args = append(args, "%"+query+"%")
+	}
 
 	if cursor != "" {
-		query += `
-		AND g.id < ?`
+		sql += `
+		AND u.created_at < ?`
 		args = append(args, cursor)
 	}
 
-	query += `
-	ORDER BY g.id DESC
+	sql += `
+	ORDER BY u.created_at DESC
 	LIMIT 20`
+
+	return sql, args
 }
 
 // ListInvitableUsersForGroup returns all non-members with an IsInvited flag.
-func (r *GroupRepo) ListInvitableUsersForGroup(groupId, userId string) ([]types.InvitableUser, error) {
-	query, args := r.getInvitableUsersQuery()
+func (r *GroupRepo) GetInvitableUsersForGroup(groupId, userId, query, cursor string) ([]types.InvitableUser, error) {
+	sql, args := r.getInvitableUsersSQL(groupId, userId, query, cursor)
 
-	rows, err := r.DB.Query(query)
+	rows, err := r.DB.Query(sql, args...)
 	if err != nil {
 		return nil, fmt.Errorf("%s.ListInvitableUsersForGroup: Reading: %w", groupRepoName, err)
 	}
 
-	invitableUsers := []types.InvitableUser{}
+	users := []types.InvitableUser{}
 	for rows.Next() {
 		iu := types.InvitableUser{}
-		err := rows.Scan(&iu.Id, &iu.FirstName, &iu.LastName, &iu.AvatarPath, &iu.IsInvited)
+		err := rows.Scan(&iu.Id, &iu.FirstName, &iu.LastName, &iu.CreatedAt, &iu.AvatarPath, &iu.IsInvited)
 		if err != nil {
 			return nil, fmt.Errorf("%s.ListInvitableUsersForGroup: Scan: %w", groupRepoName, err)
 		}
-		invitableUsers = append(invitableUsers, iu)
+		users = append(users, iu)
 	}
-	return invitableUsers, nil
+
+	return users, nil
 }
 
 // InsertGroupInvitation creates an invitation from inviterId to invitedUserId.
@@ -370,24 +377,43 @@ func (r *GroupRepo) GetUserGroupRole(groupId, userId string) (string, error) {
 // Join Request Users List
 // ============================================================
 
-// ListJoinRequestUsersForGroup returns all users with pending join requests.
-func (r *GroupRepo) ListJoinRequestUsersForGroup(groupId string) ([]types.JoinRequestUser, error) {
-	rows, err := r.DB.Query(`
-		SELECT u.id, u.first_name, u.last_name, u.avatar
+func (r *GroupRepo) getJoinRequestUsersSQL(groupId, cursor string) (string, []any) {
+	sql := `
+		SELECT u.id, u.first_name, u.last_name, u.created_at, u.avatar
+
 		FROM group_join_requests gjr
-		LEFT JOIN users u ON gjr.user_id = u.id
-		WHERE gjr.group_id = ?
-	`, groupId)
+		JOIN users u ON u.id = gjr.user_id AND gjr.group_id = ?
+	`
+	args := []any{groupId}
+
+	if cursor != "" {
+		sql += `
+		WHERE u.created_at < ?`
+		args = append(args, cursor)
+	}
+
+	sql += `
+	ORDER BY u.created_at DESC
+	LIMIT 20`
+
+	return sql, args
+}
+
+// GetJoinRequestUsersForGroup returns all users with pending join requests.
+func (r *GroupRepo) GetJoinRequestUsersForGroup(groupId, cursor string) ([]types.JoinRequestUser, error) {
+	sql, args := r.getJoinRequestUsersSQL(groupId, cursor)
+
+	rows, err := r.DB.Query(sql, args...)
 	if err != nil {
-		return nil, fmt.Errorf("%s.ListJoinRequestUsersForGroup: Reading: %w", groupRepoName, err)
+		return nil, fmt.Errorf("%s.GetJoinRequestUsersForGroup: Reading: %w", groupRepoName, err)
 	}
 
 	requests := []types.JoinRequestUser{}
 	for rows.Next() {
 		req := types.JoinRequestUser{}
-		err := rows.Scan(&req.Id, &req.FirstName, &req.LastName, &req.AvatarPath)
+		err := rows.Scan(&req.Id, &req.FirstName, &req.LastName, &req.CreatedAt, &req.AvatarPath)
 		if err != nil {
-			return nil, fmt.Errorf("%s.ListJoinRequestUsersForGroup: Scan: %w", groupRepoName, err)
+			return nil, fmt.Errorf("%s.GetJoinRequestUsersForGroup: Scan: %w", groupRepoName, err)
 		}
 		requests = append(requests, req)
 	}

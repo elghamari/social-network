@@ -22,6 +22,14 @@ type Group struct {
 	Role         string `json:"role"`
 }
 
+type PaginatedList[T any] struct {
+	List    []T    `json:"list"`
+	Cursor  string `json:"cursor"`
+	HasMore bool   `json:"hasMore"`
+}
+
+type InvitableUserList = PaginatedList[InvitableUser]
+
 type JoinRequest struct {
 	GroupId string `json:"groupId"`
 	UserId  string `json:"userId"`
@@ -30,8 +38,9 @@ type JoinRequest struct {
 type JoinRequestUser struct {
 	Id         string `json:"id"`
 	FirstName  string `json:"firstName"`
-	AvatarPath string `json:"avatarPath"`
 	LastName   string `json:"lastName"`
+	CreatedAt  string `json:"createdAt"`
+	AvatarPath string `json:"avatarPath"`
 }
 
 type Invitation struct {
@@ -43,6 +52,7 @@ type InvitableUser struct {
 	Id         string `json:"id"`
 	FirstName  string `json:"firstName"`
 	LastName   string `json:"lastName"`
+	CreatedAt  string `json:"createdAt"`
 	AvatarPath string `json:"avatarPath"`
 	IsInvited  bool   `json:"isInvited"`
 }

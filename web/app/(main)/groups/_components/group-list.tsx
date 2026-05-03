@@ -1,19 +1,24 @@
 "use client";
 
 import GroupCard from "./group-card";
-
 import type { Group } from "@/app/lib/types/group";
 
 type Props = {
   groups: Group[];
   loading: boolean;
+  markerRef: React.RefObject<HTMLDivElement | null>;
   onRequest: (gid: string) => void;
 };
 
-export default function GroupList({ groups, loading, onRequest }: Props) {
-  if (loading) return <Skeleton />;
+const SKELETON_COUNT = 6;
 
-  if (groups.length === 0) {
+export default function GroupList({
+  groups,
+  loading,
+  markerRef,
+  onRequest,
+}: Props) {
+  if (!loading && groups.length === 0) {
     return (
       <div className="groups-empty">
         <p className="groups-empty__title">No groups found</p>
@@ -26,16 +31,18 @@ export default function GroupList({ groups, loading, onRequest }: Props) {
       {groups.map((group) => (
         <GroupCard key={group.id} group={group} onRequest={onRequest} />
       ))}
+
+      {loading && <SkeletonRows />}
+
+      <div ref={markerRef} aria-hidden="true" />
     </div>
   );
 }
 
-const SKELETON_COUNT = 6;
-
-function Skeleton() {
+function SkeletonRows() {
   return (
-    <div className="groups-grid">
-      {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+    <>
+      {Array.from({ length: SKELETON_COUNT }, (_, i) => (
         <div key={i} className="group-card group-card--skeleton">
           <div className="skeleton group-card__cover" />
           <div className="group-card__content">
@@ -49,6 +56,6 @@ function Skeleton() {
           </div>
         </div>
       ))}
-    </div>
+    </>
   );
 }

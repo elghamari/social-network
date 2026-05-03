@@ -1,23 +1,29 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 
 import { getEvents } from "@/app/lib/services/group";
-import { Event, EventResponse, LoadingStatus } from "@/app/lib/types/group";
+import type { Event, EventResponse } from "@/app/lib/types/group";
 import { formatDate } from "@/app/lib/utils/format";
 import { useIntersectionObserver } from "../../_hooks/use-intersection-observer";
 
-const LIST_SIZE = 20;
+const PAGE_SIZE = 20;
 
 export function useEvents(groupId: string) {
   const [list, setList] = useState<Event[]>([]);
-  const [status, setStatus] = useState<LoadingStatus>("");
+  const [loading, setLoading] = useState(false);
   const [cursor, setCursor] = useState("");
-  const [hasMore, setHasMore] = useState(true);
+  const [hasMore, setHasMore] = useState(false);
 
+  const fetchingRef = useRef(false);
+
+  // ── Initial fetch ──────────────────────────────────
   useEffect(() => {
     let canceled = false;
 
     async function run() {
-      setStatus("loading");
+      fetchingRef.current = true;
+      setLoading(true);
       setList([]);
       setCursor("");
       setHasMore(false);
@@ -27,14 +33,13 @@ export function useEvents(groupId: string) {
         if (!resp || canceled) return;
 
         const events = resp.events ?? [];
-        const nextCursor = events.at(-1)?.id ?? "";
-        const nextHasMore = events.length === LIST_SIZE;
 
         setList(events);
-        setCursor(nextCursor);
-        setHasMore(nextHasMore);
+        setCursor(events.at(-1)?.id ?? "");
+        setHasMore(events.length === PAGE_SIZE);
       } finally {
-        if (!canceled) setStatus("");
+        fetchingRef.current = false;
+        if (!canceled) setLoading(false);
       }
     }
 
@@ -43,77 +48,72 @@ export function useEvents(groupId: string) {
     return () => {
       canceled = true;
     };
-  }, []);
+  }, [groupId]);
 
-  const stateRef = useRef({ status, cursor, hasMore });
-  stateRef.current = { status, cursor, hasMore };
+  // ── Load more ──────────────────────────────────────
+  async function loadMore() {
+    if (fetchingRef.current || !hasMore) return;
 
-  const loadMore = useCallback(async () => {
-    const s = stateRef.current;
-    if (s.status || !s.hasMore) return;
-
-    setStatus("loading-more");
+    fetchingRef.current = true;
+    setLoading(true);
 
     try {
-      const resp = await getEvents(groupId, s.cursor);
+      const resp = await getEvents(groupId, cursor);
       if (!resp) return;
 
       const events = resp.events ?? [];
-      const nextCursor = events.at(-1)?.id ?? "";
-      const nextHasMore = events.length === LIST_SIZE;
 
       setList((prev) => [...prev, ...events]);
-      setCursor(nextCursor);
-      setHasMore(nextHasMore);
+      setCursor(events.at(-1)?.id ?? "");
+      setHasMore(events.length === PAGE_SIZE);
     } finally {
-      setStatus("");
+      fetchingRef.current = false;
+      setLoading(false);
     }
-  }, []);
-
-  const markerRef = useIntersectionObserver(loadMore, hasMore && !status);
-
-  function addEvent(event: Event) {
-    event.date = formatDate(event.date);
-
-    setList((prev) => [...prev, event]);
   }
 
-  async function updateEvent(eventId: string, response: EventResponse) {
+  const markerRef = useIntersectionObserver(loadMore, hasMore);
+
+  // ── Actions ────────────────────────────────────────
+  function addEvent(event: Event) {
+    const formatted = {
+      ...event,
+      date: formatDate(event.date),
+    };
+
+    setList((prev) => [formatted, ...prev]);
+  }
+
+  function updateEvent(eventId: string, response: EventResponse) {
     setList((prev) =>
       prev.map((event) => {
-        const prevResponse = event.response;
+        if (event.id !== eventId) return event;
 
+        const prevResponse = event.response;
         if (prevResponse === response) return event;
 
-        let newGoingCnt = event.goingCnt;
-        let newNotGoingCnt = event.notGoingCnt;
+        let goingCnt = event.goingCnt;
+        let notGoingCnt = event.notGoingCnt;
 
-        if (prevResponse === "GOING") {
-          newGoingCnt--;
-        } else if (prevResponse === "NOT_GOING") {
-          newNotGoingCnt--;
-        }
+        if (prevResponse === "GOING") goingCnt--;
+        if (prevResponse === "NOT_GOING") notGoingCnt--;
 
-        if (response === "GOING") {
-          newGoingCnt++;
-        } else if (response === "NOT_GOING") {
-          newNotGoingCnt++;
-        }
-        return event.id === eventId
-          ? {
-              ...event,
-              goingCnt: newGoingCnt,
-              notGoingCnt: newNotGoingCnt,
-              response: response,
-            }
-          : event;
+        if (response === "GOING") goingCnt++;
+        if (response === "NOT_GOING") notGoingCnt++;
+
+        return {
+          ...event,
+          goingCnt,
+          notGoingCnt,
+          response,
+        };
       }),
     );
   }
 
   return {
     events: list,
-    status,
+    loading,
     markerRef,
     actions: {
       addEvent,

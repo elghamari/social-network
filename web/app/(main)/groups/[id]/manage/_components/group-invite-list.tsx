@@ -1,14 +1,17 @@
 "use client";
 
 import GroupUserRow from "./group-user-row";
-
-import { InviteListState } from "../_hooks/use-invite-list";
+import type { InviteListState } from "../_hooks/use-invite-list";
 
 type Props = {
   invites: InviteListState;
 };
 
+const SKELETON_COUNT = 5;
+
 export default function GroupInviteList({ invites }: Props) {
+  const isEmpty = !invites.loading && invites.list.length === 0;
+
   return (
     <section className="gd-manage__panel">
       <div className="gd-manage__panel-header">
@@ -25,45 +28,49 @@ export default function GroupInviteList({ invites }: Props) {
       />
 
       <div className="gd-manage__list">
-        {invites.loading ? (
-          <Skeleton />
-        ) : invites.list.length === 0 ? (
+        {isEmpty ? (
           <div className="gd-manage__empty">
             {invites.query.trim()
               ? "No users match your search."
               : "No users to invite."}
           </div>
         ) : (
-          invites.list.map((user) => (
-            <GroupUserRow key={user.id} user={user}>
-              <button
-                className={`gd-manage__btn ${
-                  user.isInvited
-                    ? "gd-manage__btn--invited"
-                    : "gd-manage__btn--invite"
-                }`}
-                onClick={() => invites.toggleInvite(user.id, user.isInvited)}
-                disabled={invites.pendingId === user.id}
-              >
-                {invites.pendingId === user.id
-                  ? "..."
-                  : user.isInvited
-                    ? "Invited"
-                    : "Invite"}
-              </button>
-            </GroupUserRow>
-          ))
+          <>
+            {invites.list.map((user) => (
+              <GroupUserRow key={user.id} user={user}>
+                <button
+                  className={`gd-manage__btn ${
+                    user.isInvited
+                      ? "gd-manage__btn--invited"
+                      : "gd-manage__btn--invite"
+                  }`}
+                  onClick={() => invites.toggleInvite(user.id, user.isInvited)}
+                  disabled={invites.pendingId === user.id}
+                >
+                  {invites.pendingId === user.id
+                    ? "..."
+                    : user.isInvited
+                      ? "Invited"
+                      : "Invite"}
+                </button>
+              </GroupUserRow>
+            ))}
+
+            {invites.loading && <SkeletonRows />}
+          </>
         )}
+
+        <div ref={invites.markerRef} aria-hidden="true" />
       </div>
     </section>
   );
 }
 
-function Skeleton() {
+function SkeletonRows() {
   return (
     <>
-      {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className="gd-manage__row">
+      {Array.from({ length: SKELETON_COUNT }, (_, i) => (
+        <div key={i} className="gd-manage__row gd-manage__row--skeleton">
           <div className="skeleton gd-avatar" />
           <div className="gd-manage__user">
             <div className="skeleton" style={{ height: 13, width: "50%" }} />

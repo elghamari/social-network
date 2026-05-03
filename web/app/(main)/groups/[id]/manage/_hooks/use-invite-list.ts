@@ -1,45 +1,32 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   getInvitableUsers,
   submitGroupInvitation,
   cancelGroupInvitation,
 } from "@/app/lib/services/group";
-import { InvitableUser, LoadingStatus } from "@/app/lib/types/group";
+import type { InvitableUser } from "@/app/lib/types/group";
 import { useIntersectionObserver } from "../../_hooks/use-intersection-observer";
 
 export type InviteListState = ReturnType<typeof useInviteList>;
 
-const LIST_SIZE = 20;
+const PAGE_SIZE = 20;
 
 export function useInviteList(groupId: string) {
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
 
   const [list, setList] = useState<InvitableUser[]>([]);
-  const [status, setStatus] = useState<LoadingStatus>("");
+  const [loading, setLoading] = useState(false);
   const [cursor, setCursor] = useState("");
   const [hasMore, setHasMore] = useState(false);
   const [pendingId, setPendingId] = useState<string | null>(null);
 
-  const stateRef = useRef({
-    groupId,
-    query: debouncedQuery,
-    status,
-    cursor,
-    hasMore,
-  });
-  stateRef.current = {
-    groupId,
-    query: debouncedQuery,
-    status,
-    cursor,
-    hasMore,
-  };
+  const fetchingRef = useRef(false);
 
-  // ── Debounce search query ──────────────────────────
+  // ── Debounce search ────────────────────────────────
   useEffect(() => {
     const timeout = setTimeout(() => {
       setDebouncedQuery(query.trim());
@@ -48,12 +35,13 @@ export function useInviteList(groupId: string) {
     return () => clearTimeout(timeout);
   }, [query]);
 
-  // ── Fetch on first load or search change ──────────────
+  // ── Initial fetch / search change ──────────────────
   useEffect(() => {
     let canceled = false;
 
     async function run() {
-      setStatus("loading");
+      fetchingRef.current = true;
+      setLoading(true);
       setList([]);
       setCursor("");
       setHasMore(false);
@@ -63,14 +51,13 @@ export function useInviteList(groupId: string) {
         if (!resp || canceled) return;
 
         const users = resp.users ?? [];
-        const nextCursor = users.at(-1)?.id ?? "";
-        const nextHasMore = users.length === LIST_SIZE;
 
         setList(users);
-        setCursor(nextCursor);
-        setHasMore(nextHasMore);
+        setCursor(users.at(-1)?.createdAt ?? "");
+        setHasMore(users.length === PAGE_SIZE);
       } finally {
-        if (!canceled) setStatus("");
+        fetchingRef.current = false;
+        if (!canceled) setLoading(false);
       }
     }
 
@@ -82,47 +69,49 @@ export function useInviteList(groupId: string) {
   }, [debouncedQuery]);
 
   // ── Load more ──────────────────────────────────────
-  const loadMore = useCallback(async () => {
-    const s = stateRef.current;
-    if (s.status || !s.hasMore) return;
+  async function loadMore() {
+    if (fetchingRef.current || !hasMore) return;
 
-    stateRef.current.status = "loading-more";
-    setStatus("loading-more");
+    fetchingRef.current = true;
+    setLoading(true);
 
     try {
-      const resp = await getInvitableUsers(s.groupId, s.query, s.cursor);
+      const resp = await getInvitableUsers(groupId, debouncedQuery, cursor);
       if (!resp) return;
 
       const users = resp.users ?? [];
-      const nextCursor = users.at(-1)?.id ?? "";
-      const nextHasMore = users.length === LIST_SIZE;
 
       setList((prev) => [...prev, ...users]);
-      setCursor(nextCursor);
-      setHasMore(nextHasMore);
+      setCursor(users.at(-1)?.createdAt ?? "");
+      setHasMore(users.length === PAGE_SIZE);
     } finally {
-      stateRef.current.status = "";
-      setStatus("");
+      fetchingRef.current = false;
+      setLoading(false);
     }
-  }, []);
+  }
 
-  const markerRef = useIntersectionObserver(loadMore, hasMore && !status);
+  const markerRef = useIntersectionObserver(loadMore, hasMore);
 
   // ── Actions ────────────────────────────────────────
-  async function toggleInvite(userId: string, isInvited: boolean) {
+  async function toggleInvite(
+    userId: string,
+    isInvited: boolean,
+  ): Promise<boolean> {
     const action = isInvited ? cancelGroupInvitation : submitGroupInvitation;
 
     setPendingId(userId);
     const resp = await action(groupId, userId);
     setPendingId(null);
 
-    if (!resp) return;
+    if (!resp) return false;
 
     setList((prev) =>
       prev.map((user) =>
         user.id === userId ? { ...user, isInvited: !isInvited } : user,
       ),
     );
+
+    return true;
   }
 
   function removeUser(userId: string) {
@@ -131,7 +120,7 @@ export function useInviteList(groupId: string) {
 
   return {
     list,
-    status,
+    loading,
     markerRef,
 
     query,

@@ -35,6 +35,7 @@ export type InvitableUser = {
   id: string;
   firstName: string;
   lastName: string;
+  createdAt: string;
   avatarPath?: string;
   isInvited: boolean;
 };

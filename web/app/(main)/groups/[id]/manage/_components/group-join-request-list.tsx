@@ -1,14 +1,18 @@
 "use client";
 
 import GroupUserRow from "./group-user-row";
-import { JoinRequestState } from "../_hooks/use-join-request-list";
+import type { JoinRequestState } from "../_hooks/use-join-request-list";
 
 type Props = {
   requests: JoinRequestState;
   onApprove: (uid: string) => void;
 };
 
+const SKELETON_COUNT = 5;
+
 export default function GroupJoinRequestList({ requests, onApprove }: Props) {
+  const isEmpty = !requests.loading && requests.list.length === 0;
+
   return (
     <section className="gd-manage__panel">
       <div className="gd-manage__panel-header">
@@ -19,47 +23,50 @@ export default function GroupJoinRequestList({ requests, onApprove }: Props) {
       </div>
 
       <div className="gd-manage__list">
-        {requests.loading ? (
-          <Skeleton />
-        ) : requests.list.length === 0 ? (
+        {isEmpty ? (
           <div className="gd-empty">No pending requests.</div>
         ) : (
-          requests.list.map((user) => (
-            <GroupUserRow key={user.id} user={user}>
-              <div className="gd-manage__actions">
-                <button
-                  type="button"
-                  className="gd-manage__btn gd-manage__btn--approve"
-                  disabled={requests.pendingId === user.id}
-                  onClick={() => onApprove(user.id)}
-                >
-                  Approve
-                </button>
+          <>
+            {requests.list.map((user) => (
+              <GroupUserRow key={user.id} user={user}>
+                <div className="gd-manage__actions">
+                  <button
+                    type="button"
+                    className="gd-manage__btn gd-manage__btn--approve"
+                    disabled={requests.pendingId === user.id}
+                    onClick={() => onApprove(user.id)}
+                  >
+                    Approve
+                  </button>
 
-                <button
-                  type="button"
-                  className="gd-manage__btn gd-manage__btn--reject"
-                  disabled={requests.pendingId === user.id}
-                  onClick={() => requests.reject(user.id)}
-                >
-                  Reject
-                </button>
-              </div>
-            </GroupUserRow>
-          ))
+                  <button
+                    type="button"
+                    className="gd-manage__btn gd-manage__btn--reject"
+                    disabled={requests.pendingId === user.id}
+                    onClick={() => requests.reject(user.id)}
+                  >
+                    Reject
+                  </button>
+                </div>
+              </GroupUserRow>
+            ))}
+
+            {requests.loading && <SkeletonRows />}
+          </>
         )}
+
+        <div ref={requests.markerRef} aria-hidden="true" />
       </div>
     </section>
   );
 }
 
-function Skeleton() {
+function SkeletonRows() {
   return (
     <>
-      {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className="gd-manage__row">
+      {Array.from({ length: SKELETON_COUNT }, (_, i) => (
+        <div key={i} className="gd-manage__row gd-manage__row--skeleton">
           <div className="skeleton gd-avatar" />
-
           <div className="gd-manage__user">
             <div className="skeleton" style={{ height: 14, width: "55%" }} />
             <div
@@ -67,7 +74,6 @@ function Skeleton() {
               style={{ height: 12, width: "30%", marginTop: 4 }}
             />
           </div>
-
           <div className="gd-manage__actions">
             <div
               className="skeleton"
