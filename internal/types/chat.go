@@ -16,6 +16,7 @@ type Message struct {
 	MessageID  int    `json:"message_id"`
 	SenderID   string `json:"sender_id"`
 	SenderName string `json:"sender_name,omitempty"` 
+	Avatar     string `json:"avatar,omitempty"` 
 	ReceiverID string `json:"receiver_id"`
 	Content    string `json:"content"`
 	IsRead     int    `json:"is_read"`
