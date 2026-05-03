@@ -43,3 +43,25 @@ export async function getAvailableUsers(): Promise<Contact[]> {
         return [];
     }
 }
+
+
+export async function getGroupHistory(groupId: number, cursor: number = 0): Promise<any> {
+    try {
+        const response = await client.get(`/chat/history/group?groupId=${groupId}&cursor=${cursor}`);
+        return response.data || { messages: [] };
+    } catch (error) {
+        console.log('Error fetching group history:', error);
+        return { messages: [] }; 
+    }
+}
+
+export async function markGroupAsRead(groupId: number, lastMessageId: number): Promise<void> {
+    try {
+        await client.post('/chat/read/group', { 
+            groupId: groupId,
+            lastMessageId: lastMessageId 
+        });
+    } catch (error) {
+        console.log('Error marking group as read:', error);
+    }
+}
