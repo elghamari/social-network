@@ -15,12 +15,9 @@ import ChatSidebar from "./components/ChatSidebar";
 import ChatWindow from "./components/ChatWindow";
 import ChatInput from "./components/ChatInput";
 import { useWebSocket } from "../../context/WebSocketContext";
-
-
 import { useChatWebSocket } from "./hooks/useChatWebSocket";
 
 export default function ChatPage() {
-  // --- States ---
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -29,7 +26,6 @@ export default function ChatPage() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
 
-  // --- Refs & Context ---
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { socket, isConnected } = useWebSocket();
   const selectedContactRef = useRef(selectedContact);
@@ -163,7 +159,6 @@ export default function ChatPage() {
     fetchContactsList,
   });
 
-  // --- Handlers ---
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     if (e.currentTarget.scrollTop === 0) throttledLoadMore();
   };
@@ -177,11 +172,14 @@ export default function ChatPage() {
   };
 
   const handleSendMessage = (text: string) => {
-    if (!text.trim() || !selectedContact || !socket || !isConnected) return;
+    const trimmedText = text.trim();
+    // 🔴 الحماية من جهة الشات الفردي
+    if (!trimmedText || trimmedText.length > 500 || !selectedContact || !socket || !isConnected) return;
+    
     socket.send(
       JSON.stringify({
         type: "send_message",
-        data: { receiver_id: selectedContact.id, content: text },
+        data: { receiver_id: selectedContact.id, content: trimmedText },
       })
     );
   };
