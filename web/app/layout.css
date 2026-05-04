@@ -8,26 +8,19 @@
 .app__content {
   flex: 1;
   margin-left: var(--sidenav-width);
-<<<<<<< HEAD
-  padding: 32px 0px 32px 32px;
-=======
   margin-right: 350px;
   padding: 32px;
->>>>>>> origin/feed
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
-<<<<<<< HEAD
-=======
 @media (max-width: 1024px) {
   .app__content {
     margin-right: 0;
   }
 }
 
->>>>>>> origin/feed
 @media (max-width: 768px) {
   .app__content {
     margin-left: 0;
