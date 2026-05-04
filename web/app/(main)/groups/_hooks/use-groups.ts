@@ -72,6 +72,8 @@ export function useGroups(tab: GroupTab, query: string) {
   const markerRef = useIntersectionObserver(loadMore, hasMore);
 
   function addGroup(group: Group) {
+    if (tab !== "joined") return;
+
     setList((prev) => [group, ...prev]);
   }
 

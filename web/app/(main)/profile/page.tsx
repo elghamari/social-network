@@ -1,10 +1,6 @@
-<<<<<<< HEAD
-export default function Profile(){
-    
-=======
 "use client";
 import { useState, useEffect } from "react";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "@/app/_context/AuthContext";
 import ProfileHeader from "@/app/ui/profile/ProfileHeader";
 import ProfileStats from "@/app/ui/profile/ProfileStats";
 import FollowModal from "@/app/ui/profile/FollowModal";
@@ -166,5 +162,4 @@ function PendingRequestItem({ req, onAccept, onDecline }: { req: any, onAccept: 
       </div>
     </div>
   );
->>>>>>> origin/feed
 }

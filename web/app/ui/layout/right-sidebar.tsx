@@ -12,21 +12,21 @@ export default function RightSidebar() {
       <div className="right-sidebar__header">
         <h3>Suggested for you</h3>
       </div>
-      
+
       <div className="right-sidebar__content">
-        <ul className="right-sidebar__list">
+        {/* <ul className="right-sidebar__list">
           {suggestedUsers.map((user) => (
             <li key={user.id} className="suggestion-item">
               <div className="suggestion-avatar">{user.initials}</div>
-              
+
               <div className="suggestion-info">
                 <span className="suggestion-name">{user.name}</span>
               </div>
-              
+
               <button className="follow-btn">Follow</button>
             </li>
           ))}
-        </ul>
+        </ul> */}
       </div>
     </aside>
   );

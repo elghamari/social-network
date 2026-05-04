@@ -38,7 +38,7 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux, mid *middleware.Middleware)
 		"/api/follow/decline": h.DeclineFollowRequest,
 		"/api/unfollow":       h.UnfollowUser,
 		"/api/search":         h.Search,
-		// "/api/profile/privacy": h.TogglePrivacy,
+		"/api/profile/privacy": h.TogglePrivacy,
 
 		// group routes
 		"/api/groups":                      h.Groups,

@@ -1,7 +1,7 @@
 import "../layout.css";
-import Sidenav from "../ui/layout/sidenav";
-import RightSidebar from "../ui/layout/right-sidebar";
-import { AuthProvider } from "../context/AuthContext";
+import Sidenav from "@/app/ui/layout/sidenav";
+import RightSidebar from "@/app/ui/layout/right-sidebar";
+import { AuthProvider } from "@/app/_context/AuthContext";
 import NavBar from "../ui/layout/navbar";
 
 export default function MainLayout({
@@ -11,7 +11,7 @@ export default function MainLayout({
 }) {
   return (
     <AuthProvider>
-      <NavBar/>
+      <NavBar />
       <div className="app">
         <Sidenav />
         <main className="app__content">{children}</main>

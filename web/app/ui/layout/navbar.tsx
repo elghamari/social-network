@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useAuth } from "@/app/context/AuthContext";
+import { useAuth } from "@/app/_context/AuthContext";
 import "./navbar.css";
 import client from "@/app/lib/services/_client";
 
@@ -33,7 +33,10 @@ export default function NavBar() {
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
         setResults([]);
       }
     };
@@ -64,15 +67,42 @@ export default function NavBar() {
                 onClick={() => setQuery("")}
                 style={{ textDecoration: "none", color: "inherit" }}
               >
-                <div className="nexus-search-item" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <div
+                  className="nexus-search-item"
+                  style={{ display: "flex", alignItems: "center", gap: "10px" }}
+                >
                   {r.avatar || r.Avatar ? (
-                    <img src={r.avatar || r.Avatar} alt="avatar" style={{ width: "30px", height: "30px", borderRadius: "50%", objectFit: "cover" }} />
+                    <img
+                      src={r.avatar || r.Avatar}
+                      alt="avatar"
+                      style={{
+                        width: "30px",
+                        height: "30px",
+                        borderRadius: "50%",
+                        objectFit: "cover",
+                      }}
+                    />
                   ) : (
-                    <div style={{ width: "30px", height: "30px", borderRadius: "50%", background: "var(--accent-secondary)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "13px" }}>
+                    <div
+                      style={{
+                        width: "30px",
+                        height: "30px",
+                        borderRadius: "50%",
+                        background: "var(--accent-secondary)",
+                        color: "white",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontWeight: "bold",
+                        fontSize: "13px",
+                      }}
+                    >
                       {(r.first_name || r.FirstName)?.[0]}
                     </div>
                   )}
-                  <span>{r.first_name} {r.last_name}</span>
+                  <span>
+                    {r.first_name} {r.last_name}
+                  </span>
                 </div>
               </Link>
             ))}
