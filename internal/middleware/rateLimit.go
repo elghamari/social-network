@@ -35,6 +35,22 @@ func NewLimiterStore() *LimiterStore {
 	return ls
 }
 
+func (m *Middleware) RateLimit(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		key := m.Limiter.getVisitorKey(r)
+
+		if !m.Limiter.allow(key) {
+			utils.WriteJson(w, http.StatusTooManyRequests, map[string]any{
+				"error": "too many requests",
+			})
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 func (ls *LimiterStore) cleanup() {
 	ticker := time.NewTicker(ls.CleanupTick)
 	defer ticker.Stop()
@@ -48,6 +64,20 @@ func (ls *LimiterStore) cleanup() {
 		}
 		ls.Mutex.Unlock()
 	}
+}
+
+func (ls *LimiterStore) getVisitorKey(r *http.Request) string {
+	host, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		host = r.RemoteAddr
+	}
+
+	cookie, err := r.Cookie("sessionId")
+	if err == nil {
+		return cookie.Value
+	}
+
+	return host
 }
 
 func (ls *LimiterStore) allow(key string) bool {
@@ -85,34 +115,4 @@ func (ls *LimiterStore) allow(key string) bool {
 	visitor.Credits--
 
 	return true
-}
-
-func getVisitorKey(r *http.Request) string {
-	host, _, err := net.SplitHostPort(r.RemoteAddr)
-	if err != nil {
-		host = r.RemoteAddr
-	}
-
-	cookie, err := r.Cookie("sessionId")
-	if err == nil {
-		return cookie.Value
-	}
-
-	return host
-}
-
-func RateLimit(ls *LimiterStore, next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-		key := getVisitorKey(r)
-
-		if !ls.allow(key) {
-			utils.WriteJson(w, http.StatusTooManyRequests, map[string]any{
-				"error": "too many requests",
-			})
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
 }

@@ -10,11 +10,7 @@ export function LoginForm() {
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-<<<<<<< HEAD
-
-=======
   
->>>>>>> origin/feed
   const [input, setInput] = useState<LoginInput>({
     email: "",
     password: "",
@@ -30,13 +26,6 @@ export function LoginForm() {
     setError("");
     setLoading(true);
 
-<<<<<<< HEAD
-    const res = await authService.login(input);
-    if (!res) return;
-
-    router.push("/");
-    router.refresh();
-=======
     try {
       const res = await authService.login(input);
       if (res) {
@@ -45,7 +34,6 @@ export function LoginForm() {
     } finally {
       setLoading(false);
     }
->>>>>>> origin/feed
   };
 
   return (
@@ -58,15 +46,6 @@ export function LoginForm() {
       <form onSubmit={handleSubmit} className="nexus-form">
         <div className="nexus-group">
           <label className="nexus-label">Email Address</label>
-<<<<<<< HEAD
-          <input
-            type="email"
-            name="email"
-            className="nexus-input"
-            placeholder="name@domain.com"
-            required
-            onChange={handleChange}
-=======
           <input 
             type="email" 
             name="email" 
@@ -74,21 +53,11 @@ export function LoginForm() {
             placeholder="name@domain.com" 
             required 
             onChange={handleChange} 
->>>>>>> origin/feed
           />
         </div>
 
         <div className="nexus-group">
           <label className="nexus-label">Password</label>
-<<<<<<< HEAD
-          <input
-            type="password"
-            name="password"
-            className="nexus-input"
-            placeholder="••••••••"
-            required
-            onChange={handleChange}
-=======
           <input 
             type="password" 
             name="password" 
@@ -96,7 +65,6 @@ export function LoginForm() {
             placeholder="••••••••" 
             required 
             onChange={handleChange} 
->>>>>>> origin/feed
           />
         </div>
 
@@ -106,19 +74,8 @@ export function LoginForm() {
       </form>
 
       <div className="nexus-footer">
-<<<<<<< HEAD
-        Don't have an account?{" "}
-        <a href="/register" className="nexus-link">
-          Sign up
-        </a>
-      </div>
-    </div>
-  );
-}
-=======
         Don't have an account? <a href="/register" className="nexus-link">Sign up</a>
       </div>
     </div>
   );
 }
->>>>>>> origin/feed

@@ -11,7 +11,7 @@ import (
 type PostsService struct {
 	Posts *repositories.PostsRepo
 	Group *repositories.GroupRepo
-	Auth *repos
+	Auth  *repositories.AuthRepo
 }
 
 func NewPostsService(posts *repositories.PostsRepo, groups *repositories.GroupRepo) *PostsService {
@@ -62,7 +62,7 @@ func (s *PostsService) GetProfilePosts(currentUserId string, targetUserId string
 	}
 
 	// TODO: Move this UserExists function to UsersRepo.
-	userExists, err := s.Group.UserExists(targetUserId)
+	userExists, err := s.Auth.UserExists(targetUserId)
 	if err != nil {
 		return nil, fmt.Errorf("PostsService.GetProfilePosts (Check User): %w", err)
 	}

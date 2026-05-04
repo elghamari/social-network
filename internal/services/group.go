@@ -12,10 +12,10 @@ type GroupService struct {
 	Group *repositories.GroupRepo
 }
 
-func NewGroupService(auth *repositories.AuthRepo, gr *repositories.GroupRepo) *GroupService {
+func NewGroupService(auth *repositories.AuthRepo, group *repositories.GroupRepo) *GroupService {
 	return &GroupService{
 		Auth:  auth,
-		Group: gr,
+		Group: group,
 	}
 }
 

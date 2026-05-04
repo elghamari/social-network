@@ -7,15 +7,15 @@ import (
 	"soc-net/internal/types"
 )
 
-type FollowRepo struct {
+type UserRepo struct {
 	DB *sql.DB
 }
 
-func NewFollowRepo(db *sql.DB) *FollowRepo {
-	return &FollowRepo{DB: db}
+func NewUserRepo(db *sql.DB) *UserRepo {
+	return &UserRepo{DB: db}
 }
 
-func (f *FollowRepo) getUsersByQuery(query string, args ...any) ([]types.FollowerInfo, error) {
+func (f *UserRepo) getUsersByQuery(query string, args ...any) ([]types.FollowerInfo, error) {
 	rows, err := f.DB.Query(query, args...)
 	if err != nil {
 		return nil, err
@@ -59,28 +59,28 @@ func (f *FollowRepo) getUsersByQuery(query string, args ...any) ([]types.Followe
 	return list, nil
 }
 
-func (f *FollowRepo) GetFollowers(userID string) ([]types.FollowerInfo, error) {
+func (f *UserRepo) GetFollowers(userID string) ([]types.FollowerInfo, error) {
 	q := `SELECT u.id, u.first_name, u.last_name, u.avatar, u.email, u.date_of_birth, u.nickname, u.about_me
           FROM followers fl JOIN users u ON fl.follower_id = u.id
           WHERE fl.following_id = ?`
 	return f.getUsersByQuery(q, userID)
 }
 
-func (f *FollowRepo) GetFollowing(userID string) ([]types.FollowerInfo, error) {
+func (f *UserRepo) GetFollowing(userID string) ([]types.FollowerInfo, error) {
 	q := `SELECT u.id, u.first_name, u.last_name, u.avatar, u.email, u.date_of_birth, u.nickname, u.about_me
           FROM followers fl JOIN users u ON fl.following_id = u.id
           WHERE fl.follower_id = ?`
 	return f.getUsersByQuery(q, userID)
 }
 
-func (f *FollowRepo) GetPendingRequests(userID string) ([]types.FollowerInfo, error) {
+func (f *UserRepo) GetPendingRequests(userID string) ([]types.FollowerInfo, error) {
 	q := `SELECT u.id, u.first_name, u.last_name  , u.avatar, u.email, u.date_of_birth, u.nickname, u.about_me
 	      FROM follow_requests fr JOIN users u ON fr.sender_id = u.id
 	      WHERE fr.receiver_id = ?`
 	return f.getUsersByQuery(q, userID)
 }
 
-func (f *FollowRepo) GetFollowStatus(viewerID, targetID string) (string, error) {
+func (f *UserRepo) GetFollowStatus(viewerID, targetID string) (string, error) {
 	var id string
 
 	err := f.DB.QueryRow(
@@ -90,7 +90,7 @@ func (f *FollowRepo) GetFollowStatus(viewerID, targetID string) (string, error) 
 	if err == nil {
 		return "following", nil
 	} else if err != sql.ErrNoRows {
-		return "", fmt.Errorf("followRepo.GetFollowStatus: %w", err)
+		return "", fmt.Errorf("UserRepo.GetFollowStatus: %w", err)
 	}
 
 	err = f.DB.QueryRow(
@@ -100,35 +100,35 @@ func (f *FollowRepo) GetFollowStatus(viewerID, targetID string) (string, error) 
 	if err == nil {
 		return "pending", nil
 	} else if err != sql.ErrNoRows {
-		return "", fmt.Errorf("followRepo.GetFollowStatus: %w", err)
+		return "", fmt.Errorf("UserRepo.GetFollowStatus: %w", err)
 	}
 
 	return "none", nil
 }
 
-func (f *FollowRepo) FollowUserDirectly(followerID, followingID string) error {
+func (f *UserRepo) FollowUserDirectly(followerID, followingID string) error {
 	_, err := f.DB.Exec(
 		`INSERT INTO followers (follower_id, following_id) VALUES (?, ?)`,
 		followerID, followingID,
 	)
 	if err != nil {
-		return fmt.Errorf("followRepo.FollowUserDirectly: %w", err)
+		return fmt.Errorf("UserRepo.FollowUserDirectly: %w", err)
 	}
 	return nil
 }
 
-func (f *FollowRepo) SendFollowRequest(senderID, receiverID string) error {
+func (f *UserRepo) SendFollowRequest(senderID, receiverID string) error {
 	_, err := f.DB.Exec(
 		`INSERT INTO follow_requests (sender_id, receiver_id) VALUES (?, ?)`,
 		senderID, receiverID,
 	)
 	if err != nil {
-		return fmt.Errorf("followRepo.SendFollowRequest: %w", err)
+		return fmt.Errorf("UserRepo.SendFollowRequest: %w", err)
 	}
 	return nil
 }
 
-func (f *FollowRepo) AcceptFollowRequest(senderID, receiverID string) error {
+func (f *UserRepo) AcceptFollowRequest(senderID, receiverID string) error {
 	tx, err := f.DB.Begin()
 	if err != nil {
 		return err
@@ -157,7 +157,7 @@ func (f *FollowRepo) AcceptFollowRequest(senderID, receiverID string) error {
 	return tx.Commit()
 }
 
-func (f *FollowRepo) DeclineFollowRequest(senderID, receiverID string) error {
+func (f *UserRepo) DeclineFollowRequest(senderID, receiverID string) error {
 	_, err := f.DB.Exec(
 		`DELETE FROM follow_requests WHERE sender_id = ? AND receiver_id = ?`,
 		senderID, receiverID,
@@ -165,7 +165,7 @@ func (f *FollowRepo) DeclineFollowRequest(senderID, receiverID string) error {
 	return err
 }
 
-func (f *FollowRepo) UnfollowUser(followerID, followingID string) error {
+func (f *UserRepo) UnfollowUser(followerID, followingID string) error {
 	_, err := f.DB.Exec(
 		`DELETE FROM followers WHERE follower_id = ? AND following_id = ?`,
 		followerID, followingID,

@@ -3,15 +3,11 @@ package services
 import (
 	"crypto/rand"
 	"encoding/hex"
-	"errors"
 	"fmt"
-	"regexp"
-	"strings"
 	"time"
 
 	"soc-net/internal/repositories"
 	"soc-net/internal/types"
-	"soc-net/internal/utils"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -49,46 +45,8 @@ func (s *AuthService) Logout(sessionId string) error {
 
 // ===== Register / Login
 
-var (
-	emailRegex = regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
-	nameRegex  = regexp.MustCompile(`^[a-zA-Z\s]{2,20}$`)
-	dateRegex  = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`)
-)
-
-func validateRegisterInput(input types.RegisterInput) error {
-	email := strings.ToLower(strings.TrimSpace(input.Email))
-	if !emailRegex.MatchString(email) {
-		return errors.New("invalid email format")
-	}
-	if len(strings.TrimSpace(input.Password)) < 6 {
-		return errors.New("password must be at least 6 characters")
-	}
-	if !nameRegex.MatchString(strings.TrimSpace(input.FirstName)) {
-		return errors.New("first name must be 2-20 letters only")
-	}
-	if !nameRegex.MatchString(strings.TrimSpace(input.LastName)) {
-		return errors.New("last name must be 2-20 letters only")
-	}
-	if !dateRegex.MatchString(input.DateOfBirth) {
-		return errors.New("date of birth must be YYYY-MM-DD")
-	}
-	if input.Avatar != nil && *input.Avatar != "" {
-		avatarPath, err := utils.HandleBase64Image(*input.Avatar)
-		if err != nil {
-			fmt.Println(avatarPath)
-			return errors.New("Invalid image")
-		}
-		input.Avatar = avatarPath
-	}
-	if input.AboutMe != nil && *input.AboutMe != "" {
-		trimmed := strings.TrimSpace(*input.AboutMe)
-		input.AboutMe = &trimmed
-	}
-	return nil
-}
-
 func (s *AuthService) Register(input types.RegisterInput) error {
-	if err := validateRegisterInput(input); err != nil {
+	if err := ValidateRegisterInput(input); err != nil {
 		return err
 	}
 	hashed, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)

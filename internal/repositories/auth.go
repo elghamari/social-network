@@ -211,7 +211,7 @@ func (r *AuthRepo) UserExists(userID string) (bool, error) {
 		)
 	`, userID).Scan(&exists)
 	if err != nil {
-		return false, fmt.Errorf("authRepo.UserExists: %w", err)
+		return false, fmt.Errorf("AuthRepo.UserExists: %w", err)
 	}
 	return exists, nil
 }

@@ -5,32 +5,32 @@ import (
 	"soc-net/internal/types"
 )
 
-type FollowService struct {
-	Follow *repositories.FollowRepo
+type UserService struct {
+	Follow *repositories.UserRepo
 	Auth   *repositories.AuthRepo
 }
 
-func NewFollowService(follow *repositories.FollowRepo, auth *repositories.AuthRepo) *FollowService {
-	return &FollowService{Follow: follow, Auth: auth}
+func NewUserService(follow *repositories.UserRepo, auth *repositories.AuthRepo) *UserService {
+	return &UserService{Follow: follow, Auth: auth}
 }
 
-func (s *FollowService) GetFollowers(userID string) ([]types.FollowerInfo, error) {
+func (s *UserService) GetFollowers(userID string) ([]types.FollowerInfo, error) {
 	return s.Follow.GetFollowers(userID)
 }
 
-func (s *FollowService) GetFollowing(userID string) ([]types.FollowerInfo, error) {
+func (s *UserService) GetFollowing(userID string) ([]types.FollowerInfo, error) {
 	return s.Follow.GetFollowing(userID)
 }
 
-func (s *FollowService) GetPendingRequests(userID string) ([]types.FollowerInfo, error) {
+func (s *UserService) GetPendingRequests(userID string) ([]types.FollowerInfo, error) {
 	return s.Follow.GetPendingRequests(userID)
 }
 
-func (s *FollowService) GetFollowStatus(viewerID, targetID string) (string, error) {
+func (s *UserService) GetFollowStatus(viewerID, targetID string) (string, error) {
 	return s.Follow.GetFollowStatus(viewerID, targetID)
 }
 
-func (s *FollowService) FollowUser(senderID, targetID string) (string, error) {
+func (s *UserService) FollowUser(senderID, targetID string) (string, error) {
 	status, err := s.Follow.GetFollowStatus(senderID, targetID)
 	if err != nil {
 		return "", err
@@ -57,14 +57,14 @@ func (s *FollowService) FollowUser(senderID, targetID string) (string, error) {
 	return "pending", nil
 }
 
-func (s *FollowService) AcceptFollowRequest(senderID, receiverID string) error {
+func (s *UserService) AcceptFollowRequest(senderID, receiverID string) error {
 	return s.Follow.AcceptFollowRequest(senderID, receiverID)
 }
 
-func (s *FollowService) DeclineFollowRequest(senderID, receiverID string) error {
+func (s *UserService) DeclineFollowRequest(senderID, receiverID string) error {
 	return s.Follow.DeclineFollowRequest(senderID, receiverID)
 }
 
-func (s *FollowService) UnfollowUser(followerID, followingID string) error {
+func (s *UserService) UnfollowUser(followerID, followingID string) error {
 	return s.Follow.UnfollowUser(followerID, followingID)
 }

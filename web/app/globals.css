@@ -1,8 +1,5 @@
-<<<<<<< HEAD
-=======
 /* src/app/globals.css */
 
->>>>>>> origin/feed
 :root {
   --font-josefin: "Josefin Sans", sans-serif;
 
@@ -31,11 +28,7 @@
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.6);
 
-<<<<<<< HEAD
-  --sidenav-width: 240px;
-=======
   --sidenav-width: 350px;
->>>>>>> origin/feed
 
   --radius-sm: 8px;
   --radius-md: 12px;

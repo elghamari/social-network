@@ -41,14 +41,23 @@ func New(cfg *Config) (*App, error) {
 
 	repos := repositories.New(db)
 	svcs := services.New(repos)
-	handler := handlers.New(svcs, cfg.Port)
 
 	limiter := middleware.NewLimiterStore()
-	handler = middleware.RateLimit(limiter, handler)
+	mid := middleware.New(svcs.Auth, limiter)
+
+	handler := handlers.New(svcs, cfg.Port)
+
+	mux := http.NewServeMux()
+	handler.RegisterRoutes(mux, mid)
+
+	var h http.Handler = mux
+	h = mid.SessionLoader(h)
+	h = mid.RateLimit(h)
+	h = mid.EnableCORS(h)
 
 	server := &http.Server{
 		Addr:    ":" + cfg.Port,
-		Handler: handler,
+		Handler: h,
 	}
 
 	return &App{

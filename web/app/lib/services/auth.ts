@@ -1,13 +1,4 @@
-<<<<<<< HEAD
-import {
-  LoginInput,
-  RegisterInput,
-  LoginResponse,
-  RegisterResponse,
-} from "../types/auth";
-=======
 import { LoginInput, RegisterInput, LoginResponse, RegisterResponse } from "../types/auth";
->>>>>>> origin/feed
 import client from "./_client";
 
 export const authService = {

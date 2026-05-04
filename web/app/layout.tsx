@@ -13,12 +13,9 @@ const josefin = Josefin_Sans({
 export const metadata: Metadata = {
   title: "Nexus - Social Network",
   description: "Connect with your network",
-<<<<<<< HEAD
-=======
   icons: {
     icon: "/chat.png",
   },
->>>>>>> origin/feed
 };
 
 export default function RootLayout({
@@ -29,11 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={josefin.variable}>
       <body>
-<<<<<<< HEAD
-        {children}
-=======
           {children} 
->>>>>>> origin/feed
         <Toast />
       </body>
     </html>

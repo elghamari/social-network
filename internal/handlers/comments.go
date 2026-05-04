@@ -13,7 +13,9 @@ import (
 
 func (h *Handler) CreateComment(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		utils.WriteJson(w, map[string]any{"status": http.StatusMethodNotAllowed, "error": "method not allowed"})
+		utils.WriteJson(w, http.StatusMethodNotAllowed, map[string]any{
+			"error": "method not allowed",
+		})
 		return
 	}
 
@@ -21,19 +23,25 @@ func (h *Handler) CreateComment(w http.ResponseWriter, r *http.Request) {
 
 	postIdStr := r.URL.Query().Get("postId")
 	if postIdStr == "" {
-		utils.WriteJson(w, map[string]any{"status": http.StatusBadRequest, "error": "post ID is required"})
+		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
+			"error": "post ID is required",
+		})
 		return
 	}
 
 	postId, err := strconv.Atoi(postIdStr)
 	if err != nil {
-		utils.WriteJson(w, map[string]any{"status": http.StatusBadRequest, "error": "invalid post ID"})
+		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
+			"error": "invalid post ID",
+		})
 		return
 	}
 
 	err = r.ParseMultipartForm(10 << 20)
 	if err != nil {
-		utils.WriteJson(w, map[string]any{"status": http.StatusBadRequest, "error": "failed to parse form data"})
+		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
+			"error": "failed to parse form data",
+		})
 		return
 	}
 
@@ -41,7 +49,9 @@ func (h *Handler) CreateComment(w http.ResponseWriter, r *http.Request) {
 
 	imageUrl, err := utils.HandleImageUpload(r, "image")
 	if err != nil {
-		utils.WriteJson(w, map[string]any{"status": http.StatusBadRequest, "error": err.Error()})
+		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
+			"error": err.Error(),
+		})
 		return
 	}
 
@@ -55,26 +65,33 @@ func (h *Handler) CreateComment(w http.ResponseWriter, r *http.Request) {
 	commentId, err := h.Services.Comments.CreateComment(userId, input)
 	if err != nil {
 		if errors.Is(err, services.ErrInvalidCommentContent) || errors.Is(err, services.ErrInvalidImage) {
-			utils.WriteJson(w, map[string]any{"status": http.StatusBadRequest, "error": err.Error()})
+			utils.WriteJson(w, http.StatusBadRequest, map[string]any{
+				"error": err.Error(),
+			})
 			return
 		}
 
 		if errors.Is(err, services.ErrPostNotFound) {
-			utils.WriteJson(w, map[string]any{"status": http.StatusNotFound, "error": err.Error()})
+			utils.WriteJson(w, http.StatusNotFound, map[string]any{
+				"error": err.Error(),
+			})
 			return
 		}
 		if errors.Is(err, services.ErrUnauthorizedAccess) {
-			utils.WriteJson(w, map[string]any{"status": http.StatusForbidden, "error": err.Error()})
+			utils.WriteJson(w, http.StatusForbidden, map[string]any{
+				"error": err.Error(),
+			})
 			return
 		}
 
 		fmt.Println("CreateComment Error:", err)
-		utils.WriteJson(w, map[string]any{"status": http.StatusInternalServerError, "error": "internal server error"})
+		utils.WriteJson(w, http.StatusInternalServerError, map[string]any{
+			"error": "internal server error",
+		})
 		return
 	}
 
-	utils.WriteJson(w, map[string]any{
-		"status":    http.StatusCreated,
+	utils.WriteJson(w, http.StatusCreated, map[string]any{
 		"message":   "Comment created successfully",
 		"commentId": commentId,
 	})
@@ -82,7 +99,9 @@ func (h *Handler) CreateComment(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) GetPostComments(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		utils.WriteJson(w, map[string]any{"status": http.StatusMethodNotAllowed, "error": "method not allowed"})
+		utils.WriteJson(w, http.StatusMethodNotAllowed, map[string]any{
+			"error": "method not allowed",
+		})
 		return
 	}
 
@@ -90,13 +109,17 @@ func (h *Handler) GetPostComments(w http.ResponseWriter, r *http.Request) {
 
 	postIdStr := r.URL.Query().Get("postId")
 	if postIdStr == "" {
-		utils.WriteJson(w, map[string]any{"status": http.StatusBadRequest, "error": "post ID is required"})
+		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
+			"error": "post ID is required",
+		})
 		return
 	}
 
 	postId, err := strconv.Atoi(postIdStr)
 	if err != nil {
-		utils.WriteJson(w, map[string]any{"status": http.StatusBadRequest, "error": "invalid post ID"})
+		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
+			"error": "invalid post ID",
+		})
 		return
 	}
 
@@ -105,7 +128,9 @@ func (h *Handler) GetPostComments(w http.ResponseWriter, r *http.Request) {
 	if cursorStr != "" {
 		cursor, err = strconv.Atoi(cursorStr)
 		if err != nil {
-			utils.WriteJson(w, map[string]any{"status": http.StatusBadRequest, "error": "invalid cursor"})
+			utils.WriteJson(w, http.StatusBadRequest, map[string]any{
+				"error": "invalid cursor",
+			})
 			return
 		}
 	}
@@ -113,16 +138,22 @@ func (h *Handler) GetPostComments(w http.ResponseWriter, r *http.Request) {
 	comments, err := h.Services.Comments.GetPostComments(userId, postId, cursor)
 	if err != nil {
 		if errors.Is(err, services.ErrPostNotFound) {
-			utils.WriteJson(w, map[string]any{"status": http.StatusNotFound, "error": err.Error()})
+			utils.WriteJson(w, http.StatusNotFound, map[string]any{
+				"error": err.Error(),
+			})
 			return
 		}
 		if errors.Is(err, services.ErrUnauthorizedAccess) {
-			utils.WriteJson(w, map[string]any{"status": http.StatusForbidden, "error": err.Error()})
+			utils.WriteJson(w, http.StatusForbidden, map[string]any{
+				"error": err.Error(),
+			})
 			return
 		}
 
 		fmt.Println("GetPostComments Error:", err)
-		utils.WriteJson(w, map[string]any{"status": http.StatusInternalServerError, "error": "internal server error"})
+		utils.WriteJson(w, http.StatusInternalServerError, map[string]any{
+			"error": "internal server error",
+		})
 		return
 	}
 
@@ -130,8 +161,7 @@ func (h *Handler) GetPostComments(w http.ResponseWriter, r *http.Request) {
 		comments = []types.CommentResponse{}
 	}
 
-	utils.WriteJson(w, map[string]any{
-		"status":   http.StatusOK,
+	utils.WriteJson(w, http.StatusOK, map[string]any{
 		"comments": comments,
 	})
 }

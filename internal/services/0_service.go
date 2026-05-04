@@ -4,22 +4,22 @@ import "soc-net/internal/repositories"
 
 type Services struct {
 	Auth      *AuthService
+	User      *UserService
 	Group     *GroupService
 	Posts     *PostsService
 	Comments  *CommentsService
 	Reactions *ReactionsService
-	Follow    *FollowService
 	Search    *SearchServs
 }
 
 func New(r *repositories.Repos) *Services {
 	return &Services{
 		Auth:      NewAuthService(r.Auth),
-		Group:     NewGroupService(r.Auth, r.Groups),
-		Posts:     NewPostsService(r.Posts, r.Groups),
+		User:      NewUserService(r.User, r.Auth),
+		Group:     NewGroupService(r.Auth, r.Group),
+		Posts:     NewPostsService(r.Posts, r.Group),
 		Comments:  NewCommentsService(r.Comments, r.Posts),
 		Reactions: NewReactionsService(r.Reactions, r.Posts),
-		Follow:    NewFollowService(r.Follow, r.Auth),
 		Search:    NewSearchServs(r.Search),
 	}
 }

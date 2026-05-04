@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import client from "./client";
-=======
 import client from "./_client";
->>>>>>> origin/feed
 
 export const GetFeedPosts = async (cursor: number = 0) => {
   return await client.get(`/posts/feed?cursor=${cursor}`);
@@ -18,7 +14,7 @@ export const ToggleLikePost = async (postId: number) => {
 
 export const GetPostComments = async (postId: number, cursor: number = 0) => {
   return await client.get(`/comments?postId=${postId}&cursor=${cursor}`);
-};
+};  
 
 export async function CreateComment(data: any) {
 return await client.postForm(`/comments/create?postId=${data.get("postId")}`, data)
