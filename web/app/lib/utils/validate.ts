@@ -1,11 +1,25 @@
 "use client";
 
+import {
+  CommentErrors,
+  CommentState,
+  FormState,
+  PostErrors,
+} from "../types/feed";
 import type {
   EventFormErrors,
   EventFormInput,
   GroupFormErrors,
   GroupFormInput,
 } from "../types/group";
+
+const allowedTypes = [
+  "image/jpg",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+];
 
 export function validateGroup(data: GroupFormInput): GroupFormErrors | null {
   const errors: GroupFormErrors = {
@@ -38,13 +52,6 @@ export function validateGroup(data: GroupFormInput): GroupFormErrors | null {
       errors.coverImage?.push("Image must be less than 2MB");
     }
 
-    const allowedTypes = [
-      "image/jpg",
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-      "image/gif",
-    ];
     if (!allowedTypes.includes(file.type)) {
       errors.coverImage?.push(
         "Only JPG, JPEG, PNG, WEBP or GIF images are allowed",
@@ -96,5 +103,49 @@ export function validateEvent(data: EventFormInput): EventFormErrors | null {
     }
   }
 
+  return Object.keys(errors).length > 0 ? errors : null;
+}
+
+export function validatePostForm(data: FormState): PostErrors | null {
+  const errors: PostErrors = {};
+
+  const title = data.title.trim();
+  if (!title || title.length > 100) {
+    errors.title = "title is required and must be under 100 characters.";
+  }
+
+  const description = data.description.trim();
+  if (!description || description.length > 500 || description.length < 10) {
+    errors.description =
+      "Description cannot be empty and must be between 10 and 500 letters.";
+  }
+
+  const privacy = data.privacy.trim();
+  if (
+    !privacy ||
+    (privacy !== "public" &&
+      privacy !== "private" &&
+      privacy !== "almost private")
+  ) {
+    errors.privacy = "privacy must be public, private, or almost private.";
+  }
+
+  if (privacy === "private") {
+    const privateUsers = data.privateUsers;
+    if (!privateUsers || privateUsers.length < 1) {
+      errors.privateUsers =
+        "you must select at least one user for a private post.";
+    }
+  }
+
+  return Object.keys(errors).length > 0 ? errors : null;
+}
+
+export function validateCommentForm(data: CommentState): CommentErrors | null {
+  const errors: CommentErrors = {};
+  const content = data.content.trim();
+  if (!content || content.length > 200) {
+    errors.content = "Comment is required and must be under 200 characters.";
+  }
   return Object.keys(errors).length > 0 ? errors : null;
 }

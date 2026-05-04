@@ -22,14 +22,6 @@ type Group struct {
 	Role         string `json:"role"`
 }
 
-type PaginatedList[T any] struct {
-	List    []T    `json:"list"`
-	Cursor  string `json:"cursor"`
-	HasMore bool   `json:"hasMore"`
-}
-
-type InvitableUserList = PaginatedList[InvitableUser]
-
 type JoinRequest struct {
 	GroupId string `json:"groupId"`
 	UserId  string `json:"userId"`

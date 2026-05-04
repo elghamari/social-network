@@ -24,20 +24,21 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux, mid *middleware.Middleware)
 		"/api/register": h.Register,
 		"/api/login":    h.Login,
 	}
+
 	for path, hand := range guestRoutes {
 		mux.Handle(path, mid.GuestOnly(hand))
 	}
 
 	authRoutes := map[string]http.HandlerFunc{
 		// profile routes
-		"/api/auth/logout":    h.Logout,
-		"/api/auth/me":        h.GetMe,
-		"/api/profile":        h.GetProfile,
-		"/api/follow":         h.FollowUser,
-		"/api/follow/accept":  h.AcceptFollowRequest,
-		"/api/follow/decline": h.DeclineFollowRequest,
-		"/api/unfollow":       h.UnfollowUser,
-		"/api/search":         h.Search,
+		"/api/auth/logout":     h.Logout,
+		"/api/auth/me":         h.GetMe,
+		"/api/profile":         h.GetProfile,
+		"/api/follow":          h.FollowUser,
+		"/api/follow/accept":   h.AcceptFollowRequest,
+		"/api/follow/decline":  h.DeclineFollowRequest,
+		"/api/unfollow":        h.UnfollowUser,
+		"/api/search":          h.Search,
 		"/api/profile/privacy": h.TogglePrivacy,
 
 		// group routes
@@ -57,7 +58,17 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux, mid *middleware.Middleware)
 		"/api/comments/create":  h.CreateComment,
 		"/api/comments":         h.GetPostComments,
 		"/api/reactions/toggle": h.ToggleReaction,
+
+		// chat routes
+		"/api/ws/chat":              h.ServeWs,
+		"/api/chat/contacts":        h.GetRecentContacts,
+		"/api/chat/users":           h.GetAvailableChatUsers,
+		"/api/chat/history/private": h.GetPrivateHistory,
+		"/api/chat/history/group":   h.GetGroupHistory,
+		"/api/chat/read/private":    h.MarkAsRead,
+		"/api/chat/read/group":      h.MarkGroupAsRead,
 	}
+
 	for path, hand := range authRoutes {
 		mux.Handle(path, mid.AuthRequired(hand))
 	}

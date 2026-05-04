@@ -1,10 +1,6 @@
 package types
 
-import (
-	"time"
-)
-
-// ===== Session (used by middleware)
+import "time"
 
 type UserAuth struct {
 	Id          string

@@ -10,7 +10,11 @@ export function LoginForm() {
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> WebSocket
   const [input, setInput] = useState<LoginInput>({
     email: "",
     password: "",
@@ -28,6 +32,7 @@ export function LoginForm() {
 
     try {
       const res = await authService.login(input);
+<<<<<<< HEAD
 
       if (!res) return
 
@@ -38,6 +43,15 @@ export function LoginForm() {
 
       router.push("/");
 
+=======
+      router.push("/");
+router.refresh();
+      if (res.status === 200) {
+        router.push("/");
+      } else {
+        setError(res.error || "Invalid email or password");
+      }
+>>>>>>> WebSocket
     } catch (err: any) {
       setError(err.message || "Connection error with Nexus server");
     } finally {
@@ -55,6 +69,7 @@ export function LoginForm() {
       <form onSubmit={handleSubmit} className="nexus-form">
         <div className="nexus-group">
           <label className="nexus-label">Email Address</label>
+<<<<<<< HEAD
           <input
             type="email"
             name="email"
@@ -62,11 +77,21 @@ export function LoginForm() {
             placeholder="name@domain.com"
             required
             onChange={handleChange}
+=======
+          <input 
+            type="email" 
+            name="email" 
+            className="nexus-input" 
+            placeholder="name@domain.com" 
+            required 
+            onChange={handleChange} 
+>>>>>>> WebSocket
           />
         </div>
 
         <div className="nexus-group">
           <label className="nexus-label">Password</label>
+<<<<<<< HEAD
           <input
             type="password"
             name="password"
@@ -74,6 +99,15 @@ export function LoginForm() {
             placeholder="••••••••"
             required
             onChange={handleChange}
+=======
+          <input 
+            type="password" 
+            name="password" 
+            className="nexus-input" 
+            placeholder="••••••••" 
+            required 
+            onChange={handleChange} 
+>>>>>>> WebSocket
           />
         </div>
 

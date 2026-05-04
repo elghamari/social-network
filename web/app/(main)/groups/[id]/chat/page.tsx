@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import "./page.css";
 
 const MOCK_MESSAGES = [
@@ -96,3 +97,10 @@ export default function ChatPage() {
     </div>
   );
 }
+=======
+import GroupChatWindow from "@/app/(main)/chat/components/GroupChatWindow";
+
+export default function GroupChatPage() {
+  return <GroupChatWindow />;
+}
+>>>>>>> WebSocket
