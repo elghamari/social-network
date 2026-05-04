@@ -1,3 +1,26 @@
+export function AppIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="url(#logoGrad)"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <defs>
+        <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="var(--accent-primary)" />
+          <stop offset="100%" stopColor="var(--accent-secondary)" />
+        </linearGradient>
+      </defs>
+      <polygon points="12 2 2 7 12 12 22 7 12 2" />
+      <polyline points="2 17 12 22 22 17" />
+      <polyline points="2 12 12 17 22 12" />
+    </svg>
+  );
+}
+
 export function PlusIcon({ size }: { size: number }) {
   return (
     <svg

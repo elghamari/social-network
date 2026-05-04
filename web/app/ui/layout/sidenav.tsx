@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NavItem } from "@/app/lib/types/layout";
 import "./sidenav.css";
+import { AppIcon } from "../icons";
 
 const navItems: NavItem[] = [
   {
@@ -15,8 +16,14 @@ const navItems: NavItem[] = [
   {
     id: "profile",
     label: "Profile",
-    href: "/profile",
+    href: "/profile/1",
     icon: "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z",
+  },
+  {
+    id: "network",
+    label: "Network",
+    href: "/network",
+    icon: "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75",
   },
   {
     id: "groups",
@@ -58,30 +65,7 @@ export default function Sidenav() {
       <div className="sidenav__header">
         <Link href="/" className="sidenav__logo">
           <div className="sidenav__logo-icon">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="url(#logoGrad)"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <defs>
-                <linearGradient
-                  id="logoGrad"
-                  x1="0%"
-                  y1="0%"
-                  x2="100%"
-                  y2="100%"
-                >
-                  <stop offset="0%" stopColor="var(--accent-primary)" />
-                  <stop offset="100%" stopColor="var(--accent-secondary)" />
-                </linearGradient>
-              </defs>
-              <polygon points="12 2 2 7 12 12 22 7 12 2" />
-              <polyline points="2 17 12 22 22 17" />
-              <polyline points="2 12 12 17 22 12" />
-            </svg>
+            <AppIcon />
           </div>
           <span className="sidenav__logo-text">Nexus</span>
         </Link>
@@ -139,6 +123,25 @@ export default function Sidenav() {
             </span>
           </div>
         </div>
+
+        {/* Logout */}
+        <Link href="/login" className="sidenav__logout">
+          <svg
+            viewBox="0 0 24 24"
+            width="18"
+            height="18"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          <span>Log Out</span>
+        </Link>
       </div>
     </aside>
   );

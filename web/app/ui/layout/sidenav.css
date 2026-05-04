@@ -187,6 +187,24 @@
   box-shadow: 0 0 8px #10b981;
 }
 
+/* Logout */
+.sidenav__logout {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  color: #ef4444;
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 8px;
+  transition: all var(--transition-normal);
+}
+
+.sidenav__logout:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
 /* Mobile */
 @media (max-width: 768px) {
   .sidenav {

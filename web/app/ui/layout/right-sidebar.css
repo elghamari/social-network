@@ -84,6 +84,93 @@
   opacity: 0.8;
 }
 
+/* ===== Search Section ===== */
+.right-sidebar__search-container {
+  padding: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  position: relative;
+}
+
+.right-sidebar__search-input {
+  width: 100%;
+  padding: 10px 14px;
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 13px;
+  outline: none;
+  transition: all var(--transition-fast);
+}
+
+.right-sidebar__search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.right-sidebar__search-input:focus {
+  border-color: var(--accent-primary);
+  background-color: var(--bg-active);
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+}
+
+/* Dropdown floats OVER content, doesn't push suggestions down */
+.right-sidebar__search-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 16px;
+  right: 16px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 200;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.right-sidebar__search-item {
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.right-sidebar__search-item:hover {
+  background-color: var(--bg-hover);
+}
+
+.right-sidebar__search-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.right-sidebar__search-initials {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent-secondary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.right-sidebar__search-name {
+  font-size: 13px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 @media (max-width: 1024px) {
   .right-sidebar {
     display: none;
