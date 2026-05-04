@@ -5,7 +5,7 @@ import client from "@/app/lib/services/_client";
 import ProfileHeader from "@/app/ui/profile/ProfileHeader";
 import ProfileStats from "@/app/ui/profile/ProfileStats";
 import FollowModal from "@/app/ui/profile/FollowModal";
-import { useAuth } from "@/app/context/AuthContext";
+import { useAuth } from "@/app/_context/AuthContext";
 import "../profile.css";
 import { useRouter } from "next/navigation";
 
