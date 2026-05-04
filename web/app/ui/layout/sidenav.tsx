@@ -1,10 +1,12 @@
+// app/ui/layout/sidenav.tsx
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NavItem } from "@/app/lib/types/layout";
-import "./sidenav.css";
 import { AppIcon } from "../icons";
+import "./sidenav.css";
+import { useAuth } from "@/app/_context/AuthContext";
 
 const navItems: NavItem[] = [
   {
@@ -14,10 +16,10 @@ const navItems: NavItem[] = [
     icon: "M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10",
   },
   {
-    id: "profile",
-    label: "Profile",
-    href: "/profile/1",
-    icon: "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z",
+    id: "search",
+    label: "Search",
+    href: "/search",
+    icon: "M21 21l-4.35-4.35 M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16z",
   },
   {
     id: "groups",
@@ -39,12 +41,6 @@ const navItems: NavItem[] = [
   },
 ];
 
-// Fake user for testing
-const fakeUser = {
-  firstName: "John",
-  lastName: "Doe",
-};
-
 export default function Sidenav() {
   const pathname = usePathname();
 
@@ -53,9 +49,15 @@ export default function Sidenav() {
     return pathname.startsWith(href);
   };
 
+  const { user } = useAuth();
+
+  console.log(user);
+
+  const firstName = user?.first_name || "";
+  const lastName = user?.last_name || "";
+
   return (
     <aside className="sidenav">
-      {/* Logo */}
       <div className="sidenav__header">
         <Link href="/" className="sidenav__logo">
           <div className="sidenav__logo-icon">
@@ -65,7 +67,6 @@ export default function Sidenav() {
         </Link>
       </div>
 
-      {/* Nav Links */}
       <nav className="sidenav__nav">
         <ul className="sidenav__list">
           {navItems.map((item) => (
@@ -95,30 +96,29 @@ export default function Sidenav() {
         </ul>
       </nav>
 
-      {/* Footer */}
       <div className="sidenav__footer">
         <div className="sidenav__divider" />
 
-        {/* User Info */}
-        <div className="sidenav__user">
-          <div className="sidenav__avatar">
-            <span>
-              {fakeUser.firstName[0]}
-              {fakeUser.lastName[0]}
-            </span>
+        <Link href="/profile">
+          <div className="sidenav__user">
+            <div className="sidenav__avatar">
+              <span>
+                {firstName[0] ?? ""}
+                {lastName[0] ?? ""}
+              </span>
+            </div>
+            <div className="sidenav__user-info">
+              <span className="sidenav__user-name">
+                {firstName} {lastName}
+              </span>
+              <span className="sidenav__user-status">
+                <span className="status-dot"></span>
+                Online
+              </span>
+            </div>
           </div>
-          <div className="sidenav__user-info">
-            <span className="sidenav__user-name">
-              {fakeUser.firstName} {fakeUser.lastName}
-            </span>
-            <span className="sidenav__user-status">
-              <span className="status-dot"></span>
-              Online
-            </span>
-          </div>
-        </div>
+        </Link>
 
-        {/* Logout */}
         <Link href="/login" className="sidenav__logout">
           <svg
             viewBox="0 0 24 24"

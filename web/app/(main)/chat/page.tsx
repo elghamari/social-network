@@ -11,11 +11,11 @@ import {
 } from "../../lib/services/contact";
 import { throttle } from "../../lib/utils/throttle";
 
-import ChatSidebar from "./components/ChatSidebar";
-import ChatWindow from "./components/ChatWindow";
-import ChatInput from "./components/ChatInput";
-import { useWebSocket } from "../../context/WebSocketContext";
-import { useChatWebSocket } from "./hooks/useChatWebSocket";
+import ChatSidebar from "./_components/ChatSidebar";
+import ChatWindow from "./_components/ChatWindow";
+import ChatInput from "./_components/ChatInput";
+import { useWebSocket } from "../../_context/WebSocketContext";
+import { useChatWebSocket } from "./_hooks/useChatWebSocket";
 
 export default function ChatPage() {
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -39,10 +39,10 @@ export default function ChatPage() {
     contactsRef.current = contacts;
   }, [contacts]);
 
-  const fetchContactsList = async () => {
+  const fetchContactsList = useCallback(async () => {
     const data = await getContacts();
     setContacts(data || []);
-  };
+  }, []);
 
   useEffect(() => {
     fetchContactsList();
@@ -99,7 +99,7 @@ export default function ChatPage() {
 
   const throttledLoadMore = useCallback(
     throttle(() => loadMoreRef.current(), 800),
-    []
+    [],
   );
 
   useEffect(() => {
@@ -126,14 +126,14 @@ export default function ChatPage() {
             prev.map((c) =>
               c.id === selectedContact.id
                 ? { ...c, lastMessage: last.content, unreadCount: 0 }
-                : c
-            )
+                : c,
+            ),
           );
         } else {
           setContacts((prev) =>
             prev.map((c) =>
-              c.id === selectedContact.id ? { ...c, unreadCount: 0 } : c
-            )
+              c.id === selectedContact.id ? { ...c, unreadCount: 0 } : c,
+            ),
           );
         }
 
@@ -174,13 +174,20 @@ export default function ChatPage() {
   const handleSendMessage = (text: string) => {
     const trimmedText = text.trim();
     // 🔴 الحماية من جهة الشات الفردي
-    if (!trimmedText || trimmedText.length > 500 || !selectedContact || !socket || !isConnected) return;
-    
+    if (
+      !trimmedText ||
+      trimmedText.length > 500 ||
+      !selectedContact ||
+      !socket ||
+      !isConnected
+    )
+      return;
+
     socket.send(
       JSON.stringify({
         type: "send_message",
         data: { receiver_id: selectedContact.id, content: trimmedText },
-      })
+      }),
     );
   };
 
