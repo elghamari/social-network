@@ -1,29 +1,49 @@
-.register-page {
+/* app/ui/auth/auth.css */
+
+/* ── Page Wrapper ── */
+
+.auth-page {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
   min-height: 100vh;
+  z-index: 1000;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  background-color: var(--bg-primary, #050505);
   padding: 24px;
 }
 
-.register-card {
-  background-color: var(--bg-surface);
+/* ── Card ── */
+
+.auth-card {
+  background-color: var(--bg-surface, #12131a);
   padding: 48px;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg, 12px);
+  border: 1px solid var(--border-subtle, #1f212e);
   width: 100%;
+  max-width: 400px;
+  box-shadow: var(--shadow-lg, 0 10px 30px rgba(0, 0, 0, 0.5));
+}
+
+.auth-card--wide {
   max-width: 820px;
-  box-shadow: var(--shadow-lg);
 }
 
 /* ── Header ── */
 
-.register-header {
+.auth-header {
   margin-bottom: 36px;
 }
 
-.register-title {
-  color: var(--text-primary);
+.auth-header--center {
+  text-align: center;
+}
+
+.auth-title {
+  color: var(--text-primary, #ffffff);
   font-size: 28px;
   font-weight: 700;
   margin-bottom: 8px;
@@ -33,106 +53,108 @@
   background-clip: text;
 }
 
-.register-subtitle {
-  color: var(--text-secondary);
+.auth-subtitle {
+  color: var(--text-secondary, #8b949e);
   font-size: 14px;
 }
 
 /* ── Error Banner ── */
 
-.register-error-banner {
+.auth-error-banner {
   background-color: rgba(239, 68, 68, 0.08);
   border-left: 3px solid #ef4444;
   color: #f87171;
   padding: 12px 16px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-sm, 4px);
   font-size: 13px;
   margin-bottom: 24px;
 }
 
-/* ── Form Layout ── */
+/* ── Form ── */
 
-.register-form {
+.auth-form {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 24px;
 }
 
-.register-columns {
+/* ── Two-Column Layout (Register) ── */
+
+.auth-columns {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 40px;
 }
 
-.register-column {
+.auth-column {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-.register-section-title {
-  color: var(--text-secondary);
+.auth-section-title {
+  color: var(--text-secondary, #8b949e);
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1.5px;
   padding-bottom: 12px;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle, #1f212e);
 }
 
 /* ── Fields ── */
 
-.register-field {
+.auth-field {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.register-label {
-  color: var(--text-secondary);
+.auth-label {
+  color: var(--text-secondary, #c9d1d9);
   font-size: 13px;
   font-weight: 500;
 }
 
-.register-input {
-  background-color: var(--bg-elevated);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-sm);
+.auth-input {
+  background-color: var(--bg-elevated, #1a1b26);
+  border: 1px solid var(--border-default, #2d313e);
+  border-radius: var(--radius-sm, 8px);
   padding: 12px 16px;
-  color: var(--text-primary);
+  color: var(--text-primary, #ffffff);
   font-size: 14px;
-  transition: all var(--transition-fast);
+  outline: none;
+  transition: all var(--transition-fast, 0.2s);
 }
 
-.register-input:focus {
-  outline: none;
-  border-color: var(--accent-primary);
-  background-color: var(--bg-active);
+.auth-input:focus {
+  border-color: var(--accent-primary, #635bff);
+  background-color: var(--bg-active, #1a1b26);
   box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
 }
 
-.register-input::placeholder {
-  color: var(--text-muted);
+.auth-input::placeholder {
+  color: var(--text-muted, #4b5563);
 }
 
-.register-input--error {
+.auth-input--error {
   border-color: #ef4444;
 }
 
-.register-input--error:focus {
+.auth-input--error:focus {
   border-color: #ef4444;
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }
 
 /* ── Field Errors ── */
 
-.register-field-errors {
+.auth-field-errors {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.register-field-error {
+.auth-field-error {
   color: #f87171;
   font-size: 12px;
   line-height: 1.4;
@@ -140,44 +162,44 @@
 
 /* ── Textarea ── */
 
-.register-textarea {
+.auth-textarea {
   resize: none;
   min-height: 120px;
 }
 
 /* ── Date Input ── */
 
-input[type="date"].register-input::-webkit-calendar-picker-indicator {
+input[type="date"].auth-input::-webkit-calendar-picker-indicator {
   filter: invert(1);
   cursor: pointer;
 }
 
 /* ── Avatar Upload ── */
 
-.register-upload {
-  border: 2px dashed var(--border-default);
-  border-radius: var(--radius-md);
+.auth-upload {
+  border: 2px dashed var(--border-default, #2d313e);
+  border-radius: var(--radius-md, 8px);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all var(--transition-fast, 0.2s);
   overflow: hidden;
 }
 
-.register-upload:hover:not(.register-upload--has-image) {
+.auth-upload:hover:not(.auth-upload--has-image) {
   border-color: var(--accent-primary);
   background-color: var(--bg-hover);
 }
 
-.register-upload--error {
+.auth-upload--error {
   border-color: #ef4444;
 }
 
-.register-upload--has-image {
+.auth-upload--has-image {
   border-style: solid;
   border-color: var(--border-subtle);
   cursor: default;
 }
 
-.register-upload-placeholder {
+.auth-upload-placeholder {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -188,12 +210,11 @@ input[type="date"].register-input::-webkit-calendar-picker-indicator {
   font-size: 13px;
 }
 
-.register-upload:hover:not(.register-upload--has-image)
-  .register-upload-placeholder {
+.auth-upload:hover:not(.auth-upload--has-image) .auth-upload-placeholder {
   color: var(--accent-primary);
 }
 
-.register-upload-preview {
+.auth-upload-preview {
   position: relative;
   display: flex;
   align-items: center;
@@ -201,7 +222,7 @@ input[type="date"].register-input::-webkit-calendar-picker-indicator {
   padding: 16px;
 }
 
-.register-upload-preview img {
+.auth-upload-preview img {
   width: 80px;
   height: 80px;
   border-radius: 50%;
@@ -210,7 +231,7 @@ input[type="date"].register-input::-webkit-calendar-picker-indicator {
   box-shadow: 0 0 16px rgba(6, 182, 212, 0.25);
 }
 
-.register-upload-remove {
+.auth-upload-remove {
   position: absolute;
   top: 8px;
   right: 8px;
@@ -224,10 +245,10 @@ input[type="date"].register-input::-webkit-calendar-picker-indicator {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all var(--transition-fast, 0.2s);
 }
 
-.register-upload-remove:hover {
+.auth-upload-remove:hover {
   background-color: #ef4444;
   border-color: #ef4444;
   color: white;
@@ -235,62 +256,81 @@ input[type="date"].register-input::-webkit-calendar-picker-indicator {
 
 /* ── Actions ── */
 
-.register-actions {
+.auth-actions {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 16px;
 }
 
-/* ── Actions ── */
+/* ── Button ── */
 
-.register-btn {
+.auth-btn {
   background-color: var(--accent-secondary);
   color: white;
-  padding: 10px 32px;
-  border-radius: var(--radius-sm);
+  padding: 12px 32px;
+  border-radius: var(--radius-sm, 8px);
   font-weight: 600;
-  font-size: 14px;
+  font-size: 15px;
   border: none;
   cursor: pointer;
   transition:
     transform 0.1s,
-    background-color var(--transition-fast);
+    background-color var(--transition-fast, 0.2s),
+    box-shadow var(--transition-fast, 0.2s);
 }
 
-.register-btn:hover {
+.auth-btn--full {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.auth-btn:hover {
   background-color: color-mix(in srgb, var(--accent-secondary) 80%, white);
   box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
 }
 
-.register-btn:active {
+.auth-btn:active {
   transform: scale(0.98);
 }
 
-.register-btn:disabled {
+.auth-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
   box-shadow: none;
 }
 
-.register-login-link a {
-  color: var(--accent-secondary);
-  font-weight: 500;
-  transition: color var(--transition-fast);
+/* ── Footer / Links ── */
+
+.auth-footer {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 13px;
+  color: var(--text-secondary, #8b949e);
 }
 
-.register-login-link a:hover {
+.auth-footer a,
+.auth-link {
+  color: var(--accent-secondary, #635bff);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color var(--transition-fast, 0.2s);
+}
+
+.auth-footer a:hover,
+.auth-link:hover {
   color: color-mix(in srgb, var(--accent-secondary) 80%, white);
+  text-decoration: underline;
 }
 
 /* ── Responsive ── */
 
 @media (max-width: 700px) {
-  .register-card {
+  .auth-card {
     padding: 28px 20px;
   }
 
-  .register-columns {
+  .auth-columns {
     grid-template-columns: 1fr;
     gap: 24px;
   }

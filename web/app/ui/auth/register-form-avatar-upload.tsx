@@ -1,3 +1,4 @@
+// app/ui/auth/register-form-avatar-upload.tsx
 "use client";
 
 import { useRef, useState } from "react";
@@ -41,19 +42,19 @@ export function RegisterAvatarUpload({
   const hasError = Boolean(errors?.length);
 
   return (
-    <div className="register-field">
-      <label className="register-label">Profile Avatar</label>
+    <div className="auth-field">
+      <label className="auth-label">Profile Avatar</label>
 
       <div
-        className={`register-upload ${preview ? "register-upload--has-image" : ""} ${hasError ? "register-upload--error" : ""}`}
+        className={`auth-upload ${preview ? "auth-upload--has-image" : ""} ${hasError ? "auth-upload--error" : ""}`}
         onClick={() => !preview && fileInputRef.current?.click()}
       >
         {preview ? (
-          <div className="register-upload-preview">
+          <div className="auth-upload-preview">
             <img src={preview} alt="Avatar preview" />
             <button
               type="button"
-              className="register-upload-remove"
+              className="auth-upload-remove"
               onClick={handleRemove}
               aria-label="Remove image"
             >
@@ -61,7 +62,7 @@ export function RegisterAvatarUpload({
             </button>
           </div>
         ) : (
-          <div className="register-upload-placeholder">
+          <div className="auth-upload-placeholder">
             <ImageIcon size={24} />
             <span>Click to upload</span>
           </div>
@@ -79,9 +80,9 @@ export function RegisterAvatarUpload({
       </div>
 
       {hasError && (
-        <div className="register-field-errors">
+        <div className="auth-field-errors">
           {errors!.map((msg, i) => (
-            <span key={i} className="register-field-error">
+            <span key={i} className="auth-field-error">
               {msg}
             </span>
           ))}

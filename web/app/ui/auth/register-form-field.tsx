@@ -1,3 +1,4 @@
+// app/ui/auth/register-form-field.tsx
 import { RegisterFieldErrors } from "@/app/lib/types/auth";
 
 interface RegisterFieldProps {
@@ -28,14 +29,14 @@ export function RegisterField({
   const hasError = Boolean(errors?.length);
 
   return (
-    <div className="register-field">
-      <label className="register-label">{label}</label>
+    <div className="auth-field">
+      <label className="auth-label">{label}</label>
 
       {textarea ? (
         <textarea
           name={name}
           rows={5}
-          className={`register-input register-textarea ${hasError ? "register-input--error" : ""}`}
+          className={`auth-input auth-textarea ${hasError ? "auth-input--error" : ""}`}
           value={value}
           onChange={onChange}
           placeholder={placeholder}
@@ -44,7 +45,7 @@ export function RegisterField({
         <input
           type={type}
           name={name}
-          className={`register-input ${hasError ? "register-input--error" : ""}`}
+          className={`auth-input ${hasError ? "auth-input--error" : ""}`}
           required={required}
           value={value}
           onChange={onChange}
@@ -53,9 +54,9 @@ export function RegisterField({
       )}
 
       {hasError && (
-        <div className="register-field-errors">
+        <div className="auth-field-errors">
           {errors!.map((msg, i) => (
-            <span key={i} className="register-field-error">
+            <span key={i} className="auth-field-error">
               {msg}
             </span>
           ))}

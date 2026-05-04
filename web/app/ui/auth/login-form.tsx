@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/app/lib/services/auth";
 import { LoginInput } from "@/app/lib/types/auth";
-import "./login.css";
+import "./auth.css";
 
 export function LoginForm() {
   const router = useRouter();
@@ -28,15 +28,14 @@ export function LoginForm() {
     try {
       const res = await authService.login(input);
 
-      if (!res) return
+      if (!res) return;
 
-      if (res.error) { 
-        setError(res.error)
-         return 
+      if (res.error) {
+        setError(res.error);
+        return;
       }
 
       router.push("/");
-
     } catch (err: any) {
       setError(err.message || "Connection error with Nexus server");
     } finally {
@@ -45,44 +44,53 @@ export function LoginForm() {
   };
 
   return (
-    <div className="nexus-login-card">
-      <h1 className="nexus-title">Welcome Back</h1>
-      <p className="nexus-subtitle">Log in to your Nexus account.</p>
+    <div className="auth-card">
+      <div className="auth-header auth-header--center">
+        <h1 className="auth-title">Welcome Back</h1>
+        <p className="auth-subtitle">Log in to your Nexus account.</p>
+      </div>
 
-      {error && <div className="nexus-error">{error}</div>}
+      {error && <div className="auth-error-banner">{error}</div>}
 
-      <form onSubmit={handleSubmit} className="nexus-form">
-        <div className="nexus-group">
-          <label className="nexus-label">Email Address</label>
+      <form onSubmit={handleSubmit} className="auth-form">
+        <div className="auth-field">
+          <label className="auth-label">Email Address</label>
           <input
             type="email"
             name="email"
-            className="nexus-input"
+            className="auth-input"
             placeholder="name@domain.com"
             required
             onChange={handleChange}
           />
         </div>
 
-        <div className="nexus-group">
-          <label className="nexus-label">Password</label>
+        <div className="auth-field">
+          <label className="auth-label">Password</label>
           <input
             type="password"
             name="password"
-            className="nexus-input"
+            className="auth-input"
             placeholder="••••••••"
             required
             onChange={handleChange}
           />
         </div>
 
-        <button type="submit" className="nexus-btn" disabled={loading}>
+        <button
+          type="submit"
+          className="auth-btn auth-btn--full"
+          disabled={loading}
+        >
           {loading ? "Logging in..." : "Log In"}
         </button>
       </form>
 
-      <div className="nexus-footer">
-        Don't have an account? <a href="/register" className="nexus-link">Sign up</a>
+      <div className="auth-footer">
+        Don&apos;t have an account?{" "}
+        <a href="/register" className="auth-link">
+          Sign up
+        </a>
       </div>
     </div>
   );

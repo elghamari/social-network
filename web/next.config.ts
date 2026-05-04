@@ -1,4 +1,7 @@
-const nextConfig = {
+// web/next.config.ts
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
@@ -10,6 +13,9 @@ const nextConfig = {
         destination: "http://localhost:8080/uploads/:path*",
       },
     ];
+  },
+  turbopack: {
+    root: __dirname,
   },
 };
 
