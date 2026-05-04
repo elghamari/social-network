@@ -1,16 +1,8 @@
-<<<<<<< HEAD
 export function PlusIcon({ size }: { size: number }) {
   return (
     <svg
       width={size}
       height={size}
-=======
-export function PlusIcon() {
-  return (
-    <svg
-      width="16"
-      height="16"
->>>>>>> origin/feed
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -22,19 +14,11 @@ export function PlusIcon() {
   );
 }
 
-<<<<<<< HEAD
 export function LeftArrowIcon({ size }: { size: number }) {
   return (
     <svg
       width={size}
       height={size}
-=======
-export function LeftArrowIcon() {
-  return (
-    <svg
-      width="16"
-      height="16"
->>>>>>> origin/feed
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -46,19 +30,11 @@ export function LeftArrowIcon() {
   );
 }
 
-<<<<<<< HEAD
 export function SearchIcon({ size }: { size: number }) {
   return (
     <svg
       width={size}
       height={size}
-=======
-export function SearchIcon() {
-  return (
-    <svg
-      width="16"
-      height="16"
->>>>>>> origin/feed
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -69,7 +45,6 @@ export function SearchIcon() {
     </svg>
   );
 }
-<<<<<<< HEAD
 
 export function ErrorIcon({ size }: { size: number }) {
   return (
@@ -185,5 +160,3 @@ export function CommentIcon({ size }: { size: number }) {
     </svg>
   );
 }
-=======
->>>>>>> origin/feed
