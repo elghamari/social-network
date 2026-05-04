@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { getEvents } from "@/app/lib/services/group";
 import type { Event, EventResponse } from "@/app/lib/types/group";
 import { formatDate } from "@/app/lib/utils/format";
-import { useIntersectionObserver } from "../../_hooks/use-intersection-observer";
+import { useIntersectionObserver } from "../../../../../ui/use-intersection-observer";
 
 const PAGE_SIZE = 20;
 

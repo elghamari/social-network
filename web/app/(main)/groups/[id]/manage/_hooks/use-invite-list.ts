@@ -8,7 +8,7 @@ import {
   cancelGroupInvitation,
 } from "@/app/lib/services/group";
 import type { InvitableUser } from "@/app/lib/types/group";
-import { useIntersectionObserver } from "../../_hooks/use-intersection-observer";
+import { useIntersectionObserver } from "../../../../../ui/use-intersection-observer";
 
 export type InviteListState = ReturnType<typeof useInviteList>;
 

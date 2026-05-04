@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { getGroups } from "@/app/lib/services/group";
 import type { Group, GroupTab } from "@/app/lib/types/group";
-import { useIntersectionObserver } from "../[id]/_hooks/use-intersection-observer";
+import { useIntersectionObserver } from "../../../ui/use-intersection-observer";
 
 const PAGE_SIZE = 20;
 
