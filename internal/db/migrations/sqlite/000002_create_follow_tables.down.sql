@@ -1,2 +1,0 @@
-DROP TABLE IF EXISTS follow_requests;
-DROP TABLE IF EXISTS followers;
