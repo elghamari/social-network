@@ -9,6 +9,7 @@ type Repos struct {
 	Comments  *CommentsRepo
 	Reactions *ReactionsRepo
 	User      *UserRepo
+	Chat      *ChatRepo
 	Search    *SearchRepo
 }
 
@@ -20,6 +21,7 @@ func New(db *sql.DB) *Repos {
 		Comments:  NewCommentsRepo(db),
 		Reactions: NewReactionsRepo(db),
 		User:      NewUserRepo(db),
+		Chat:      NewChatRepo(db),
 		Search:    NewSearchRepo(db),
 	}
 }

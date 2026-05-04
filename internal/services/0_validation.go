@@ -134,3 +134,14 @@ func ValidateCommentInput(input *types.CommentInput) error {
 
 	return nil
 }
+
+func ValidateIncomingMessage(input *types.IncomingMessage) error {
+	input.Content = strings.TrimSpace(input.Content)
+	contentLen := len([]rune(input.Content))
+
+	if contentLen == 0 || contentLen > 500 {
+		return ErrInvalidMessageContent
+	}
+
+	return nil
+}

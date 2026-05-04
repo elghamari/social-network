@@ -1,6 +1,6 @@
 "use client";
-import CreatePostForm from "@/app/ui/posts/create-form";
-import PostList from "../ui/posts/post-list";
+import CreatePostForm from "@/app/ui/feed/create-form";
+import PostList from "../ui/feed/post-list";
 import { useState } from "react";
 import { GetFeedPosts } from "../lib/services/feed";
 

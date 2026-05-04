@@ -5,11 +5,8 @@ import { PostType } from "@/app/lib/types/feed";
 import { useState } from "react";
 import { ToggleLikePost } from "@/app/lib/services/feed";
 import { showToast } from "../layout/toast-store";
-<<<<<<< HEAD
 import CommentSection from "./comment-section";
 import Image from "next/image";
-=======
->>>>>>> WebSocket
 
 export default function PostCard({ post }: { post: PostType }) {
 
@@ -18,11 +15,8 @@ export default function PostCard({ post }: { post: PostType }) {
   
   const [isLiking, setIsLiking] = useState(false);
 
-<<<<<<< HEAD
   const [showComments, setShowComments] = useState(false);
 
-=======
->>>>>>> WebSocket
   const handleLike = async () => {
     if (isLiking) return;
     
@@ -42,8 +36,6 @@ export default function PostCard({ post }: { post: PostType }) {
     }
   };
 
-<<<<<<< HEAD
-  console.log("*********************** ", post.author.avatar);
   
   return (
     <article className="post-card">
@@ -51,13 +43,6 @@ export default function PostCard({ post }: { post: PostType }) {
           {/* <Image className="post-card-avatar" src={post.author.avatar ?? ''} alt={`${post.author.nickname}'s avatar`}/> */}
           <div className="post-card-avatar">{post.author.nickname[0]}</div>
 
-=======
-
-  return (
-    <article className="post-card">
-      <div className="post-card-header">
-        <div className="post-card-avatar">{post.author.avatar ? post.author.avatar : post.author.fistname?.[0]?.toUpperCase() || "?"}</div>
->>>>>>> WebSocket
         
         <div className="post-card-meta">
           <div className="post-author-info">
@@ -101,28 +86,21 @@ export default function PostCard({ post }: { post: PostType }) {
           <span>{likesCount} Likes</span>
         </button>
 
-<<<<<<< HEAD
         <button 
         className="post-action-btn"
         onClick={() => setShowComments(!showComments)} 
         >
-=======
-        <button className="post-action-btn">
->>>>>>> WebSocket
           <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
           </svg>
           <span>{post.total_comments} Comments</span>
         </button>
       </div>
-<<<<<<< HEAD
 
       {showComments && (
         <CommentSection postId={post.id} />
       )}
 
-=======
->>>>>>> WebSocket
     </article>
   );
 }

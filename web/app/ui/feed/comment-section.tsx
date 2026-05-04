@@ -3,7 +3,7 @@ import "./posts.css";
 import CommentCard from "./comment-card";
 import { useEffect, useRef, useState } from "react";
 import { CommentErrors, CommentState, CommentType } from "@/app/lib/types/feed";
-import { validateCommentForm } from "@/app/lib/utils/post-validators";
+import { validateCommentForm } from "@/app/lib/utils/validate";
 import { showToast } from "../layout/toast-store";
 import { CreateComment, GetPostComments } from "@/app/lib/services/feed";
 

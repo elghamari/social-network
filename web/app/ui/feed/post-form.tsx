@@ -2,14 +2,10 @@
 import { useState, useRef } from "react";
 import "./posts.css";
 import PrivateSection from "./private-section";
-<<<<<<< HEAD
 import { useAuth } from "@/app/_context/AuthContext";
-=======
-import { useAuth } from "@/app/context/AuthContext";
->>>>>>> WebSocket
 import { CreatePost } from "@/app/lib/services/feed";
 import { CreatePostFormProps, FormState, PostErrors, PostFormProps } from "@/app/lib/types/feed";
-import { validatePostForm } from "@/app/lib/utils/post-validators";
+import { validatePostForm } from "@/app/lib/utils/validate";
 import { showToast } from "../layout/toast-store";
 
 export default function PostForm({ onCancel, onPostCreated }: PostFormProps) {

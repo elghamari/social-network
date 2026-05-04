@@ -9,6 +9,7 @@ import (
 
 type Handler struct {
 	Services *services.Services
+	Hub      *Hub
 }
 
 func New(svcs *services.Services, port string) *Handler {
