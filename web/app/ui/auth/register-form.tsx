@@ -11,8 +11,7 @@ import "./register.css";
 export function RegisterForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<RegisterFieldErrors>({});
+  const [errors, setErrors] = useState<RegisterFieldErrors>({});
 
   const [input, setInput] = useState<RegisterInput>({
     email: "",
@@ -30,34 +29,27 @@ export function RegisterForm() {
   ) => {
     const { name, value } = e.target;
     setInput((prev) => ({ ...prev, [name]: value }));
-    setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
-    setError(null);
+    setErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
 
-    setError(null);
-    setFieldErrors({});
+    setErrors({});
     setLoading(true);
 
     try {
       const res = await authService.register(form);
 
-      if (res.error) {
-        setError(res.error);
-        return;
-      }
+      console.log(res);
 
       if (res.fields) {
-        setFieldErrors(res.fields);
+        setErrors(res.fields);
         return;
       }
 
       router.push("/login");
-    } catch {
-      setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -73,12 +65,6 @@ export function RegisterForm() {
           </p>
         </div>
 
-        {error && (
-          <div className="register-error-banner">
-            <p>{error}</p>
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="register-form">
           <div className="register-columns">
             {/* Left Column - Required */}
@@ -91,7 +77,7 @@ export function RegisterForm() {
                 required
                 value={input.first_name}
                 placeholder="John"
-                errors={fieldErrors.first_name}
+                errors={errors.first_name}
                 onChange={handleChange}
               />
 
@@ -101,7 +87,7 @@ export function RegisterForm() {
                 required
                 value={input.last_name}
                 placeholder="Doe"
-                errors={fieldErrors.last_name}
+                errors={errors.last_name}
                 onChange={handleChange}
               />
 
@@ -112,7 +98,7 @@ export function RegisterForm() {
                 required
                 value={input.email}
                 placeholder="john@example.com"
-                errors={fieldErrors.email}
+                errors={errors.email}
                 onChange={handleChange}
               />
 
@@ -123,7 +109,7 @@ export function RegisterForm() {
                 required
                 value={input.password}
                 placeholder="••••••••"
-                errors={fieldErrors.password}
+                errors={errors.password}
                 onChange={handleChange}
               />
 
@@ -133,7 +119,7 @@ export function RegisterForm() {
                 type="date"
                 required
                 value={input.date_of_birth}
-                errors={fieldErrors.date_of_birth}
+                errors={errors.date_of_birth}
                 onChange={handleChange}
               />
             </div>
@@ -143,12 +129,12 @@ export function RegisterForm() {
               <h2 className="register-section-title">Optional Details</h2>
 
               <RegisterAvatarUpload
-                errors={fieldErrors.avatar}
+                errors={errors.avatar}
                 onError={(errs) =>
-                  setFieldErrors((prev) => ({ ...prev, avatar: errs }))
+                  setErrors((prev) => ({ ...prev, avatar: errs }))
                 }
                 onClearError={() =>
-                  setFieldErrors((prev) => ({ ...prev, avatar: undefined }))
+                  setErrors((prev) => ({ ...prev, avatar: undefined }))
                 }
               />
 
@@ -157,7 +143,7 @@ export function RegisterForm() {
                 name="nickname"
                 value={input.nickname || ""}
                 placeholder="johnny_dev"
-                errors={fieldErrors.nickname}
+                errors={errors.nickname}
                 onChange={handleChange}
               />
 
@@ -167,7 +153,7 @@ export function RegisterForm() {
                 textarea
                 value={input.about_me || ""}
                 placeholder="Tell the world about yourself..."
-                errors={fieldErrors.about_me}
+                errors={errors.about_me}
                 onChange={handleChange}
               />
             </div>
