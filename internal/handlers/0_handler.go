@@ -12,9 +12,12 @@ type Handler struct {
 	Hub      *Hub
 }
 
-func New(svcs *services.Services, port string) *Handler {
+func New(svcs *services.Services) *Handler {
+	hub := NewHub(svcs.Chat)
+
 	return &Handler{
 		Services: svcs,
+		Hub:      hub,
 	}
 }
 

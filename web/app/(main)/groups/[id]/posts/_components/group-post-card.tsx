@@ -1,7 +1,7 @@
 "use client";
 
 import type { PostType } from "@/app/lib/types/feed";
-import { formatDate } from "@/app/lib/utils/format";
+import { formatDate } from "@/app/lib/utils/format-time";
 import { HeartIcon, CommentIcon } from "@/app/ui/icons";
 
 type Props = {
@@ -35,7 +35,7 @@ export default function GroupPostCard({ post }: Props) {
 
       <div className="gp-post__body">
         {post.title && <h3 className="gp-post__title">{post.title}</h3>}
-        <p className="gp-post__content">{post.content}</p>
+        <p className="gp-post__content">{post.description}</p>
 
         {post.image_url && (
           <div className="gp-post__image">

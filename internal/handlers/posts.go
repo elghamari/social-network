@@ -12,7 +12,6 @@ import (
 )
 
 func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("------------> ", r.Method)
 	if r.Method != http.MethodPost {
 		utils.WriteJson(w, http.StatusMethodNotAllowed, map[string]any{
 			"error": "method not allowed",
