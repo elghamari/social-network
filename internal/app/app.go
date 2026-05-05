@@ -44,8 +44,6 @@ func New(cfg *Config) (*App, error) {
 
 	limiter := middleware.NewLimiterStore()
 	mid := middleware.New(svcs.Auth, limiter)
-	chatHub := handlers.NewHub(svcs.Chat)
-	go chatHub.Start()
 	handler := handlers.New(svcs, cfg.Port)
 
 	mux := http.NewServeMux()
