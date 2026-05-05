@@ -4,7 +4,12 @@ import "./posts.css";
 import PrivateSection from "./private-section";
 import { useAuth } from "@/app/_context/AuthContext";
 import { CreatePost } from "@/app/lib/services/feed";
-import { CreatePostFormProps, FormState, PostErrors, PostFormProps } from "@/app/lib/types/feed";
+import {
+  CreatePostFormProps,
+  FormState,
+  PostErrors,
+  PostFormProps,
+} from "@/app/lib/types/feed";
 import { validatePostForm } from "@/app/lib/utils/validate";
 import { showToast } from "../layout/toast-store";
 
@@ -88,14 +93,9 @@ export default function PostForm({ onCancel, onPostCreated }: PostFormProps) {
         });
       }
 
-      console.log("###########################>>>>>>>>>>>>>>> ", formData);
-
       const response = await CreatePost(formData);
 
-      console.log("====================================>>>>> ", response);
-
       if (response.status === 201) {
-        console.log("Post created successfully:");
         onCancel();
         if (onPostCreated) {
           onPostCreated();
@@ -115,7 +115,7 @@ export default function PostForm({ onCancel, onPostCreated }: PostFormProps) {
       <div className="create-form-container">
         <input
           type="text"
-          className={`create-post-title ${formErrors?.title ? 'input-error' : ''}`}
+          className={`create-post-title ${formErrors?.title ? "input-error" : ""}`}
           placeholder="Post title..."
           value={inputForm.title}
           onChange={(e) => {
@@ -126,7 +126,7 @@ export default function PostForm({ onCancel, onPostCreated }: PostFormProps) {
         />
 
         <textarea
-          className={`create-post-area ${formErrors?.description ? 'input-error' : ''}`}
+          className={`create-post-area ${formErrors?.description ? "input-error" : ""}`}
           placeholder="What's on your mind?"
           value={inputForm.description}
           onChange={(e) => {
@@ -192,14 +192,16 @@ export default function PostForm({ onCancel, onPostCreated }: PostFormProps) {
             </div>
             <div className="privacy-control">
               <select
-                className={`create-post-privacy ${formErrors?.privacy ? 'input-error' : ''}`}
+                className={`create-post-privacy ${formErrors?.privacy ? "input-error" : ""}`}
                 value={inputForm.privacy}
                 onChange={(e) =>
                   setInputForm((prev) => ({ ...prev, privacy: e.target.value }))
                 }
               >
                 <option value="public">Public</option>
-                <option value="almost private">Almost Private (Followers only)</option>
+                <option value="almost private">
+                  Almost Private (Followers only)
+                </option>
                 <option value="private">Private (Selected followers)</option>
               </select>
             </div>

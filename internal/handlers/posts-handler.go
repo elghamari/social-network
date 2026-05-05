@@ -216,13 +216,7 @@ func (h *Handler) GetGroupPosts(w http.ResponseWriter, r *http.Request) {
 
 	currentUserId := utils.GetUserId(r)
 
-	groupIdStr := r.URL.Query().Get("groupId")
-	if groupIdStr == "" {
-		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
-			"error": "group ID is required",
-		})
-		return
-	}
+	groupIdStr := r.PathValue("id")
 
 	groupId, err := strconv.Atoi(groupIdStr)
 	if err != nil {

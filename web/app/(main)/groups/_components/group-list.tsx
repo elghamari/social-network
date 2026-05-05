@@ -8,7 +8,7 @@ type Props = {
   groups: Group[];
   loading: boolean;
   markerRef: React.RefObject<HTMLDivElement | null>;
-  onRoleChange: (gid: string) => void;
+  onRoleChange: (groupId: string) => void;
 };
 
 const SKELETON_COUNT = 6;
@@ -52,7 +52,11 @@ export default function GroupList({
   return (
     <div className="groups-grid">
       {groups.map((group) => (
-        <GroupCard key={group.id} group={group} onRoleChange={onRoleChange} />
+        <GroupCard
+          key={group.id}
+          group={group}
+          onRoleChange={() => onRoleChange(group.id)}
+        />
       ))}
 
       {loading && <SkeletonRows />}

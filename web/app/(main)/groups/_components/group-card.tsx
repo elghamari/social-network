@@ -2,12 +2,12 @@
 
 import { useRouter } from "next/navigation";
 
-import { Group } from "@/app/lib/types/group";
+import { Group, GroupRole } from "@/app/lib/types/group";
 import GroupActions from "./group-actions";
 
 type Props = {
   group: Group;
-  onRoleChange: (gid: string) => void;
+  onRoleChange: () => void;
 };
 
 export default function GroupCard({ group, onRoleChange }: Props) {

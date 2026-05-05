@@ -4,11 +4,11 @@ import { useEffect, useRef, useState } from "react";
 
 import {
   getInvitableUsers,
-  submitGroupInvitation,
-  cancelGroupInvitation,
+  sendGroupInvitation,
+  revokeGroupInvitation,
 } from "@/app/lib/services/group";
 import type { InvitableUser } from "@/app/lib/types/group";
-import { useIntersectionObserver } from "../../../../../ui/use-intersection-observer";
+import { useIntersectionObserver } from "@/app/ui/use-intersection-observer";
 
 export type InviteListState = ReturnType<typeof useInviteList>;
 
@@ -97,7 +97,7 @@ export function useInviteList(groupId: string) {
     userId: string,
     isInvited: boolean,
   ): Promise<boolean> {
-    const action = isInvited ? cancelGroupInvitation : submitGroupInvitation;
+    const action = isInvited ? revokeGroupInvitation : sendGroupInvitation;
 
     setPendingId(userId);
     const resp = await action(groupId, userId);

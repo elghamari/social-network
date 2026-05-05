@@ -10,7 +10,7 @@ func NewFormError() *FormError {
 	}
 }
 
-func (e FormError) Error() string {
+func (e *FormError) Error() string {
 	return "form error"
 }
 
@@ -31,8 +31,8 @@ func NewActionError(msg string) *ActionError {
 	return &ActionError{Message: msg}
 }
 
-func (e ActionError) Error() string {
-	return "action error"
+func (e *ActionError) Error() string {
+	return e.Message
 }
 
 func (e *ActionError) HasErrors() bool {
@@ -47,18 +47,18 @@ func NewNotFoundError(msg string) *NotFoundError {
 	return &NotFoundError{Message: msg}
 }
 
-func (e NotFoundError) Error() string {
-	return "not found"
+func (e *NotFoundError) Error() string {
+	return e.Message
 }
 
-type UnauthError struct {
+type ForbiddenError struct {
 	Message string
 }
 
-func NewUnauthError(msg string) *UnauthError {
-	return &UnauthError{Message: msg}
+func NewForbiddenError(msg string) *ForbiddenError {
+	return &ForbiddenError{Message: msg}
 }
 
-func (e UnauthError) Error() string {
-	return "unauthorized"
+func (e *ForbiddenError) Error() string {
+	return e.Message
 }

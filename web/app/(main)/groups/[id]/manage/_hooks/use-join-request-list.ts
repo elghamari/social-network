@@ -8,7 +8,7 @@ import {
   rejectJoinRequest,
 } from "@/app/lib/services/group";
 import type { JoinRequestUser } from "@/app/lib/types/group";
-import { useIntersectionObserver } from "../../../../../ui/use-intersection-observer";
+import { useIntersectionObserver } from "@/app/ui/use-intersection-observer";
 
 export type JoinRequestState = ReturnType<typeof useJoinRequestList>;
 

@@ -47,12 +47,12 @@ export async function getInvitableUsers(
 
   await sleep();
   return await clientAPI.get(
-    `/groups/${groupId}/manage/invite?${params.toString()}`,
+    `/groups/${groupId}/invitations?${params.toString()}`,
   );
 }
 
 export async function sendGroupInvitation(groupId: string, userId: string) {
-  return await clientAPI.post(`/groups/${groupId}/manage/invite`, {
+  return await clientAPI.post(`/groups/${groupId}/invitations`, {
     userId: userId,
   });
 }
@@ -63,16 +63,16 @@ export async function revokeGroupInvitation(groupId: string, userId: string) {
   });
 
   return await clientAPI.delete(
-    `/groups/${groupId}/manage/invite?${params.toString()}`,
+    `/groups/${groupId}/invitations?${params.toString()}`,
   );
 }
 
 export async function acceptGroupInvitation(groupId: string) {
-  return await clientAPI.put(`/groups/${groupId}/manage/invitations`, {});
+  return await clientAPI.put(`/groups/${groupId}/invitations`, {});
 }
 
 export async function declineGroupInvitation(groupId: string) {
-  return await clientAPI.delete(`/groups/${groupId}/manage/requests`);
+  return await clientAPI.delete(`/groups/${groupId}/requests`);
 }
 
 export async function getJoinRequests(groupId: string, cursor: string) {
@@ -82,7 +82,7 @@ export async function getJoinRequests(groupId: string, cursor: string) {
 
   await sleep();
   return await clientAPI.get(
-    `/groups/${groupId}/manage/requests?${params.toString()}`,
+    `/groups/${groupId}/requests?${params.toString()}`,
   );
 }
 
@@ -95,7 +95,7 @@ export async function revokeJoinRequest(groupId: string) {
 }
 
 export async function approveJoinRequest(groupId: string, userId: string) {
-  return await clientAPI.post(`/groups/${groupId}/manage/requests`, {
+  return await clientAPI.post(`/groups/${groupId}/requests`, {
     userId: userId,
   });
 }
@@ -105,7 +105,7 @@ export async function rejectJoinRequest(groupId: string, userId: string) {
     userId: userId,
   });
   return await clientAPI.delete(
-    `/groups/${groupId}/manage/requests?${params.toString()}`,
+    `/groups/${groupId}/requests?${params.toString()}`,
   );
 }
 

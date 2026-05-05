@@ -12,13 +12,13 @@ import {
 
 import { GroupRole } from "@/app/lib/types/group";
 
-type LoadingState = "" | "request" | "cancel" | "accept" | "reject";
+// type LoadingState = "" | "request" | "cancel" | "accept" | "reject";
 
 type Props = {
   type: "card" | "header";
   id: string;
   role: GroupRole;
-  onRoleChange: (gid: string) => void;
+  onRoleChange: (nextRole?: GroupRole) => void;
 };
 
 export default function GroupActions({
@@ -34,7 +34,6 @@ export default function GroupActions({
   const isJoined = isCreator || isMember;
   const isPendingRequest = role === "pending_request";
   const isPendingInvitation = role === "pending_invitation";
-  const isNone = role === "none";
 
   const prefix = type === "card" ? "group-card" : "gd";
 
@@ -49,7 +48,7 @@ export default function GroupActions({
     setLoading(true);
     const resp = await sendJoinRequest(id);
     setLoading(false);
-    if (resp) onRoleChange(id);
+    if (resp) onRoleChange("pending_request");
   };
 
   const handleCancelRequest = async (e: React.MouseEvent) => {
@@ -58,7 +57,7 @@ export default function GroupActions({
     setLoading(true);
     const resp = await revokeJoinRequest(id);
     setLoading(false);
-    if (resp) onRoleChange(id);
+    if (resp) onRoleChange("none");
   };
 
   const handleAcceptInv = async (e: React.MouseEvent) => {
@@ -67,7 +66,7 @@ export default function GroupActions({
     setLoading(true);
     const resp = await acceptGroupInvitation(id);
     setLoading(false);
-    if (resp) onRoleChange(id);
+    if (resp) onRoleChange("member");
   };
 
   const handleRejectInv = async (e: React.MouseEvent) => {
@@ -76,7 +75,7 @@ export default function GroupActions({
     setLoading(true);
     const resp = await declineGroupInvitation(id);
     setLoading(false);
-    if (resp) onRoleChange(id);
+    if (resp) onRoleChange("none");
   };
 
   if (isJoined) {
@@ -120,17 +119,13 @@ export default function GroupActions({
     );
   }
 
-  if (isNone) {
-    return (
-      <button
-        className={`${prefix}__badge ${prefix}__badge--request`}
-        onClick={handleRequest}
-        disabled={loading}
-      >
-        {loading ? "..." : "Request"}
-      </button>
-    );
-  }
-
-  return null;
+  return (
+    <button
+      className={`${prefix}__badge ${prefix}__badge--request`}
+      onClick={handleRequest}
+      disabled={loading}
+    >
+      {loading ? "..." : "Request"}
+    </button>
+  );
 }

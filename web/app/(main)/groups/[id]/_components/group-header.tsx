@@ -1,17 +1,13 @@
-import type { Group } from "@/app/lib/types/group";
-import { useState } from "react";
 import GroupActions from "../../_components/group-actions";
+
+import type { Group, GroupRole } from "@/app/lib/types/group";
 
 type Props = {
   group: Group;
-  onRequest: (pending: boolean) => void;
+  onRoleChange: (nextRole: GroupRole) => void;
 };
 
-export default function GroupHeader({ group, onRequest }: Props) {
-  const isCreator = group.role === "creator";
-  const isMember = group.role === "creator" || group.role === "member";
-  // const isPending = group.role === "PENDING";
-
+export default function GroupHeader({ group, onRoleChange }: Props) {
   return (
     <div className="gd__header">
       <div className={`gd__cover ${group.coverPath ? "" : "gd__cover--empty"}`}>
@@ -37,7 +33,7 @@ export default function GroupHeader({ group, onRequest }: Props) {
           type="header"
           id={group.id}
           role={group.role}
-          onRoleChange={onRequest}
+          onRoleChange={onRoleChange}
         />
       </div>
     </div>

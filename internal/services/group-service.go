@@ -80,7 +80,7 @@ func (s *GroupService) ensureUserIsCreator(groupId, userId string) error {
 		return err
 	}
 	if role != "creator" {
-		return types.NewUnauthError("You are not authorized to perform this action")
+		return types.NewForbiddenError("You are not authorized to perform this action")
 	}
 	return nil
 }
@@ -91,7 +91,7 @@ func (s *GroupService) ensureUserIsMember(groupId, userId string) error {
 		return err
 	}
 	if role != "member" && role != "creator" {
-		return types.NewUnauthError("You must be a member to perform this action")
+		return types.NewForbiddenError("You must be a member to perform this action")
 	}
 	return nil
 }

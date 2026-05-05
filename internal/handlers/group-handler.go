@@ -232,6 +232,9 @@ func (h *Handler) DeclineGroupInvitation(w http.ResponseWriter, r *http.Request)
 // ============================================================
 
 func (h *Handler) GroupJoinRequests(w http.ResponseWriter, r *http.Request) {
+
+	userId := r.URL.Query().Get("userId")
+
 	switch r.Method {
 	case http.MethodGet:
 		h.GetJoinRequestUsers(w, r)
@@ -243,11 +246,11 @@ func (h *Handler) GroupJoinRequests(w http.ResponseWriter, r *http.Request) {
 		h.ApproveJoinRequest(w, r)
 
 	case http.MethodDelete:
-		if r.URL.Query().Get("userId") != "" {
-			h.RevokeJoinRequest(w, r)
+		if userId != "" {
+			h.RejectJoinRequest(w, r)
 
 		} else {
-			h.RejectJoinRequest(w, r)
+			h.RevokeJoinRequest(w, r)
 
 		}
 

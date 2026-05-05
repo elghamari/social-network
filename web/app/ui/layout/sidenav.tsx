@@ -51,8 +51,6 @@ export default function Sidenav() {
 
   const { user } = useAuth();
 
-  console.log(user);
-
   const firstName = user?.first_name || "";
   const lastName = user?.last_name || "";
 

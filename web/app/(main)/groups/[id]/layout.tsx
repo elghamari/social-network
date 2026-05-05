@@ -21,7 +21,7 @@ export default function GroupDetails({
   const params = useParams();
   const id = params.id as string;
 
-  const { group, loading, toggleInvite } = useGroupDetail(id);
+  const { group, loading, changeGroupRole } = useGroupDetail(id);
 
   if (loading) return <Skeleton />;
 
@@ -31,7 +31,7 @@ export default function GroupDetails({
 
   return (
     <div className="gd">
-      <GroupHeader group={group} onRoleChange={toggleInvite} />
+      <GroupHeader group={group} onRoleChange={changeGroupRole} />
 
       {isMember ? (
         <>
