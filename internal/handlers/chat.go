@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-
+	"fmt"
 	"soc-net/internal/utils"
 
 	"github.com/gorilla/websocket"
@@ -116,6 +116,7 @@ func (h *Handler) GetAvailableChatUsers(w http.ResponseWriter, r *http.Request) 
 	}
 
 	userId := utils.GetUserId(r)
+	 fmt.Println("LOGGED IN USER ID:", userId)
 
 	users, err := h.Services.Chat.GetAvailableChatUsers(userId)
 	if err != nil {
