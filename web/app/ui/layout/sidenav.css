@@ -1,22 +1,22 @@
-/* ===== SideNav ===== */
+/* app/ui/layout/sidenav.css */
 
 .sidenav {
-  position: fixed;
+  width: var(--sidenav-width, 240px);
+  min-width: var(--sidenav-width, 240px);
+  height: 100vh;
+  position: sticky;
   top: 0;
-  left: 0;
-  bottom: 0;
-  width: var(--sidenav-width);
-  background: var(--bg-surface);
-  border-right: 1px solid var(--border-subtle);
+  background: var(--bg-surface, #12131a);
+  border-right: 1px solid var(--border-subtle, #1f212e);
   display: flex;
   flex-direction: column;
   z-index: 100;
 }
 
-/* Header / Logo */
+/* ── Header / Logo ── */
+
 .sidenav__header {
   padding: 20px 16px;
-  border-bottom: 1px solid var(--border-subtle);
 }
 
 .sidenav__logo {
@@ -47,10 +47,140 @@
   background-clip: text;
 }
 
-/* Nav */
+/* ── Search ── */
+
+.sidenav__search {
+  position: relative;
+  padding: 0 12px 16px;
+}
+
+.sidenav__search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--bg-elevated, #1a1b26);
+  border: 1px solid var(--border-default, #2d313e);
+  border-radius: var(--radius-sm, 8px);
+  padding: 8px 12px;
+  transition: border-color var(--transition-fast, 0.2s);
+  color: var(--text-muted, #4b5563);
+}
+
+.sidenav__search-box:focus-within {
+  border-color: var(--accent-primary, #06b6d4);
+  color: var(--accent-primary, #06b6d4);
+}
+
+.sidenav__search-input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text-primary, #ffffff);
+  font-size: 13px;
+  min-width: 0;
+}
+
+.sidenav__search-input::placeholder {
+  color: var(--text-muted, #4b5563);
+}
+
+.sidenav__search-clear {
+  background: none;
+  border: none;
+  color: var(--text-muted, #4b5563);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  border-radius: 50%;
+  transition: all var(--transition-fast, 0.2s);
+}
+
+.sidenav__search-clear:hover {
+  color: var(--text-primary, #ffffff);
+  background-color: var(--bg-hover, rgba(255, 255, 255, 0.05));
+}
+
+/* ── Search Dropdown ── */
+
+.sidenav__search-dropdown {
+  position: absolute;
+  top: calc(100% - 8px);
+  left: 12px;
+  right: 12px;
+  background-color: var(--bg-surface, #12131a);
+  border: 1px solid var(--border-default, #2d313e);
+  border-radius: var(--radius-sm, 8px);
+  box-shadow: var(--shadow-lg, 0 10px 30px rgba(0, 0, 0, 0.5));
+  z-index: 200;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.sidenav__search-result {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  text-decoration: none;
+  transition: background-color var(--transition-fast, 0.2s);
+}
+
+.sidenav__search-result:hover {
+  background-color: var(--bg-hover, rgba(255, 255, 255, 0.05));
+}
+
+.sidenav__search-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    var(--accent-primary, #06b6d4),
+    var(--accent-secondary, #8b5cf6)
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.sidenav__search-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sidenav__search-name {
+  color: var(--text-primary, #ffffff);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidenav__search-nick {
+  color: var(--text-muted, #4b5563);
+  font-size: 11px;
+}
+
+.sidenav__search-empty {
+  padding: 20px 12px;
+  text-align: center;
+  color: var(--text-muted, #4b5563);
+  font-size: 13px;
+}
+
+/* ── Nav ── */
+
 .sidenav__nav {
   flex: 1;
-  padding: 16px 12px;
+  padding: 0 12px;
   overflow-y: auto;
 }
 
@@ -113,7 +243,8 @@
   flex: 1;
 }
 
-/* Footer */
+/* ── Footer ── */
+
 .sidenav__footer {
   padding: 12px;
 }
@@ -187,7 +318,8 @@
   box-shadow: 0 0 8px #10b981;
 }
 
-/* Logout */
+/* ── Logout ── */
+
 .sidenav__logout {
   display: flex;
   align-items: center;
@@ -205,7 +337,6 @@
   background: rgba(239, 68, 68, 0.1);
 }
 
-/* Mobile */
 @media (max-width: 768px) {
   .sidenav {
     display: none;

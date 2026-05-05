@@ -6,6 +6,7 @@ import { authService } from "@/app/lib/services/auth";
 import { RegisterInput, RegisterFieldErrors } from "@/app/lib/types/auth";
 import { RegisterField } from "./register-form-field";
 import { RegisterAvatarUpload } from "./register-form-avatar-upload";
+import Link from "next/link";
 
 export function RegisterForm() {
   const router = useRouter();
@@ -161,9 +162,9 @@ export function RegisterForm() {
           </button>
           <p className="auth-footer">
             Already have an account?{" "}
-            <a href="/login" className="auth-link">
+            <Link href="/login" className="auth-link">
               Sign in
-            </a>
+            </Link>
           </p>
         </div>
       </form>

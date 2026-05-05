@@ -1,11 +1,7 @@
 import { useState } from "react";
 
 import { Event, EventResponse } from "@/app/lib/types/group";
-<<<<<<< HEAD
-import { formatDate } from "@/app/lib/utils/format";
-=======
-import { FormatTime } from "@/app/lib/utils/format-time";
->>>>>>> WebSocket
+import { formatDate } from "@/app/lib/utils/format-time";
 import { respondToEvent } from "@/app/lib/services/group";
 
 type Props = {
@@ -32,11 +28,7 @@ export default function EventCard({ groupId, event, onResponse }: Props) {
       <div className="gd-event__body">
         <h3 className="gd-event__title">{event.title}</h3>
         <p className="gd-event__description">{event.description}</p>
-<<<<<<< HEAD
         <span className="gd-event__date">{formatDate(event.date)}</span>
-=======
-        <span className="gd-event__date">{FormatTime(event.date)}</span>
->>>>>>> WebSocket
       </div>
 
       <div className="gd-event__side">
@@ -52,14 +44,9 @@ export default function EventCard({ groupId, event, onResponse }: Props) {
         <div className="gd-event__response">
           <button
             type="button"
-<<<<<<< HEAD
             className={`gd-response ${
               event.response === "GOING" ? "gd-response--active-going" : ""
             }`}
-=======
-            className={`gd-response ${event.response === "GOING" ? "gd-response--active-going" : ""
-              }`} 
->>>>>>> WebSocket
             onClick={() => handleRequest("GOING")}
             disabled={loading || event.response === "GOING"}
           >
@@ -67,14 +54,9 @@ export default function EventCard({ groupId, event, onResponse }: Props) {
           </button>
           <button
             type="button"
-<<<<<<< HEAD
             className={`gd-response ${
               event.response === "NOT_GOING" ? "gd-response--active-not" : ""
             }`}
-=======
-            className={`gd-response ${event.response === "NOT_GOING" ? "gd-response--active-not" : ""
-              }`}
->>>>>>> WebSocket
             onClick={() => handleRequest("NOT_GOING")}
             disabled={loading || event.response === "NOT_GOING"}
           >

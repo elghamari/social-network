@@ -176,9 +176,9 @@ func (h *Handler) CancelJoinRequest(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GroupPosts(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		// h.GetGroupPosts(w, r)
-	case http.MethodDelete:
-		// h.CancelJoinRequest(w, r)
+		h.GetGroupPosts(w, r)
+	case http.MethodPost:
+		h.CreatePost(w, r)
 	default:
 		utils.WriteJson(w, http.StatusMethodNotAllowed, map[string]any{
 			"error": "Method not allowed",

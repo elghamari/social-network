@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { authService } from "@/app/lib/services/auth";
 import { LoginInput } from "@/app/lib/types/auth";
 import "./auth.css";
+import Link from "next/link";
 
 export function LoginForm() {
   const router = useRouter();
@@ -86,12 +87,12 @@ export function LoginForm() {
         </button>
       </form>
 
-      <div className="auth-footer">
+      <p className="auth-footer">
         Don&apos;t have an account?{" "}
-        <a href="/register" className="auth-link">
+        <Link href="/register" className="auth-link">
           Sign up
-        </a>
-      </div>
+        </Link>
+      </p>
     </div>
   );
 }

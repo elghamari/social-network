@@ -10,12 +10,12 @@ import EditProfileModal from "@/app/ui/profile/EditProfileModal";
 
 export default function ProfilePage() {
   const { user } = useAuth();
-  console.log(user);
-  
 
-  const [modalType, setModalType] = useState<"followers" | "following" | null>(null);
+  const [modalType, setModalType] = useState<"followers" | "following" | null>(
+    null,
+  );
   const [isPublic, setIsPublic] = useState<boolean>(user?.is_public ?? true);
-  const [isEditingProfile, setIsEditingProfile] = useState<boolean>(false)
+  const [isEditingProfile, setIsEditingProfile] = useState<boolean>(false);
   useEffect(() => {
     if (user && user.is_public !== undefined) {
       setIsPublic(user.is_public);
@@ -27,13 +27,15 @@ export default function ProfilePage() {
   }
 
   const handleEditingProfile = () => {
-    setIsEditingProfile(!isEditingProfile)
-  }
+    setIsEditingProfile(!isEditingProfile);
+  };
   const handlePrivacyToggle = async () => {
     const newStatus = !isPublic;
     setIsPublic(newStatus);
     try {
-      const res = await client.put('/profile/privacy', { is_public: newStatus });
+      const res = await client.put("/profile/privacy", {
+        is_public: newStatus,
+      });
       if (res.status !== 200) {
         setIsPublic(!newStatus);
       }
@@ -46,7 +48,7 @@ export default function ProfilePage() {
     try {
       const res = await client.post(`/follow/accept?target_id=${reqId}`, {});
       if (res.status === 200) {
-        window.location.reload(); 
+        window.location.reload();
       }
     } catch (err) {
       console.log("Accept error:", err);
@@ -75,7 +77,6 @@ export default function ProfilePage() {
         dateOfBirth={user.date_of_birth}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-
           {isEditingProfile && (
             <EditProfileModal
               user={user}
@@ -84,10 +85,12 @@ export default function ProfilePage() {
               onPrivacyToggle={handlePrivacyToggle}
             />
           )}
-          <button className="profile-btn profile-btn--edit" onClick={handleEditingProfile}>
+          <button
+            className="profile-btn profile-btn--edit"
+            onClick={handleEditingProfile}
+          >
             Edit Profile
           </button>
-
         </div>
       </ProfileHeader>
 
@@ -97,15 +100,15 @@ export default function ProfilePage() {
         onFollowersClick={() => setModalType("followers")}
         onFollowingClick={() => setModalType("following")}
       />
-{user.pending_requests?.length > 0 && (
+      {user.pending_requests?.length > 0 && (
         <div className="profile-pending">
           <h3 className="profile-pending__title">
             Pending Requests ({user.pending_requests.length})
           </h3>
           {user.pending_requests.map((req: any) => (
-            <PendingRequestItem 
-              key={req.id || req.ID} 
-              req={req} 
+            <PendingRequestItem
+              key={req.id || req.ID}
+              req={req}
               onAccept={() => handleAccept(req.id || req.ID)}
               onDecline={() => handleDecline(req.id || req.ID)}
             />
@@ -130,7 +133,15 @@ export default function ProfilePage() {
   );
 }
 
-function PendingRequestItem({ req, onAccept, onDecline }: { req: any, onAccept: () => void, onDecline: () => void }) {
+function PendingRequestItem({
+  req,
+  onAccept,
+  onDecline,
+}: {
+  req: any;
+  onAccept: () => void;
+  onDecline: () => void;
+}) {
   return (
     <div className="profile-pending__item">
       <div className="profile-pending__user">
@@ -138,14 +149,14 @@ function PendingRequestItem({ req, onAccept, onDecline }: { req: any, onAccept: 
           {req.avatar ? (
             <img src={req.avatar} alt="avatar" />
           ) : (
-            (req.first_name)?.[0]
+            req.first_name?.[0]
           )}
         </div>
         <span className="profile-pending__name">
           {req.first_name} {req.last_name}
         </span>
       </div>
-      
+
       <div className="profile-pending__actions">
         <button
           className="profile-pending__btn profile-pending__btn--accept"

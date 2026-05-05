@@ -1,7 +1,6 @@
 "use client";
 import "../layout.css";
 import Sidenav from "@/app/ui/layout/sidenav";
-import RightSidebar from "@/app/ui/layout/right-sidebar";
 import { AuthProvider } from "@/app/_context/AuthContext";
 import { WebSocketProvider } from "../_context/WebSocketContext";
 import { usePathname } from "next/navigation";

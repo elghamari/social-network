@@ -100,7 +100,7 @@ export default function ChatPage() {
 
   const throttledLoadMore = useCallback(
     throttle(() => loadMoreRef.current(), 800),
-    []
+    [],
   );
 
   useEffect(() => {
@@ -127,14 +127,14 @@ export default function ChatPage() {
             prev.map((c) =>
               c.id === selectedContact.id
                 ? { ...c, lastMessage: last.content, unreadCount: 0 }
-                : c
-            )
+                : c,
+            ),
           );
         } else {
           setContacts((prev) =>
             prev.map((c) =>
-              c.id === selectedContact.id ? { ...c, unreadCount: 0 } : c
-            )
+              c.id === selectedContact.id ? { ...c, unreadCount: 0 } : c,
+            ),
           );
         }
 
@@ -180,7 +180,7 @@ export default function ChatPage() {
       JSON.stringify({
         type: "send_message",
         data: { receiver_id: selectedContact.id, content: trimmedText },
-      })
+      }),
     );
   };
 

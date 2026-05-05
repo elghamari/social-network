@@ -1,0 +1,22 @@
+/* app/(main)/layout.css */
+
+.app {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--bg-primary, #050505);
+}
+
+.app__content {
+  flex: 1;
+  min-width: 0;
+  min-height: 100vh;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 768px) {
+  .app__content {
+    padding: 20px 16px;
+  }
+}
