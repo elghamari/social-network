@@ -22,22 +22,12 @@ type Group struct {
 	Role         string `json:"role"`
 }
 
-type JoinRequest struct {
-	GroupId string `json:"groupId"`
-	UserId  string `json:"userId"`
-}
-
 type JoinRequestUser struct {
 	Id         string `json:"id"`
 	FirstName  string `json:"firstName"`
 	LastName   string `json:"lastName"`
 	CreatedAt  string `json:"createdAt"`
 	AvatarPath string `json:"avatarPath"`
-}
-
-type Invitation struct {
-	GroupId string `json:"groupId"`
-	UserId  string `json:"userId"`
 }
 
 type InvitableUser struct {

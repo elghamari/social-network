@@ -1,6 +1,6 @@
-import { cancelJoinRequest, submitJoinRequest } from "@/app/lib/services/group";
 import type { Group } from "@/app/lib/types/group";
 import { useState } from "react";
+import GroupActions from "../../_components/group-actions";
 
 type Props = {
   group: Group;
@@ -8,22 +8,9 @@ type Props = {
 };
 
 export default function GroupHeader({ group, onRequest }: Props) {
-  const isMember = group.role === "CREATOR" || group.role === "MEMBER";
-  const isPending = group.role === "PENDING";
-
-  const [loading, setLoading] = useState(false);
-
-  const handleRequest = async (e: React.MouseEvent) => {
-    const action = isPending ? cancelJoinRequest : submitJoinRequest;
-
-    setLoading(true);
-    const resp = await action(group.id);
-    setLoading(false);
-
-    if (!resp) return;
-
-    onRequest(!isPending);
-  };
+  const isCreator = group.role === "creator";
+  const isMember = group.role === "creator" || group.role === "member";
+  // const isPending = group.role === "PENDING";
 
   return (
     <div className="gd__header">
@@ -46,23 +33,12 @@ export default function GroupHeader({ group, onRequest }: Props) {
           </span>
         </div>
 
-        {isMember ? (
-          <span className="gd__badge gd__badge--member">
-            {group.role === "CREATOR" ? "Creator" : "Joined"}
-          </span>
-        ) : (
-          <button
-            className={
-              isPending
-                ? "gd__badge gd__badge--pending"
-                : "gd__badge gd__badge--request"
-            }
-            onClick={handleRequest}
-            disabled={loading}
-          >
-            {loading ? "..." : isPending ? "Pending" : "Request"}
-          </button>
-        )}
+        <GroupActions
+          type="header"
+          id={group.id}
+          role={group.role}
+          onRoleChange={onRequest}
+        />
       </div>
     </div>
   );

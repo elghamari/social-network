@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"soc-net/internal/repositories"
 	"soc-net/internal/types"
+	"strings"
 	"time"
 )
 
@@ -25,25 +26,23 @@ var groupServiceName = "group-service"
 // Guards — shared pre-condition checks
 // ============================================================
 
-// ensureGroupIsValid return a *FormError if it group is invalid.
 func (s *GroupService) ensureGroupIsValid(group types.Group) error {
 	formErr := types.NewFormError()
 
 	if !(len(group.Title) >= 3 && len(group.Title) <= 100) {
-		formErr.Fields["title"] = append(formErr.Fields["title"], "Title cannot be empty and must be between 3 and 100 letters.")
+		formErr.Fields["title"] = append(formErr.Fields["title"], "Title must be between 3 and 100 characters.")
 	}
 
 	exists, err := s.Group.IsTitleTaken(group.Title)
 	if err != nil {
 		return err
 	}
-
 	if exists {
 		formErr.Fields["title"] = append(formErr.Fields["title"], "A group with this title already exists.")
 	}
 
 	if !(len(group.Description) >= 10 && len(group.Description) <= 500) {
-		formErr.Fields["description"] = append(formErr.Fields["description"], "Description cannot be empty and must be between 10 and 500 letters.")
+		formErr.Fields["description"] = append(formErr.Fields["description"], "Description must be between 10 and 500 characters.")
 	}
 
 	if formErr.HasErrors() {
@@ -53,76 +52,58 @@ func (s *GroupService) ensureGroupIsValid(group types.Group) error {
 	return nil
 }
 
-// ensureGroupExists returns an error if the group does not exist.
 func (s *GroupService) ensureGroupExists(groupId string) error {
 	exists, err := s.Group.GroupExists(groupId)
 	if err != nil {
 		return err
 	}
 	if !exists {
-		return types.NewActionError("Group does not exist.")
+		return types.NewNotFoundError("Group does not exist.")
 	}
 	return nil
 }
 
-// ensureUserExists returns an error if the user does not exist.
 func (s *GroupService) ensureUserExists(userId string) error {
 	exists, err := s.Auth.UserExists(userId)
 	if err != nil {
 		return err
 	}
 	if !exists {
-		return types.NewActionError("User does not exist.")
+		return types.NewNotFoundError("User does not exist.")
 	}
 	return nil
 }
 
-// ensureUserIsCreator returns an error if the user is not the group creator.
 func (s *GroupService) ensureUserIsCreator(groupId, userId string) error {
 	role, err := s.Group.GetUserGroupRole(groupId, userId)
 	if err != nil {
 		return err
 	}
-	if role != "CREATOR" {
-		return types.NewActionError("You are not authorized to perform this action")
+	if role != "creator" {
+		return types.NewUnauthError("You are not authorized to perform this action")
 	}
 	return nil
 }
 
-// ensureUserIsMember returns an error if the user is not a member or creator.
 func (s *GroupService) ensureUserIsMember(groupId, userId string) error {
 	role, err := s.Group.GetUserGroupRole(groupId, userId)
 	if err != nil {
 		return err
 	}
-	if role != "MEMBER" && role != "CREATOR" {
-		return types.NewActionError("You must be a member to perform this action")
+	if role != "member" && role != "creator" {
+		return types.NewUnauthError("You must be a member to perform this action")
 	}
 	return nil
 }
 
-// ensureUserIsNotMember returns an error if the user is already a member,
-// creator, or has a pending join request.
 func (s *GroupService) ensureUserIsNotMember(groupId, userId string) error {
 	role, err := s.Group.GetUserGroupRole(groupId, userId)
 	if err != nil {
 		return err
 	}
 	switch role {
-	case "MEMBER", "CREATOR":
+	case "member", "creator":
 		return types.NewActionError("You are already a member of this group")
-	}
-	return nil
-}
-
-// ensureEventIsInGroup returns an error if the event does not belong to the group.
-func (s *GroupService) ensureEventIsInGroup(eventId, groupId string) error {
-	exists, err := s.Group.EventBelongsToGroup(eventId, groupId)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		return types.NewActionError("Event Not found")
 	}
 	return nil
 }
@@ -150,13 +131,25 @@ func (s *GroupService) ensureEventIsValid(event types.Event) error {
 	return nil
 }
 
+func (s *GroupService) ensureEventIsInGroup(eventId, groupId string) error {
+	exists, err := s.Group.EventBelongsToGroup(eventId, groupId)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return types.NewNotFoundError("Event Not found")
+	}
+	return nil
+}
+
 // ============================================================
 // Groups
 // ============================================================
 
-// CreateGroup validates input, creates the group, adds the creator
-// as a member, and returns the created group — all within a transaction.
 func (s *GroupService) CreateGroup(userId string, group types.Group) (types.Group, error) {
+	group.Title = strings.TrimSpace(group.Title)
+	group.Description = strings.TrimSpace(group.Description)
+
 	if err := s.ensureGroupIsValid(group); err != nil {
 		return types.Group{}, err
 	}
@@ -189,9 +182,9 @@ func (s *GroupService) CreateGroup(userId string, group types.Group) (types.Grou
 	return group, nil
 }
 
-// ListGroups returns groups filtered by tab (discover | joined | pending)
-// and an optional search query.
-func (s *GroupService) ListGroups(userId, tab, search, cursor string) ([]types.Group, error) {
+func (s *GroupService) ListGroups(userId, tab, query, cursor string) ([]types.Group, error) {
+	query = strings.ToLower(query)
+
 	if err := ValidateTab(tab); err != nil {
 		return nil, err
 	}
@@ -200,46 +193,40 @@ func (s *GroupService) ListGroups(userId, tab, search, cursor string) ([]types.G
 		return nil, err
 	}
 
-	return s.Group.ListGroups(userId, tab, search, cursor)
+	return s.Group.ListGroups(userId, tab, query, cursor)
 }
 
-// GetGroup returns a single group with the current user's role.
 func (s *GroupService) GetGroup(groupId, userId string) (types.Group, error) {
 	return s.Group.GetGroupForUser(nil, groupId, userId)
 }
 
-// ============================================================
-// Join Requests (user-facing)
-// ============================================================
+func (s *GroupService) autoJoinUser(groupId, userId string) error {
+	tx, err := s.Group.DB.Begin()
+	if err != nil {
+		return fmt.Errorf("%s.autoJoinUser: Starting transaction: %w", groupServiceName, err)
+	}
+	defer tx.Rollback()
 
-// SubmitJoinRequest creates a join request for the user.
-// Fails if the user is already a member or has a pending request.
-func (s *GroupService) SubmitJoinRequest(req types.JoinRequest) error {
-	if err := s.ensureGroupExists(req.GroupId); err != nil {
+	if err := s.Group.InsertGroupMember(tx, groupId, userId, false); err != nil {
 		return err
 	}
-	if err := s.ensureUserIsNotMember(req.GroupId, req.UserId); err != nil {
+	if err := s.Group.DeleteJoinRequest(tx, groupId, userId); err != nil {
 		return err
 	}
-	return s.Group.InsertJoinRequest(req.GroupId, req.UserId)
-}
+	if err := s.Group.DeleteGroupInvitation(tx, groupId, userId); err != nil {
+		return err
+	}
 
-// CancelJoinRequest removes the user's pending join request.
-func (s *GroupService) CancelJoinRequest(req types.JoinRequest) error {
-	if err := s.ensureGroupExists(req.GroupId); err != nil {
-		return err
-	}
-	return s.Group.DeleteJoinRequest(req.GroupId, req.UserId)
+	return tx.Commit()
 }
 
 // ============================================================
-// Invitations (member-facing)
+// Invitations
 // ============================================================
-
-// GetInvitableUsers returns non-members that can be invited,
-// with an IsInvited flag for already-invited users.
 
 func (s *GroupService) GetInvitableUsers(groupId, userId, query, cursor string) ([]types.InvitableUser, error) {
+
+	query = strings.ToLower(query)
 
 	if err := s.ensureGroupExists(groupId); err != nil {
 		return nil, err
@@ -256,45 +243,63 @@ func (s *GroupService) GetInvitableUsers(groupId, userId, query, cursor string) 
 	return s.Group.GetInvitableUsersForGroup(groupId, userId, query, cursor)
 }
 
-// CreateGroupInvitation sends an invitation to a user.
-// Only group members can invite. Cannot invite yourself.
-func (s *GroupService) CreateGroupInvitation(groupId, inviterId string, inv types.Invitation) error {
-	if inviterId == inv.UserId {
+func (s *GroupService) SendGroupInvitation(groupId, inviterId, userId string) error {
+	if inviterId == userId {
 		return types.NewActionError("You cannot invite yourself")
 	}
 	if err := s.ensureGroupExists(groupId); err != nil {
 		return err
 	}
-	if err := s.ensureUserExists(inv.UserId); err != nil {
+	if err := s.ensureUserExists(userId); err != nil {
 		return err
 	}
 	if err := s.ensureUserIsMember(groupId, inviterId); err != nil {
 		return err
 	}
-	return s.Group.InsertGroupInvitation(groupId, inviterId, inv.UserId)
+
+	hasRequest, err := s.Group.HasJoinRequest(groupId, userId)
+	if err != nil {
+		return err
+	}
+	if hasRequest {
+		return s.autoJoinUser(groupId, userId)
+	}
+
+	return s.Group.InsertGroupInvitation(groupId, inviterId, userId)
 }
 
-// RevokeGroupInvitation cancels a previously sent invitation.
-// Only group members can revoke.
-func (s *GroupService) RevokeGroupInvitation(groupId, revokerId string, inv types.Invitation) error {
+func (s *GroupService) RevokeGroupInvitation(groupId, revokerId, userId string) error {
 	if err := s.ensureGroupExists(groupId); err != nil {
 		return err
 	}
-	if err := s.ensureUserExists(inv.UserId); err != nil {
+	if err := s.ensureUserExists(userId); err != nil {
 		return err
 	}
 	if err := s.ensureUserIsMember(groupId, revokerId); err != nil {
 		return err
 	}
-	return s.Group.DeleteGroupInvitation(groupId, inv.UserId)
+	return s.Group.DeleteGroupInvitation(nil, groupId, userId)
+}
+
+func (s *GroupService) AcceptGroupInvitation(groupId, userId string) error {
+	if err := s.ensureGroupExists(groupId); err != nil {
+		return err
+	}
+	return s.autoJoinUser(groupId, userId)
+}
+
+func (s *GroupService) DeclineGroupInvitation(groupId, userId string) error {
+	if err := s.ensureGroupExists(groupId); err != nil {
+		return err
+	}
+
+	return s.Group.DeleteGroupInvitation(nil, groupId, userId)
 }
 
 // ============================================================
-// Join Requests (creator-facing)
+// Join Requests
 // ============================================================
 
-// ListJoinRequestUsers returns all users with pending join requests.
-// Creator only.
 func (s *GroupService) GetJoinRequestUsers(groupId, userId, cursor string) ([]types.JoinRequestUser, error) {
 	if err := s.ensureGroupExists(groupId); err != nil {
 		return nil, err
@@ -311,48 +316,65 @@ func (s *GroupService) GetJoinRequestUsers(groupId, userId, cursor string) ([]ty
 	return s.Group.GetJoinRequestUsersForGroup(groupId, cursor)
 }
 
-// ApproveJoinRequest adds the user as a member, removes their join request,
-// and cleans up any existing invitation. Creator only.
-func (s *GroupService) ApproveJoinRequest(groupId, approverId string, req types.JoinRequest) error {
+func (s *GroupService) ApproveJoinRequest(groupId, approverId, userId string) error {
 	if err := s.ensureGroupExists(groupId); err != nil {
 		return err
 	}
-	if err := s.ensureUserExists(req.UserId); err != nil {
+	if err := s.ensureUserExists(userId); err != nil {
 		return err
 	}
 	if err := s.ensureUserIsCreator(groupId, approverId); err != nil {
 		return err
 	}
-	if err := s.Group.InsertGroupMember(nil, groupId, req.UserId, false); err != nil {
-		return err
-	}
-	if err := s.Group.DeleteJoinRequest(groupId, req.UserId); err != nil {
-		return err
-	}
-	return s.Group.DeleteGroupInvitation(groupId, req.UserId)
+
+	return s.autoJoinUser(groupId, userId)
 }
 
-// RejectJoinRequest removes a user's join request without adding them.
-// Creator only.
-func (s *GroupService) RejectJoinRequest(groupId, rejecterId string, req types.JoinRequest) error {
+func (s *GroupService) RejectJoinRequest(groupId, rejecterId, userId string) error {
 	if err := s.ensureGroupExists(groupId); err != nil {
 		return err
 	}
-	if err := s.ensureUserExists(req.UserId); err != nil {
+	if err := s.ensureUserExists(userId); err != nil {
 		return err
 	}
 	if err := s.ensureUserIsCreator(groupId, rejecterId); err != nil {
 		return err
 	}
-	return s.Group.DeleteJoinRequest(groupId, req.UserId)
+
+	return s.Group.DeleteJoinRequest(nil, groupId, userId)
+}
+
+func (s *GroupService) SendJoinRequest(groupId, userId string) error {
+	if err := s.ensureGroupExists(groupId); err != nil {
+		return err
+	}
+	if err := s.ensureUserIsNotMember(groupId, userId); err != nil {
+		return err
+	}
+
+	hasInvitation, err := s.Group.HasGroupInvitation(groupId, userId)
+	if err != nil {
+		return err
+	}
+	if hasInvitation {
+		return s.autoJoinUser(groupId, userId)
+	}
+
+	return s.Group.InsertJoinRequest(groupId, userId)
+}
+
+func (s *GroupService) RevokeJoinRequest(groupId, userId string) error {
+	if err := s.ensureGroupExists(groupId); err != nil {
+		return err
+	}
+
+	return s.Group.DeleteJoinRequest(nil, groupId, userId)
 }
 
 // ============================================================
 // Events
 // ============================================================
 
-// CreateEvent validates and inserts a new event into the group,
-// then returns the full created event. Members only.
 func (s *GroupService) CreateEvent(groupId, userId string, event types.Event) (types.Event, error) {
 	if err := s.ensureGroupExists(groupId); err != nil {
 		return types.Event{}, err
@@ -361,6 +383,10 @@ func (s *GroupService) CreateEvent(groupId, userId string, event types.Event) (t
 	if err := s.ensureUserIsMember(groupId, userId); err != nil {
 		return types.Event{}, err
 	}
+
+	event.Title = strings.TrimSpace(event.Title)
+	event.Description = strings.TrimSpace(event.Description)
+	event.Date = strings.TrimSpace(event.Date)
 
 	if err := s.ensureEventIsValid(event); err != nil {
 		return types.Event{}, err
@@ -390,7 +416,6 @@ func (s *GroupService) CreateEvent(groupId, userId string, event types.Event) (t
 	return event, nil
 }
 
-// ListEvents returns all events for the group. Members only.
 func (s *GroupService) ListEvents(groupId, userId, cursor string) ([]types.Event, error) {
 	if err := s.ensureGroupExists(groupId); err != nil {
 		return nil, err
@@ -406,8 +431,6 @@ func (s *GroupService) ListEvents(groupId, userId, cursor string) ([]types.Event
 	return s.Group.ListEvents(groupId, userId, cursor)
 }
 
-// RespondToEvent sets or updates the user's Response for an event.
-// Response must be GOING or NOT_GOING. Members only.
 func (s *GroupService) RespondToEvent(groupId, userId string, er types.EventResponse) error {
 	if err := s.ensureGroupExists(groupId); err != nil {
 		return err
@@ -418,7 +441,7 @@ func (s *GroupService) RespondToEvent(groupId, userId string, er types.EventResp
 	if err := s.ensureEventIsInGroup(er.EventId, groupId); err != nil {
 		return err
 	}
-	if err := ValidateEventStatus(er); err != nil {
+	if err := ValidateEventResponse(er); err != nil {
 		return err
 	}
 	return s.Group.UpsertEventResponse(er.EventId, userId, er.Response)

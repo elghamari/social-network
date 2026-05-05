@@ -1,27 +1,50 @@
 "use client";
 
 import GroupCard from "./group-card";
-import type { Group } from "@/app/lib/types/group";
+import type { Group, GroupTab } from "@/app/lib/types/group";
 
 type Props = {
+  tab: GroupTab;
   groups: Group[];
   loading: boolean;
   markerRef: React.RefObject<HTMLDivElement | null>;
-  onRequest: (gid: string) => void;
+  onRoleChange: (gid: string) => void;
 };
 
 const SKELETON_COUNT = 6;
 
+const emptyStates: Record<GroupTab, { title: string; subtitle: string }> = {
+  discover: {
+    title: "No groups to discover",
+    subtitle: "Check back later for new groups to join.",
+  },
+  joined: {
+    title: "You haven't joined any groups yet",
+    subtitle: "Discover groups and start connecting.",
+  },
+  invitations: {
+    title: "No pending invitations",
+    subtitle: "When someone invites you to a group, it will appear here.",
+  },
+  requests: {
+    title: "No pending requests",
+    subtitle: "Groups you request to join will appear here.",
+  },
+};
+
 export default function GroupList({
+  tab,
   groups,
   loading,
   markerRef,
-  onRequest,
+  onRoleChange,
 }: Props) {
   if (!loading && groups.length === 0) {
+    const empty = emptyStates[tab];
     return (
       <div className="groups-empty">
-        <p className="groups-empty__title">No groups found</p>
+        <p className="groups-empty__title">{empty.title}</p>
+        <p className="groups-empty__subtitle">{empty.subtitle}</p>
       </div>
     );
   }
@@ -29,7 +52,7 @@ export default function GroupList({
   return (
     <div className="groups-grid">
       {groups.map((group) => (
-        <GroupCard key={group.id} group={group} onRequest={onRequest} />
+        <GroupCard key={group.id} group={group} onRoleChange={onRoleChange} />
       ))}
 
       {loading && <SkeletonRows />}

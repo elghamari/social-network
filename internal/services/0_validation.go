@@ -41,10 +41,10 @@ func ValidateRegisterInput(input types.RegisterInput) error {
 }
 
 func ValidateTab(tab string) *types.ActionError {
-	validTabs := map[string]bool{"discover": true, "joined": true, "pending": true}
+	validTabs := map[string]bool{"discover": true, "joined": true, "requests": true, "invitations": true}
 
 	if !validTabs[tab] {
-		return types.NewActionError("Not a valid tab Try: (discover || joined || pending)")
+		return types.NewActionError("Not a valid tab Try: (discover || requests || invitations)")
 	}
 
 	return nil
@@ -75,7 +75,7 @@ func NormalizeDateCursor(cursor string) (string, error) {
 	return t.UTC().Format(sqliteDateLayout), nil
 }
 
-func ValidateEventStatus(er types.EventResponse) *types.ActionError {
+func ValidateEventResponse(er types.EventResponse) *types.ActionError {
 	if er.Response != "GOING" && er.Response != "NOT_GOING" {
 		return types.NewActionError("Response must be GOING or NOT_GOING")
 	}

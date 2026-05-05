@@ -10,18 +10,30 @@ import (
 )
 
 func HandleError(w http.ResponseWriter, err error) {
-	var fe *types.FormError
-	var ae *types.ActionError
+	var formErr *types.FormError
+	var actionErr *types.ActionError
+	var notFoundErr *types.NotFoundError
+	var unauthorizedErr *types.UnauthError
 
 	switch {
-	case errors.As(err, &fe):
+	case errors.As(err, &formErr):
 		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
-			"fields": fe.Fields,
+			"fields": formErr.Fields,
 		})
 
-	case errors.As(err, &ae):
+	case errors.As(err, &actionErr):
 		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
-			"error": ae.Message,
+			"error": actionErr.Message,
+		})
+
+	case errors.As(err, &notFoundErr):
+		utils.WriteJson(w, http.StatusNotFound, map[string]any{
+			"error": notFoundErr.Message,
+		})
+
+	case errors.As(err, &unauthorizedErr):
+		utils.WriteJson(w, http.StatusUnauthorized, map[string]any{
+			"error": unauthorizedErr.Message,
 		})
 
 	default:

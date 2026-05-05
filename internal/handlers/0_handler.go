@@ -46,13 +46,12 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux, mid *middleware.Middleware)
 		"/api/profile/privacy": h.TogglePrivacy,
 
 		// group routes
-		"/api/groups":                      h.Groups,
-		"/api/groups/join":                 h.JoinRequests,
-		"/api/groups/{id}":                 h.Group,
-		"/api/groups/{id}/posts":           h.GroupPosts,
-		"/api/groups/{id}/events":          h.GroupEvents,
-		"/api/groups/{id}/manage/invite":   h.GroupInvitations,
-		"/api/groups/{id}/manage/requests": h.GroupJoinRequests,
+		"/api/groups":                  h.Groups,
+		"/api/groups/{id}":             h.Group,
+		"/api/groups/{id}/posts":       h.GroupPosts,
+		"/api/groups/{id}/events":      h.GroupEvents,
+		"/api/groups/{id}/invitations": h.GroupInvitations,
+		"/api/groups/{id}/requests":    h.GroupJoinRequests,
 
 		// feed routes
 		"/api/posts/create":     h.CreatePost,

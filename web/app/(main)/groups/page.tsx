@@ -43,10 +43,11 @@ export default function GroupsPage() {
       <GroupSearch />
 
       <GroupList
+        tab={tab}
         groups={list}
         loading={loading}
         markerRef={markerRef}
-        onRequest={actions.removeGroup}
+        onRoleChange={actions.removeGroup}
       />
 
       {showModal && (

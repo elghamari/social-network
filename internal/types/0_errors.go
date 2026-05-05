@@ -38,3 +38,27 @@ func (e ActionError) Error() string {
 func (e *ActionError) HasErrors() bool {
 	return len(e.Message) > 0
 }
+
+type NotFoundError struct {
+	Message string
+}
+
+func NewNotFoundError(msg string) *NotFoundError {
+	return &NotFoundError{Message: msg}
+}
+
+func (e NotFoundError) Error() string {
+	return "not found"
+}
+
+type UnauthError struct {
+	Message string
+}
+
+func NewUnauthError(msg string) *UnauthError {
+	return &UnauthError{Message: msg}
+}
+
+func (e UnauthError) Error() string {
+	return "unauthorized"
+}
