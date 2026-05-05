@@ -14,6 +14,7 @@ type Handler struct {
 
 func New(svcs *services.Services) *Handler {
 	hub := NewHub(svcs.Chat)
+	go hub.Start()
 
 	return &Handler{
 		Services: svcs,

@@ -2,11 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
-	"strconv"
-
 	"soc-net/internal/utils"
+	"strconv"
 
 	"github.com/gorilla/websocket"
 )
@@ -116,6 +116,7 @@ func (h *Handler) GetAvailableChatUsers(w http.ResponseWriter, r *http.Request) 
 	}
 
 	userId := utils.GetUserId(r)
+	fmt.Println("LOGGED IN USER ID:", userId)
 
 	users, err := h.Services.Chat.GetAvailableChatUsers(userId)
 	if err != nil {

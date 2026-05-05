@@ -93,7 +93,7 @@ func (h *Hub) Start() {
 
 				raw, _ := json.Marshal(Signal{
 					Kind: "group_messages_read",
-					Data: data, 
+					Data: data,
 				})
 				h.sendToUser(evt.OwnerID, raw)
 			}
@@ -110,10 +110,9 @@ func (h *Hub) Start() {
 			conns, exists := h.peers[sq.uid]
 			sq.reply <- (exists && len(conns) > 0)
 		}
-		
+
 	}
 }
-
 
 func (h *Hub) onJoin(p *Peer) error {
 	wasOffline := len(h.peers[p.uid]) == 0
@@ -177,7 +176,6 @@ func (h *Hub) onForceDisconnect(uid string) {
 	h.broadcast(raw, uid)
 }
 
-
 func (h *Hub) onMessage(senderID string, payload []byte) error {
 	var in types.IncomingMessage
 
@@ -190,7 +188,6 @@ func (h *Hub) onMessage(senderID string, payload []byte) error {
 		h.sendError(senderID, http.StatusBadRequest, "CANT_MESSAGE_SELF")
 		return nil
 	}
-
 
 	if in.GroupId != nil {
 		savedMsg, members, err := h.chatService.ProcessGroupMessage(senderID, *in.GroupId, in)
@@ -245,7 +242,6 @@ func (h *Hub) onNewUser(payload []byte) error {
 	return nil
 }
 
-
 func (h *Hub) sendError(userID string, status int, errMsg string) {
 	raw, _ := json.Marshal(map[string]any{
 		"type":   "error",
@@ -281,7 +277,6 @@ func (h *Hub) IsUserOnline(userID string) bool {
 	conns, exists := h.peers[userID]
 	return exists && len(conns) > 0
 }
-
 
 func (p *Peer) readPump() {
 	defer func() {
