@@ -1,18 +1,17 @@
 package handlers
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 
-	"soc-net/internal/services"
 	"soc-net/internal/types"
 	"soc-net/internal/utils"
 )
 
 func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
+		fmt.Println("Error - 1 ")
 		utils.WriteJson(w, http.StatusMethodNotAllowed, map[string]any{
 			"error": "method not allowed",
 		})
@@ -23,6 +22,7 @@ func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
+		fmt.Println("Error - 2 ")
 		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
 			"error": "failed to parse form data, file might be too large",
 		})
@@ -39,7 +39,7 @@ func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
 	if groupIdStr != "" {
 		id, err := strconv.Atoi(groupIdStr)
 		if err != nil {
-			fmt.Println("222222222222222222")
+			fmt.Println("Error - 3 ")
 			utils.WriteJson(w, http.StatusBadRequest, map[string]any{
 				"error": "invalid group ID",
 			})
@@ -50,10 +50,9 @@ func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	imageUrl, err := utils.HandleImageUpload(r, "image")
 	if err != nil {
-		fmt.Println("333333333333333333")
-		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
-			"error": err.Error(),
-		})
+		fmt.Println("Error - 4 ")
+		fmt.Println(err)
+		HandleError(w, err)
 		return
 	}
 
@@ -69,40 +68,11 @@ func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	postId, err := h.Services.Posts.CreatePost(input)
 	if err != nil {
-		if errors.Is(err, services.ErrInvalidTitle) ||
-			errors.Is(err, services.ErrInvalidDescription) ||
-			errors.Is(err, services.ErrInvalidPrivacy) ||
-			errors.Is(err, services.ErrInvalidImage) ||
-			errors.Is(err, services.ErrInvalidPrivateUsers) ||
-			errors.Is(err, services.ErrDuplicatePrivateUsers) ||
-			errors.Is(err, services.ErrEmptyPrivateUsers) {
-
-			utils.WriteJson(w, http.StatusBadRequest, map[string]any{
-				"error": err.Error(),
-			})
-			return
-		}
-
-		if errors.Is(err, services.ErrGroupNotFound) {
-			utils.WriteJson(w, http.StatusNotFound, map[string]any{
-				"error": err.Error(),
-			})
-			return
-		}
-		if errors.Is(err, services.ErrNotGroupMember) {
-			utils.WriteJson(w, http.StatusForbidden, map[string]any{
-				"error": err.Error(),
-			})
-			return
-		}
-
-		fmt.Println("CreatePost Error:", err)
-		utils.WriteJson(w, http.StatusInternalServerError, map[string]any{
-			"error": "internal server error",
-		})
+		HandleError(w, err)
 		return
 	}
 
+	fmt.Println("Created Success !!! ")
 	utils.WriteJson(w, http.StatusCreated, map[string]any{
 		"message": "Post created successfully",
 		"postId":  postId,
@@ -183,17 +153,8 @@ func (h *Handler) GetProfilePosts(w http.ResponseWriter, r *http.Request) {
 
 	posts, err := h.Services.Posts.GetProfilePosts(currentUserId, targetUserId, cursor)
 	if err != nil {
-		if errors.Is(err, services.ErrUserNotFound) {
-			utils.WriteJson(w, http.StatusNotFound, map[string]any{
-				"error": err.Error(),
-			})
-			return
-		}
-
 		fmt.Println("GetProfilePosts Error:", err)
-		utils.WriteJson(w, http.StatusInternalServerError, map[string]any{
-			"error": "internal server error",
-		})
+		HandleError(w, err)
 		return
 	}
 
@@ -246,23 +207,8 @@ func (h *Handler) GetGroupPosts(w http.ResponseWriter, r *http.Request) {
 
 	posts, err := h.Services.Posts.GetGroupPosts(groupId, currentUserId, cursor)
 	if err != nil {
-		if errors.Is(err, services.ErrGroupNotFound) {
-			utils.WriteJson(w, http.StatusNotFound, map[string]any{
-				"error": err.Error(),
-			})
-			return
-		}
-		if errors.Is(err, services.ErrNotGroupMember) {
-			utils.WriteJson(w, http.StatusForbidden, map[string]any{
-				"error": err.Error(),
-			})
-			return
-		}
-
 		fmt.Println("GetGroupPosts Error:", err)
-		utils.WriteJson(w, http.StatusInternalServerError, map[string]any{
-			"error": "internal server error",
-		})
+		HandleError(w, err)
 		return
 	}
 
