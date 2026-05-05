@@ -6,8 +6,8 @@ import ChatInput from "./ChatInput";
 import MessageBubble from "./MessageBubble"; 
 import { Message } from "@/app/lib/types/chat"; 
 import { useGroupContext } from "@/app/(main)/groups/[id]/_context/context"; 
-import { useAuth } from "@/app/context/AuthContext";
-import { useWebSocket } from "@/app/context/WebSocketContext";
+import { useAuth } from "@/app/_context/AuthContext";
+import { useWebSocket } from "@/app/_context/WebSocketContext";
 import { getGroupHistory, markGroupAsRead } from "@/app/lib/services/contact";
 
 export default function GroupChatWindow() {
