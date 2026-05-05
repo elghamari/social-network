@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import styles from "./chat.module.css";
+ import styles from "./chat.module.css";
+
 import { Contact, Message } from "../../lib/types/chat";
 import {
   getContacts,
@@ -14,7 +15,7 @@ import { throttle } from "../../lib/utils/throttle";
 import ChatSidebar from "./components/ChatSidebar";
 import ChatWindow from "./components/ChatWindow";
 import ChatInput from "./components/ChatInput";
-import { useWebSocket } from "../../context/WebSocketContext";
+import { useWebSocket } from "@/app/_context/WebSocketContext";
 import { useChatWebSocket } from "./hooks/useChatWebSocket";
 
 export default function ChatPage() {
@@ -39,10 +40,10 @@ export default function ChatPage() {
     contactsRef.current = contacts;
   }, [contacts]);
 
-  const fetchContactsList = async () => {
+ const fetchContactsList = useCallback(async () => {
     const data = await getContacts();
     setContacts(data || []);
-  };
+  }, []); 
 
   useEffect(() => {
     fetchContactsList();
@@ -173,7 +174,6 @@ export default function ChatPage() {
 
   const handleSendMessage = (text: string) => {
     const trimmedText = text.trim();
-    // 🔴 الحماية من جهة الشات الفردي
     if (!trimmedText || trimmedText.length > 500 || !selectedContact || !socket || !isConnected) return;
     
     socket.send(
