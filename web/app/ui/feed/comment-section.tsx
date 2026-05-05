@@ -58,18 +58,27 @@ export default function CommentSection({ postId }: CommentSectionProps) {
 
       const response = await CreateComment(CommentFormData);
 
-      if (response.status === 201) {
-        console.log("Comment created successfully:");
+      if (response) {
+        if (response.fields) {
+          if (response.fields.coverImage.length > 1) {
+            response.fields.coverImage.forEach((el: string, i: number) => {
+              console.log(`Error - ${i} : ${el}`);
+            });
+            showToast("Please check your inputs.");
+          } else {
+            showToast(response.fields.coverImage[0]);
+          }
+          return;
+        }
+        
         setInputForm({ content: "", postId: postId, image: null });
         setPreview(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
         fetchComments(postId, 0, true);
-      } else {
-        showToast("Failed to create comment, try again.");
       }
     } catch (error) {
-      console.log("Error creating comment:", error);
-      showToast("Something went wrong!, try again.");
+      console.log("Network error creating comment:", error);
+      showToast("Network error. Please check your connection.");
     }
   };
 
@@ -90,8 +99,8 @@ export default function CommentSection({ postId }: CommentSectionProps) {
 
     try {
       const response = await GetPostComments(postId, currentCursor);
-      if (response && response.comments) {
-        const newComments: CommentType[] = response.comments;
+      if (response) {
+        const newComments: CommentType[] = response.comments || response || [];
 
         setComments((prev) => {
           if (isReset) return newComments;
@@ -109,10 +118,11 @@ export default function CommentSection({ postId }: CommentSectionProps) {
           setCursor(lastPostId);
         }
       } else {
-        setHasMore(false);
+        if (isReset) setHasMore(false);
       }
     } catch (error) {
       console.log("Error fetching Comments:", error);
+      showToast("Network error. Please check your connection.");
     } finally {
       setIsLoading(false);
     }

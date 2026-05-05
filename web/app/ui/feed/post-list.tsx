@@ -3,6 +3,7 @@ import { PostListProps, PostType } from "@/app/lib/types/feed";
 import PostCard from "./post-card";
 import "./posts.css";
 import { useEffect, useRef, useState } from "react";
+import { showToast } from "../layout/toast-store";
 
 export default function PostList({ refreshKey, fetchData }: PostListProps) {
   const [posts, setPosts] = useState<PostType[]>([]);
@@ -21,8 +22,8 @@ export default function PostList({ refreshKey, fetchData }: PostListProps) {
 
     try {
       const response = await fetchData(currentCursor);
-      if (response && response.posts) {
-        const newPosts: PostType[] = response.posts;
+      if (response) {
+        const newPosts: PostType[] = response.posts || response || [];
         
         setPosts((prev) => {
           if (isReset) return newPosts;
@@ -38,10 +39,11 @@ export default function PostList({ refreshKey, fetchData }: PostListProps) {
           setCursor(lastPostId);
         }
       } else {
-        setHasMore(false);
+        if (isReset) setHasMore(false);
       }
     } catch (error) {
-      console.log("Error fetching posts:", error);
+      console.log("Error fetching posts: ", error);
+      showToast("Network error. Please check your connection.");
     } finally {
       setIsLoading(false);
     }
