@@ -1,9 +1,9 @@
 "use client";
-import "../layout.css";
+import "./layout.css";
 import Sidenav from "@/app/ui/layout/sidenav";
 import { AuthProvider } from "@/app/_context/AuthContext";
 import { WebSocketProvider } from "../_context/WebSocketContext";
-import { usePathname } from "next/navigation";
+// import { usePathname } from "next/navigation";
 
 
 export default function MainLayout({
@@ -11,8 +11,8 @@ export default function MainLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
-  const isChatPage = pathname.startsWith("/chat"); 
+  // const pathname = usePathname();
+  // const isChatPage = pathname.startsWith("/chat"); 
 
   return (
     <AuthProvider>
@@ -20,7 +20,7 @@ export default function MainLayout({
         <div className="app">
           <Sidenav />
           <main className="app__content">{children}</main>
-          {!isChatPage && <RightSidebar />}
+          {/* {!isChatPage && <RightSidebar />} */}
         </div>
       </WebSocketProvider>
     </AuthProvider>

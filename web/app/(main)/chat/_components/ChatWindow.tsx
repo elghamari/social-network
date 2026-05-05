@@ -11,15 +11,28 @@ interface Props {
   selectedContact: Contact;
   messages: Message[];
   isLoadingMore: boolean;
-  onScroll: (e: React.UIEvent<HTMLDivElement>) => void;
   scrollRef: React.RefObject<HTMLDivElement | null>; 
-  
+  observerTarget: (node: HTMLDivElement | null) => void;
+  onScroll: (e: React.UIEvent<HTMLDivElement>) => void; 
+  hasUnreadBelow: boolean;
+  onScrollToBottom: () => void; 
   children: React.ReactNode;
 }
 
-export default function ChatWindow({ selectedContact, messages, isLoadingMore, onScroll, scrollRef, children }: Props) {
+export default function ChatWindow({ 
+  selectedContact, 
+  messages, 
+  isLoadingMore, 
+  scrollRef, 
+  observerTarget, 
+  onScroll,
+  hasUnreadBelow,
+  onScrollToBottom,
+  children 
+}: Props) {
+  
   return (
-    <div className={styles.chatCard}>
+    <div className={styles.chatCard} style={{ position: 'relative' }}> 
       <div className={styles.chatHeader}>
         {selectedContact.avatar ? (
            <img 
@@ -43,10 +56,12 @@ export default function ChatWindow({ selectedContact, messages, isLoadingMore, o
 
       <div 
         className={styles.messagesArea} 
+        ref={scrollRef} 
         onScroll={onScroll} 
-        ref={scrollRef}
         style={{ overflowAnchor: 'auto' }} 
       >
+        <div ref={observerTarget} style={{ height: '1px' }} />
+
         {isLoadingMore && <div className={styles.loaderSmall}>Loading older messages...</div>}
 
         {messages && messages.length > 0 ? (
@@ -62,6 +77,11 @@ export default function ChatWindow({ selectedContact, messages, isLoadingMore, o
           <div style={{ textAlign: 'center', color: '#9ca3af', marginTop: '20px' }}>No messages yet. 👋</div>
         )}
       </div>
+      {hasUnreadBelow && (
+        <div className={styles.newMessageToast} onClick={onScrollToBottom}>
+          ⬇️ New Message
+        </div>
+      )}
       
       {children}
     </div>

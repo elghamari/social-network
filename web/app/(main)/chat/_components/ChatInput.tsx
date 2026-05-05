@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import styles from '../chat.module.css';
 
 interface Props {
-  onSendMessage: (msg: string) => void;
+  onSendMessage: (msg: string) => boolean; 
 }
 
 const EMOJI_LIST = [
@@ -29,10 +29,11 @@ export default function ChatInput({ onSendMessage }: Props) {
   const handleSend = () => {
     const trimmedText = text.trim();
     if (!trimmedText || trimmedText.length > 500) return;
-    
-    onSendMessage(trimmedText);
-    setText(""); 
-    setShowEmoji(false); 
+    const isSent = onSendMessage(trimmedText);
+    if (isSent) {
+      setText(""); 
+      setShowEmoji(false); 
+    }
   };
 
   const handleEmojiClick = (emoji: string) => {
