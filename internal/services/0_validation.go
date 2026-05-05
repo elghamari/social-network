@@ -3,10 +3,11 @@ package services
 import (
 	"errors"
 	"regexp"
-	"soc-net/internal/types"
 	"strconv"
 	"strings"
 	"time"
+
+	"soc-net/internal/types"
 )
 
 var (
@@ -51,7 +52,6 @@ func ValidateTab(tab string) *types.ActionError {
 }
 
 func ValidateIntegerCursor(cursor string) *types.ActionError {
-
 	_, err := strconv.Atoi(cursor)
 	if err != nil && cursor != "" {
 		return types.NewActionError("Cursor must be a number")
@@ -84,30 +84,37 @@ func ValidateEventStatus(er types.EventResponse) *types.ActionError {
 }
 
 func ValidatePostInput(input *types.PostInput) error {
+	formErr := types.NewFormError()
+
 	input.Title = strings.TrimSpace(input.Title)
 	if input.Title == "" || len(input.Title) > 100 {
-		return ErrInvalidTitle
+		formErr.Fields["title"] = append(formErr.Fields["title"], "title is required and must be under 100 characters.")
+		// return ErrInvalidTitle
 	}
 
 	input.Description = strings.TrimSpace(input.Description)
 	if input.Description == "" || len(input.Description) > 800 {
-		return ErrInvalidDescription
+		formErr.Fields["description"] = append(formErr.Fields["description"], "description is required and must be under 800 characters.")
+		// return ErrInvalidDescription
 	}
 
 	if input.GroupId == nil {
 		if input.Privacy != "public" && input.Privacy != "private" && input.Privacy != "almost private" {
-			return ErrInvalidPrivacy
+			formErr.Fields["privacy"] = append(formErr.Fields["privacy"], "privacy must be public, private, or almost private.")
+			// return ErrInvalidPrivacy
 		}
 
 		if input.Privacy == "private" {
 			if len(input.PrivateUsers) < 1 {
-				return ErrEmptyPrivateUsers
+				formErr.Fields["private"] = append(formErr.Fields["private"], "you must select at least one user for a private post.")
+				// return ErrEmptyPrivateUsers
 			}
 
 			uniqueUsersMap := make(map[string]bool)
 			for _, id := range input.PrivateUsers {
 				if uniqueUsersMap[id] {
-					return ErrDuplicatePrivateUsers
+					formErr.Fields["duplicate"] = append(formErr.Fields["duplicate"], "duplicate users are not allowed in the private users list")
+					// return ErrDuplicatePrivateUsers
 				}
 				uniqueUsersMap[id] = true
 			}
@@ -115,21 +122,33 @@ func ValidatePostInput(input *types.PostInput) error {
 	}
 
 	if input.ImageUrl != nil && strings.TrimSpace(*input.ImageUrl) == "" {
-		return ErrInvalidImage
+		formErr.Fields["image"] = append(formErr.Fields["image"], "image url cannot be empty if provided.")
+		// return ErrInvalidImage
+	}
+
+	if formErr.HasErrors() {
+		return formErr
 	}
 
 	return nil
 }
 
 func ValidateCommentInput(input *types.CommentInput) error {
+	formErr := types.NewFormError()
 
 	input.Content = strings.TrimSpace(input.Content)
 	if input.Content == "" || len(input.Content) > 200 {
-		return ErrInvalidCommentContent
+		formErr.Fields["content"] = append(formErr.Fields["content"], "comment content is required and must be under 200 characters.")
+		// return ErrInvalidCommentContent
 	}
 
 	if input.ImageUrl != nil && strings.TrimSpace(*input.ImageUrl) == "" {
-		return ErrInvalidImage
+		formErr.Fields["image"] = append(formErr.Fields["image"], "image url cannot be empty if provided.")
+		// return ErrInvalidImage
+	}
+
+	if formErr.HasErrors() {
+		return formErr
 	}
 
 	return nil

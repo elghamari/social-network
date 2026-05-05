@@ -18,7 +18,7 @@ func New(r *repositories.Repos) *Services {
 		Auth:      NewAuthService(r.Auth),
 		User:      NewUserService(r.User, r.Auth),
 		Group:     NewGroupService(r.Auth, r.Group),
-		Posts:     NewPostsService(r.Posts, r.Group),
+		Posts:     NewPostsService(r.Posts, r.Group, r.Auth),
 		Comments:  NewCommentsService(r.Comments, r.Posts),
 		Reactions: NewReactionsService(r.Reactions, r.Posts),
 		Search:    NewSearchServs(r.Search),

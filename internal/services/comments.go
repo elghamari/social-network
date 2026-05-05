@@ -33,11 +33,11 @@ func (s *CommentsService) CreateComment(currentUserId string, input types.Commen
 	}
 
 	if !postExists {
-		return 0, ErrPostNotFound
+		return 0, types.NewNotFoundError("the specified post does not exist")
 	}
 
 	if !canInteract {
-		return 0, ErrUnauthorizedAccess
+		return 0, types.NewForbiddenError("you do not have permission to interact with this post.")
 	}
 
 	return s.Comments.InsertComment(input)
@@ -54,11 +54,11 @@ func (s *CommentsService) GetPostComments(currentUserId string, postId int, curs
 	}
 
 	if !postExists {
-		return nil, ErrPostNotFound
+		return nil, types.NewNotFoundError("the specified user does not exist.")
 	}
 
 	if !canInteract {
-		return nil, ErrUnauthorizedAccess
+		return nil, types.NewForbiddenError("you do not have permission to interact with this post.")
 	}
 
 	return s.Comments.GetPostComments(postId, cursor)
