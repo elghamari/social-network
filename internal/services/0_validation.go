@@ -1,42 +1,75 @@
 package services
 
 import (
-	"errors"
 	"regexp"
-	"soc-net/internal/types"
 	"strconv"
 	"strings"
 	"time"
+
+	"soc-net/internal/types"
 )
 
 var (
-	emailRegex = regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
-	nameRegex  = regexp.MustCompile(`^[a-zA-Z\s]{2,20}$`)
-	dateRegex  = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`)
+	emailRegex    = regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
+	nameRegex     = regexp.MustCompile(`^[a-zA-Z\s]{2,20}$`)
+	usernameRegex = regexp.MustCompile(`^[a-zA-Z]{5,20}$`)
+	dateRegex     = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`)
 )
 
 func ValidateRegisterInput(input types.RegisterInput) error {
+	formErr := types.NewFormError()
+
+	// Email Validation
 	email := strings.ToLower(strings.TrimSpace(input.Email))
 	if !emailRegex.MatchString(email) {
-		return errors.New("invalid email format")
-	}
-	if len(strings.TrimSpace(input.Password)) < 6 {
-		return errors.New("password must be at least 6 characters")
-	}
-	if !nameRegex.MatchString(strings.TrimSpace(input.FirstName)) {
-		return errors.New("first name must be 2-20 letters only")
-	}
-	if !nameRegex.MatchString(strings.TrimSpace(input.LastName)) {
-		return errors.New("last name must be 2-20 letters only")
-	}
-	if !dateRegex.MatchString(input.DateOfBirth) {
-		return errors.New("date of birth must be YYYY-MM-DD")
+		formErr.Fields["email"] = append(formErr.Fields["email"], "invalid email format")
 	}
 
+	// Password Validation
+	if len(strings.TrimSpace(input.Password)) < 6 {
+		formErr.Fields["password"] = append(formErr.Fields["password"], "password must be at least 6 characters")
+	}
+
+	// First Name Validation
+	if !nameRegex.MatchString(strings.TrimSpace(input.FirstName)) {
+		formErr.Fields["first_name"] = append(formErr.Fields["first_name"], "first name must be 2-20 letters only")
+	}
+
+	// Last Name Validation
+	if !nameRegex.MatchString(strings.TrimSpace(input.LastName)) {
+		formErr.Fields["last_name"] = append(formErr.Fields["last_name"], "last name must be 2-20 letters only")
+	}
+
+	// Date of Birth Validation
+	if !dateRegex.MatchString(input.DateOfBirth) {
+		formErr.Fields["date_of_birth"] = append(formErr.Fields["date_of_birth"], "date of birth must be YYYY-MM-DD")
+	}
+
+	// Nickname Validation
+	if input.Nickname != nil {
+		trimmed := strings.TrimSpace(*input.Nickname)
+		if len(trimmed) > 30 {
+			formErr.Fields["nickname"] = append(formErr.Fields["nickname"], "nickname must be at most 30 characters")
+		}
+		if !usernameRegex.MatchString(trimmed) {
+			formErr.Fields["nickname"] = append(formErr.Fields["nickname"], "nickname must be 5-20 letters only")
+		}
+		input.Nickname = &trimmed
+	}
+
+	// About Me
 	if input.AboutMe != nil && *input.AboutMe != "" {
 		trimmed := strings.TrimSpace(*input.AboutMe)
+		if len(trimmed) > 500 {
+			formErr.Fields["about_me"] = append(formErr.Fields["about_me"], "about me must be at most 500 characters")
+		}
 		input.AboutMe = &trimmed
 	}
+
+	if formErr.HasErrors() {
+		return formErr
+	}
+
 	return nil
 }
 
@@ -51,7 +84,6 @@ func ValidateTab(tab string) *types.ActionError {
 }
 
 func ValidateIntegerCursor(cursor string) *types.ActionError {
-
 	_, err := strconv.Atoi(cursor)
 	if err != nil && cursor != "" {
 		return types.NewActionError("Cursor must be a number")
@@ -122,7 +154,6 @@ func ValidatePostInput(input *types.PostInput) error {
 }
 
 func ValidateCommentInput(input *types.CommentInput) error {
-
 	input.Content = strings.TrimSpace(input.Content)
 	if input.Content == "" || len(input.Content) > 200 {
 		return ErrInvalidCommentContent

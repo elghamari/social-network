@@ -41,6 +41,10 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		defer file.Close()
 		avatarPath, err := utils.HandleImageUpload(r, "avatar")
+		if err != nil {
+			utils.WriteJson(w, http.StatusBadRequest, map[string]any{"error": "invalid avatar image"})
+			return
+		}
 		if err == nil {
 			input.Avatar = avatarPath
 		}
