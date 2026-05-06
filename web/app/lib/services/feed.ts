@@ -1,3 +1,4 @@
+import { log } from "node:console";
 import client from "./_client";
 
 export const GetFeedPosts = async (cursor: number = 0) => {
@@ -5,7 +6,12 @@ export const GetFeedPosts = async (cursor: number = 0) => {
 };
 
 export async function CreatePost(data: any) {
-return await client.postForm("/posts/create", data)
+  const groupId = data.get("groupId")
+  const url = groupId
+    ? `/groups/${groupId}/posts`
+    : `/posts/create`;
+
+return await client.postForm(url, data)
 }
 
 export const ToggleLikePost = async (postId: number) => {
@@ -18,4 +24,8 @@ export const GetPostComments = async (postId: number, cursor: number = 0) => {
 
 export async function CreateComment(data: any) {
 return await client.postForm(`/comments/create?postId=${data.get("postId")}`, data)
+}
+
+export async function GetGroupPosts(cursor: number = 0, groupId: string) {
+  return await client.get(`/groups/${groupId}/posts?cursor=${cursor}`);
 }
