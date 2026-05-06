@@ -127,37 +127,42 @@ func (h *Handler) UnfollowUser(w http.ResponseWriter, r *http.Request) {
 
 // GET /api/me
 func (h *Handler) GetMe(w http.ResponseWriter, r *http.Request) {
-	userID := utils.GetUserId(r)
+    userID := utils.GetUserId(r)
 
-	user, err := h.Services.Auth.GetUserById(userID)
-	if err != nil {
-		utils.WriteJson(w, http.StatusNotFound, map[string]any{
-			"error": "user not found",
-		})
-		return
-	}
+    user, err := h.Services.Auth.GetUserById(userID)
+    if err != nil {
+        utils.WriteJson(w, http.StatusNotFound, map[string]any{"error": "user not found"})
+        return
+    }
 
-	followers, _ := h.Services.User.GetFollowers(userID)
-	following, _ := h.Services.User.GetFollowing(userID)
-	pending, _ := h.Services.User.GetPendingRequests(userID)
+    safeStr := func(s *string) string {
+        if s == nil {
+            return ""
+        }
+        return *s
+    }
 
-	utils.WriteJson(w, http.StatusOK, map[string]any{
-		"user": types.UserProfileResponse{
-			ID:              user.ID,
-			FirstName:       user.FirstName,
-			LastName:        user.LastName,
-			IsPublic:        user.IsPublic,
-			Email:           user.Email,
-			Avatar:          *user.Avatar,
-			AboutMe:         *user.AboutMe,
-			Nickname:        *user.Nickname,
-			DateOfBirth:     user.DateOfBirth,
-			FollowStatus:    "owner",
-			Followers:       followers,
-			Following:       following,
-			PendingRequests: pending,
-		},
-	})
+    followers, _ := h.Services.User.GetFollowers(userID)
+    following, _ := h.Services.User.GetFollowing(userID)
+    pending, _ := h.Services.User.GetPendingRequests(userID)
+
+    utils.WriteJson(w, http.StatusOK, map[string]any{
+        "user": map[string]any{ 
+            "id":               user.ID,
+            "first_name":       user.FirstName,
+            "last_name":        user.LastName,
+            "is_public":        user.IsPublic,
+            "email":            user.Email,
+            "avatar":           safeStr(user.Avatar),  
+            "about_me":         safeStr(user.AboutMe),  
+            "nickname":         safeStr(user.Nickname), 
+            "date_of_birth":    user.DateOfBirth,
+            "follow_status":    "owner",
+            "followers":        followers,
+            "following":        following,
+            "pending_requests": pending,
+        },
+    })
 }
 
 // GET /api/profile?profile_id=<id>

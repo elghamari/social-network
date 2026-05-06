@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/app/lib/services/auth";
 import { RegisterInput, RegisterFieldErrors } from "@/app/lib/types/auth";
+import { validateRegister } from "@/app/lib/utils/auth";
 import { RegisterField } from "./register-form-field";
 import { RegisterAvatarUpload } from "./register-form-avatar-upload";
 import Link from "next/link";
@@ -29,13 +30,21 @@ export function RegisterForm() {
   ) => {
     const { name, value } = e.target;
     setInput((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: undefined }));
+    if (errors[name as keyof RegisterFieldErrors]) {
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const form = new FormData(e.currentTarget);
+    
+    const clientErrors = validateRegister(input);
+    if (Object.keys(clientErrors).length > 0) {
+      setErrors(clientErrors);
+      return;
+    }
 
+    const form = new FormData(e.currentTarget);
     setErrors({});
     setLoading(true);
 
@@ -48,6 +57,8 @@ export function RegisterForm() {
       }
 
       router.push("/login");
+    } catch (err) {
+      console.error("Registration error:", err);
     } finally {
       setLoading(false);
     }
@@ -64,7 +75,7 @@ export function RegisterForm() {
 
       <form onSubmit={handleSubmit} className="auth-form">
         <div className="auth-columns">
-          {/* Left Column - Required */}
+          {/* Left Column - Required Fields */}
           <div className="auth-column">
             <h2 className="auth-section-title">Account Details</h2>
 
@@ -121,7 +132,7 @@ export function RegisterForm() {
             />
           </div>
 
-          {/* Right Column - Optional */}
+          {/* Right Column - Optional Fields */}
           <div className="auth-column">
             <h2 className="auth-section-title">Optional Details</h2>
 

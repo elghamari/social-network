@@ -22,7 +22,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const res: GetMeResponse = await authService.getMe();
       
-      // حيت الباكاند دابا كيرجع { "user": { ... } }
       if (res && res.user) {
         setUser(res.user);
       } else {

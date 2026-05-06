@@ -47,7 +47,18 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.Services.Auth.Register(input); err != nil {
-		utils.WriteJson(w, http.StatusBadRequest, map[string]any{"fields": "registration failed: " + err.Error()})
+		if formErr, ok := err.(*types.FormError); ok {
+			utils.WriteJson(w, http.StatusBadRequest, map[string]any{
+				"fields": formErr.Fields,
+			})
+			return
+		}
+
+		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
+			"fields": map[string][]string{
+				"first_name": {err.Error()},
+			},
+		})
 		return
 	}
 

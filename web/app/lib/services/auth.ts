@@ -13,6 +13,6 @@ export const authService = {
   },
 
   getMe: async (): Promise<GetMeResponse> => {
-    return await client.get("/me");
+    return await client.get("/auth/me");
   },
 };
