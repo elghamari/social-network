@@ -4,6 +4,7 @@ import PostForm from "./post-form";
 import "./posts.css";
 import {  CreatePostFormProps, PostFormProps } from "@/app/lib/types/feed";
 import { useAuth } from "@/app/_context/AuthContext";
+import Image from "next/image";
 
 export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
   const [showForm, setShowForm] = useState(false);
@@ -15,7 +16,13 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
   return (
     <div className="show-create-card">
       <div className="create-post-header">
-        <div className="post-avatar">{`${user?.user?.first_name[0].toUpperCase() || '?'}${user?.user?.last_name[0].toUpperCase() || '?'}`}</div>
+          {
+            user?.user?.avatar ? (
+              <Image className="post-card-avatar post-card-image" width={100} height={100} src={user?.user?.avatar ?? ''} alt={`${user?.user?.nickname}'s avatar`}/>
+            ) : (
+              <div className="post-card-avatar">{`${user?.user?.first_name[0].toUpperCase() || '?'}${user?.user?.last_name[0].toUpperCase() || '?'}`}</div>
+            )
+          }
         <div 
           className="create-post-input" 
           onClick={() => setShowForm(true)} 
