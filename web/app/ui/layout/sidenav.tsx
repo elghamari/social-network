@@ -2,11 +2,11 @@
 "use client";
 
 import Link from "next/link";
+import { useAuth } from "@/app/_context/AuthContext";
 import { usePathname } from "next/navigation";
 import { NavItem } from "@/app/lib/types/layout";
 import { AppIcon } from "../icons";
 import "./sidenav.css";
-import { useAuth } from "@/app/_context/AuthContext";
 
 const navItems: NavItem[] = [
   {

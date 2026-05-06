@@ -16,7 +16,7 @@ export default function ManagePage() {
 
   return (
     <div className={`gd-manage ${isCreator ? "gd-manage--split" : ""}`}>
-      <GroupInviteList invites={invites} />
+      <GroupInviteList groupId={id} invites={invites} />
 
       {isCreator && (
         <CreatorJoinRequests
@@ -46,10 +46,5 @@ function CreatorJoinRequests({
     onApproved(userId);
   }
 
-  return (
-    <GroupJoinRequestList
-      requests={requests}
-      onApprove={handleApprove}
-    />
-  );
+  return <GroupJoinRequestList requests={requests} onApprove={handleApprove} />;
 }

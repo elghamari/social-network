@@ -43,13 +43,6 @@ func (h *Handler) ServeWs(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) MarkAsRead(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		utils.WriteJson(w, http.StatusMethodNotAllowed, map[string]any{
-			"error": "method not allowed",
-		})
-		return
-	}
-
 	currentUserId := utils.GetUserId(r)
 
 	var input struct {
@@ -78,7 +71,7 @@ func (h *Handler) MarkAsRead(w http.ResponseWriter, r *http.Request) {
 	}
 
 	payloadBytes, _ := json.Marshal(input.SenderId)
-	h.Hub.Dispatch(hub.Event{
+	h.Hub.Dispatch(hub.Action{
 		Kind:    "mark_as_read",
 		OwnerID: currentUserId,
 		Payload: payloadBytes,
@@ -126,7 +119,7 @@ func (h *Handler) MarkGroupAsRead(w http.ResponseWriter, r *http.Request) {
 	}
 
 	payloadBytes, _ := json.Marshal(map[string]int{"groupId": input.GroupId})
-	h.Hub.Dispatch(hub.Event{
+	h.Hub.Dispatch(hub.Action{
 		Kind:    "mark_group_as_read",
 		OwnerID: currentUserId,
 		Payload: payloadBytes,
@@ -226,16 +219,10 @@ func (h *Handler) GetAvailableChatUsers(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *Handler) GetGroupHistory(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		utils.WriteJson(w, http.StatusMethodNotAllowed, map[string]any{
-			"error": "method not allowed",
-		})
-		return
-	}
 
 	currentUserId := utils.GetUserId(r)
 
-	groupIdStr := r.URL.Query().Get("groupId")
+	groupIdStr := r.PathValue("id")
 	if groupIdStr == "" {
 		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
 			"error": "groupId is required",

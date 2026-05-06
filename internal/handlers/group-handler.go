@@ -2,10 +2,14 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
+	"soc-net/internal/hub"
 	"soc-net/internal/types"
 	"soc-net/internal/utils"
 )
+
+var groupHandlerName = "group-handler"
 
 // ============================================================
 // Groups — /api/groups
@@ -119,6 +123,25 @@ func (h *Handler) GroupPosts(w http.ResponseWriter, r *http.Request) {
 }
 
 // ============================================================
+// GroupChat — /api/groups/{id}/chat
+// ============================================================
+
+func (h *Handler) GroupChat(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		h.GetGroupHistory(w, r)
+
+	case http.MethodPut:
+		h.MarkGroupAsRead(w, r)
+
+	default:
+		utils.WriteJson(w, http.StatusMethodNotAllowed, map[string]any{
+			"error": "Method not allowed",
+		})
+	}
+}
+
+// ============================================================
 // Invitations — /api/groups/{id}/manage/invitations
 // ============================================================
 
@@ -184,6 +207,27 @@ func (h *Handler) SendGroupInvitation(w http.ResponseWriter, r *http.Request) {
 	if err := h.Services.Group.SendGroupInvitation(groupId, inviterId, userId); err != nil {
 		HandleError(w, err)
 		return
+	}
+
+	group, err := h.Services.Group.GetGroup(groupId, inviterId)
+	if err != nil {
+		log.Println("%s.SendGroupInvitation: GetGroup: %w", groupHandlerName, err)
+	} else {
+
+		payload, err := json.Marshal(map[string]any{
+			"targetUserId": userId,
+			"groupId":      group,
+		})
+		if err != nil {
+			log.Println("%s.SendGroupInvitation: Marshal: %w", groupHandlerName, err)
+		}
+
+		h.Hub.Dispatch(hub.Action{
+			Kind:    "group_invite",
+			OwnerID: inviterId,
+			Payload: payload,
+		})
+
 	}
 
 	utils.WriteJson(w, http.StatusOK, nil)

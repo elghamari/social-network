@@ -2,14 +2,47 @@
 
 import GroupUserRow from "./group-user-row";
 import type { InviteListState } from "../_hooks/use-invite-list";
+import { useWebSocket } from "@/app/_context/WebSocketContext";
+import { useState } from "react";
+import {
+  revokeGroupInvitation,
+  sendGroupInvitation,
+} from "@/app/lib/services/group";
 
 type Props = {
+  groupId: string;
   invites: InviteListState;
 };
 
 const SKELETON_COUNT = 5;
 
-export default function GroupInviteList({ invites }: Props) {
+export default function GroupInviteList({ groupId, invites }: Props) {
+  const { socket, isConnected } = useWebSocket();
+  const [pendingId, setPendingId] = useState<string | null>(null);
+
+  async function handleInvite(userId: string, isInvited: boolean) {
+    const action = isInvited ? revokeGroupInvitation : sendGroupInvitation;
+
+    setPendingId(userId);
+    const resp = await action(groupId, userId);
+    setPendingId(null);
+    
+    if (!resp) return;
+
+    invites.toggleInvite(userId, isInvited);
+
+    if (!(socket && isConnected)) return;
+
+    console.log("invite", userId);
+
+    socket.send(
+      JSON.stringify({
+        type: "group_invite",
+        data: { groupId: groupId, targetUserId: userId },
+      }),
+    );
+  }
+
   const isEmpty = !invites.loading && invites.list.length === 0;
 
   return (
@@ -44,10 +77,10 @@ export default function GroupInviteList({ invites }: Props) {
                       ? "gd-manage__btn--invited"
                       : "gd-manage__btn--invite"
                   }`}
-                  onClick={() => invites.toggleInvite(user.id, user.isInvited)}
-                  disabled={invites.pendingId === user.id}
+                  onClick={() => handleInvite(user.id, user.isInvited)}
+                  disabled={pendingId === user.id}
                 >
-                  {invites.pendingId === user.id
+                  {pendingId === user.id
                     ? "..."
                     : user.isInvited
                       ? "Invited"

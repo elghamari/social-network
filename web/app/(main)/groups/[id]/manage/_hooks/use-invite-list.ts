@@ -22,7 +22,6 @@ export function useInviteList(groupId: string) {
   const [loading, setLoading] = useState(false);
   const [cursor, setCursor] = useState("");
   const [hasMore, setHasMore] = useState(false);
-  const [pendingId, setPendingId] = useState<string | null>(null);
 
   const fetchingRef = useRef(false);
 
@@ -93,25 +92,12 @@ export function useInviteList(groupId: string) {
   const markerRef = useIntersectionObserver(loadMore, hasMore);
 
   // ── Actions ────────────────────────────────────────
-  async function toggleInvite(
-    userId: string,
-    isInvited: boolean,
-  ): Promise<boolean> {
-    const action = isInvited ? revokeGroupInvitation : sendGroupInvitation;
-
-    setPendingId(userId);
-    const resp = await action(groupId, userId);
-    setPendingId(null);
-
-    if (!resp) return false;
-
+  async function toggleInvite(userId: string, isInvited: boolean) {
     setList((prev) =>
       prev.map((user) =>
         user.id === userId ? { ...user, isInvited: !isInvited } : user,
       ),
     );
-
-    return true;
   }
 
   function removeUser(userId: string) {
@@ -126,7 +112,6 @@ export function useInviteList(groupId: string) {
     query,
     setQuery,
 
-    pendingId,
     toggleInvite,
     removeUser,
   };

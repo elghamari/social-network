@@ -36,12 +36,12 @@ func (p *Peer) ReadPump() {
 		if err != nil {
 			break
 		}
-		evt := Event{}
-		if err := json.Unmarshal(data, &evt); err != nil {
+		action := Action{}
+		if err := json.Unmarshal(data, &action); err != nil {
 			continue
 		}
-		evt.OwnerID = p.uid
-		p.hub.events <- evt
+		action.OwnerID = p.uid
+		p.hub.incoming <- action
 	}
 }
 

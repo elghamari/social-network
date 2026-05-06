@@ -23,20 +23,20 @@ type Group struct {
 }
 
 type JoinRequestUser struct {
-	Id         string `json:"id"`
-	FirstName  string `json:"firstName"`
-	LastName   string `json:"lastName"`
-	CreatedAt  string `json:"createdAt"`
-	AvatarPath string `json:"avatarPath"`
+	Id         string  `json:"id"`
+	FirstName  string  `json:"firstName"`
+	LastName   string  `json:"lastName"`
+	CreatedAt  string  `json:"createdAt"`
+	AvatarPath *string `json:"avatarPath"`
 }
 
 type InvitableUser struct {
-	Id         string `json:"id"`
-	FirstName  string `json:"firstName"`
-	LastName   string `json:"lastName"`
-	CreatedAt  string `json:"createdAt"`
-	AvatarPath string `json:"avatarPath"`
-	IsInvited  bool   `json:"isInvited"`
+	Id         string  `json:"id"`
+	FirstName  string  `json:"firstName"`
+	LastName   string  `json:"lastName"`
+	CreatedAt  string  `json:"createdAt"`
+	AvatarPath *string `json:"avatarPath"`
+	IsInvited  bool    `json:"isInvited"`
 }
 
 type Event struct {

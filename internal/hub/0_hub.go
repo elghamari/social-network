@@ -17,8 +17,8 @@ type Hub struct {
 	leave      chan *Peer
 	disconnect chan string
 	query      chan StatusQuery
-	events     chan Event
-	chatSvc    *services.ChatService
+	incoming   chan Action
+	Services   *services.Services
 }
 
 type StatusQuery struct {
@@ -26,7 +26,7 @@ type StatusQuery struct {
 	reply chan bool
 }
 
-type Event struct {
+type Action struct {
 	Kind    string          `json:"type"`
 	OwnerID string          `json:"-"`
 	Payload json.RawMessage `json:"data"`
@@ -37,15 +37,15 @@ type Signal struct {
 	Data any    `json:"data"`
 }
 
-func NewHub(chatSvc *services.ChatService) *Hub {
+func NewHub(svcs *services.Services) *Hub {
 	return &Hub{
 		peers:      make(map[string]map[*Peer]bool),
 		join:       make(chan *Peer),
 		leave:      make(chan *Peer),
 		disconnect: make(chan string),
 		query:      make(chan StatusQuery),
-		events:     make(chan Event),
-		chatSvc:    chatSvc,
+		incoming:   make(chan Action),
+		Services:   svcs,
 	}
 }
 
@@ -55,8 +55,8 @@ func (h *Hub) Join(p *Peer) {
 	h.join <- p
 }
 
-func (h *Hub) Dispatch(evt Event) {
-	h.events <- evt
+func (h *Hub) Dispatch(act Action) {
+	h.incoming <- act
 }
 
 func (h *Hub) IsUserOnline(userID string) bool {
@@ -91,51 +91,60 @@ func (h *Hub) Start() {
 			conns, exists := h.peers[sq.uid]
 			sq.reply <- (exists && len(conns) > 0)
 
-		case evt := <-h.events:
-			h.handleEvent(evt)
+		case act := <-h.incoming:
+			h.handleAction(act)
 		}
 	}
 }
 
-func (h *Hub) handleEvent(evt Event) {
-	switch evt.Kind {
+func (h *Hub) handleAction(act Action) {
+	switch act.Kind {
 	case "new_user":
-		if err := h.onNewUser(evt.Payload); err != nil {
+		if err := h.onNewUser(act.Payload); err != nil {
 			log.Println("Hub.onNewUser:", err)
 		}
+
 	case "send_message":
-		if err := h.onMessage(evt.OwnerID, evt.Payload); err != nil {
+		if err := h.onMessage(act.OwnerID, act.Payload); err != nil {
 			log.Println("Hub.onMessage:", err)
 		}
+
 	case "mark_as_read":
 		var senderId string
-		json.Unmarshal(evt.Payload, &senderId)
+		json.Unmarshal(act.Payload, &senderId)
 		raw, _ := json.Marshal(Signal{
 			Kind: "messages_read",
 			Data: map[string]string{"senderId": senderId},
 		})
-		h.sendToUser(evt.OwnerID, raw)
+		h.sendToUser(act.OwnerID, raw)
+
 	case "mark_group_as_read":
 		var data map[string]int
-		json.Unmarshal(evt.Payload, &data)
+		json.Unmarshal(act.Payload, &data)
 		raw, _ := json.Marshal(Signal{
 			Kind: "group_messages_read",
 			Data: data,
 		})
-		h.sendToUser(evt.OwnerID, raw)
-	// -- Group actions ------------
-	case "group_invite":
-		h.onGroupInvite(evt.OwnerID, evt.Payload)
+		h.sendToUser(act.OwnerID, raw)
+
+		// -- Group actions ------------
+	case "group_invitation":
+		h.onGroupInvite(act.OwnerID, act.Payload)
+
 	case "join_request":
-		h.onJoinRequest(evt.OwnerID, evt.Payload)
+		h.onJoinRequest(act.OwnerID, act.Payload)
+
 	case "invite_accepted":
-		h.onInviteAccepted(evt.OwnerID, evt.Payload)
+		h.onInviteAccepted(act.OwnerID, act.Payload)
+
 	case "request_approved":
-		h.onRequestApproved(evt.OwnerID, evt.Payload)
+		h.onRequestApproved(act.OwnerID, act.Payload)
+
 	case "new_group_event":
-		h.onNewGroupEvent(evt.OwnerID, evt.Payload)
+		h.onNewGroupEvent(act.OwnerID, act.Payload)
+
 	case "event_response":
-		h.onEventResponse(evt.OwnerID, evt.Payload)
+		h.onEventResponse(act.OwnerID, act.Payload)
 	}
 }
 
@@ -216,7 +225,7 @@ func (h *Hub) onMessage(senderID string, payload []byte) error {
 	}
 
 	if in.GroupId != nil {
-		savedMsg, members, err := h.chatSvc.ProcessGroupMessage(senderID, *in.GroupId, in)
+		savedMsg, members, err := h.Services.Chat.ProcessGroupMessage(senderID, *in.GroupId, in)
 		if err != nil {
 			h.sendError(senderID, http.StatusBadRequest, err.Error())
 			return nil
@@ -228,7 +237,7 @@ func (h *Hub) onMessage(senderID string, payload []byte) error {
 		return nil
 	}
 
-	savedMsg, err := h.chatSvc.ProcessPrivateMessage(senderID, in)
+	savedMsg, err := h.Services.Chat.ProcessPrivateMessage(senderID, in)
 	if err != nil {
 		h.sendError(senderID, http.StatusBadRequest, err.Error())
 		return nil
@@ -236,7 +245,7 @@ func (h *Hub) onMessage(senderID string, payload []byte) error {
 
 	raw, _ := json.Marshal(Signal{Kind: "new_message", Data: savedMsg})
 
-	canReceive, err := h.chatSvc.CanReceiveLive(in.ReceiverID, senderID)
+	canReceive, err := h.Services.Chat.CanReceiveLive(in.ReceiverID, senderID)
 	if err != nil {
 		log.Println("Error checking live receive permission:", err)
 	} else if canReceive {

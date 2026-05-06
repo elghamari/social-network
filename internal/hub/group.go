@@ -1,22 +1,28 @@
 package hub
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"net/http"
+	"soc-net/internal/types"
+)
 
 // Notify the invited user
-func (h *Hub) onGroupInvite(senderID string, payload []byte) error {
+func (h *Hub) onGroupInvite(senderId string, payload []byte) {
 	var data struct {
-		TargetUserID string `json:"targetUserId"`
-		Group        any    `json:"group"`
+		TargetUserId string      `json:"targetUserId"`
+		Group        types.Group `json:"group"`
 	}
 	if err := json.Unmarshal(payload, &data); err != nil {
-		return err
+		h.sendError(senderId, http.StatusBadRequest, "")
 	}
+
 	raw, _ := json.Marshal(Signal{
 		Kind: "group_invitation_received",
 		Data: data,
 	})
-	h.sendToUser(data.TargetUserID, raw)
-	return nil
+
+	h.sendToUser(data.TargetUserId, raw)
+	return
 }
 
 // Notify group creator of a new join request
@@ -47,7 +53,7 @@ func (h *Hub) onInviteAccepted(userID string, payload []byte) error {
 		Kind: "group_invite_accepted",
 		Data: map[string]any{"userId": userID, "groupId": data.GroupID},
 	})
-	h.broadcast(raw, "") // or send only to group members
+	h.broadcast(raw, "")
 	return nil
 }
 

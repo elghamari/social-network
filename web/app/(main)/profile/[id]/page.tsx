@@ -16,7 +16,9 @@ export default function UserProfilePage() {
   const router = useRouter();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [modalType, setModalType] = useState<"followers" | "following" | null>(null);
+  const [modalType, setModalType] = useState<"followers" | "following" | null>(
+    null,
+  );
 
   useEffect(() => {
     if (!profileId) return;
@@ -29,7 +31,7 @@ export default function UserProfilePage() {
     const fetchProfile = async () => {
       try {
         const res = await client.get(`/profile?profile_id=${profileId}`);
-        if (res.status === 200) {
+        if (res) {
           if (res.user.follow_status === "owner") {
             router.push("/profile");
             return;
@@ -51,13 +53,18 @@ export default function UserProfilePage() {
     console.log("profile---------------------------------------", profile);
 
     try {
-      if (profile.follow_status === "following" || profile.follow_status === "pending") {
+      if (
+        profile.follow_status === "following" ||
+        profile.follow_status === "pending"
+      ) {
         const res = await client.delete(`/unfollow?target_id=${profileId}`);
         if (res.status === 200) {
           setProfile((prev: any) => ({
             ...prev,
             follow_status: "none",
-            followers: prev.followers?.filter((f: any) => f.id !== currentUser?.id)
+            followers: prev.followers?.filter(
+              (f: any) => f.id !== currentUser?.id,
+            ),
           }));
         }
       } else {
@@ -66,7 +73,6 @@ export default function UserProfilePage() {
           setProfile((prev: any) => {
             const newStatus = res.follow_status;
             let updatedFollowers = prev.followers || [];
-
 
             if (newStatus === "following" && currentUser) {
               updatedFollowers = [
@@ -78,7 +84,7 @@ export default function UserProfilePage() {
                   avatar: currentUser.avatar,
                   nickname: currentUser.nickname,
                   about_me: currentUser.about_me,
-                }
+                },
               ];
             }
 
@@ -100,11 +106,17 @@ export default function UserProfilePage() {
       const res = await client.post(`/follow/accept?target_id=${reqId}`, {});
       if (res.status === 200) {
         setProfile((prev: any) => {
-          const accepted = prev.pending_requests?.find((r: any) => r.id === reqId);
+          const accepted = prev.pending_requests?.find(
+            (r: any) => r.id === reqId,
+          );
           return {
             ...prev,
-            pending_requests: prev.pending_requests?.filter((r: any) => r.id !== reqId),
-            followers: accepted ? [...(prev.followers || []), accepted] : prev.followers,
+            pending_requests: prev.pending_requests?.filter(
+              (r: any) => r.id !== reqId,
+            ),
+            followers: accepted
+              ? [...(prev.followers || []), accepted]
+              : prev.followers,
           };
         });
       }
@@ -119,7 +131,9 @@ export default function UserProfilePage() {
       if (res.status === 200) {
         setProfile((prev: any) => ({
           ...prev,
-          pending_requests: prev.pending_requests?.filter((r: any) => r.id !== reqId),
+          pending_requests: prev.pending_requests?.filter(
+            (r: any) => r.id !== reqId,
+          ),
         }));
       }
     } catch (err) {
@@ -155,10 +169,11 @@ export default function UserProfilePage() {
       >
         {profile.follow_status !== "owner" && (
           <button
-            className={`profile-btn ${profile.follow_status === "none"
+            className={`profile-btn ${
+              profile.follow_status === "none"
                 ? "profile-btn--follow"
                 : "profile-btn--unfollow"
-              }`}
+            }`}
             onClick={handleFollowToggle}
           >
             {followBtnText}
@@ -183,7 +198,14 @@ export default function UserProfilePage() {
       ) : (
         <div className="profile-private">
           <div className="profile-private__icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="48" height="48">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              width="48"
+              height="48"
+            >
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
               <path d="M7 11V7a5 5 0 0 1 10 0v4" />
             </svg>
@@ -242,13 +264,12 @@ export default function UserProfilePage() {
           title={modalType === "followers" ? "Followers" : "Following"}
           isOpen={!!modalType}
           onClose={() => setModalType(null)}
-          users={modalType === "followers" ? profile.followers : profile.following}
+          users={
+            modalType === "followers" ? profile.followers : profile.following
+          }
         />
       )}
-      {
-
-      }
+      {}
     </div>
-
   );
 }
