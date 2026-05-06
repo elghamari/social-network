@@ -316,6 +316,10 @@ func (s *GroupService) GetJoinRequestUsers(groupId, userId, cursor string) ([]ty
 	return s.Group.GetJoinRequestUsersForGroup(groupId, cursor)
 }
 
+func (s *GroupService) GetJoinRequestUser(groupId, userId string) (types.JoinRequestUser, error) {
+	return s.Group.GetJoinRequestUserForGroup(groupId, userId)
+}
+
 func (s *GroupService) ApproveJoinRequest(groupId, approverId, userId string) error {
 	if err := s.ensureGroupExists(groupId); err != nil {
 		return err

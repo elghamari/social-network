@@ -158,10 +158,10 @@ func (h *Handler) GroupInvitations(w http.ResponseWriter, r *http.Request) {
 
 	case http.MethodDelete:
 		if r.URL.Query().Get("userId") != "" {
-			h.RevokeGroupInvitation(w, r)
+			h.DeclineGroupInvitation(w, r)
 
 		} else {
-			h.DeclineGroupInvitation(w, r)
+			h.RevokeGroupInvitation(w, r)
 
 		}
 
@@ -216,7 +216,7 @@ func (h *Handler) SendGroupInvitation(w http.ResponseWriter, r *http.Request) {
 
 		payload, err := json.Marshal(map[string]any{
 			"targetUserId": userId,
-			"groupId":      group,
+			"group":        group,
 		})
 		if err != nil {
 			log.Println("%s.SendGroupInvitation: Marshal: %w", groupHandlerName, err)
@@ -322,15 +322,6 @@ func (h *Handler) GetJoinRequestUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) SendJoinRequest(w http.ResponseWriter, r *http.Request) {
-	var body struct {
-		UserId string `json:"userId"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
-			"error": "Invalid request body",
-		})
-		return
-	}
 
 	userId := utils.GetUserId(r)
 	groupId := r.PathValue("id")
@@ -338,6 +329,33 @@ func (h *Handler) SendJoinRequest(w http.ResponseWriter, r *http.Request) {
 	if err := h.Services.Group.SendJoinRequest(groupId, userId); err != nil {
 		HandleError(w, err)
 		return
+	}
+
+	user, err := h.Services.Group.GetJoinRequestUser(groupId, userId)
+	if err != nil {
+		log.Println("%s.SendJoinRequest: GetJoinRequestUser: %w", groupHandlerName, err)
+	}
+
+	group, err := h.Services.Group.GetGroup(groupId, userId)
+	if err != nil {
+		log.Println("%s.SendJoinRequest: GetGroup: %w", groupHandlerName, err)
+
+	} else {
+
+		payload, err := json.Marshal(map[string]any{
+			"group": group,
+			"user":  user,
+		})
+		if err != nil {
+			log.Println("%s.SendJoinRequest: Marshal: %w", groupHandlerName, err)
+		}
+
+		h.Hub.Dispatch(hub.Action{
+			Kind:    "group_join_request",
+			OwnerID: userId,
+			Payload: payload,
+		})
+
 	}
 
 	utils.WriteJson(w, http.StatusOK, nil)

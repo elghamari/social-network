@@ -69,7 +69,7 @@ export default function GroupActions({
     if (resp) onRoleChange("member");
   };
 
-  const handleRejectInv = async (e: React.MouseEvent) => {
+  const handleDeclineInv = async (e: React.MouseEvent) => {
     stop(e);
 
     setLoading(true);
@@ -91,8 +91,8 @@ export default function GroupActions({
       <div className={`${prefix}__actions`}>
         <button
           className={`${prefix}__btn ${prefix}__btn--ghost`}
-          onClick={handleRejectInv}
-          disabled={loading}
+          onClick={handleDeclineInv}
+          disabled={loading} 
         >
           {loading ? "..." : "Decline"}
         </button>

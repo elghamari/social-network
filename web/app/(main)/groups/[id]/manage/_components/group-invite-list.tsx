@@ -17,7 +17,6 @@ type Props = {
 const SKELETON_COUNT = 5;
 
 export default function GroupInviteList({ groupId, invites }: Props) {
-  const { socket, isConnected } = useWebSocket();
   const [pendingId, setPendingId] = useState<string | null>(null);
 
   async function handleInvite(userId: string, isInvited: boolean) {
@@ -26,21 +25,10 @@ export default function GroupInviteList({ groupId, invites }: Props) {
     setPendingId(userId);
     const resp = await action(groupId, userId);
     setPendingId(null);
-    
+
     if (!resp) return;
 
     invites.toggleInvite(userId, isInvited);
-
-    if (!(socket && isConnected)) return;
-
-    console.log("invite", userId);
-
-    socket.send(
-      JSON.stringify({
-        type: "group_invite",
-        data: { groupId: groupId, targetUserId: userId },
-      }),
-    );
   }
 
   const isEmpty = !invites.loading && invites.list.length === 0;

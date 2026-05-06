@@ -26,20 +26,20 @@ func (h *Hub) onGroupInvite(senderId string, payload []byte) {
 }
 
 // Notify group creator of a new join request
-func (h *Hub) onJoinRequest(requesterID string, payload []byte) error {
+func (h *Hub) onJoinRequest(requesterId string, payload []byte) error {
 	var data struct {
-		CreatorID string `json:"creatorId"`
-		GroupID   string `json:"groupId"`
-		User      any    `json:"user"`
+		Group types.Group           `json:"group"`
+		User  types.JoinRequestUser `json:"user"`
 	}
 	if err := json.Unmarshal(payload, &data); err != nil {
 		return err
 	}
+
 	raw, _ := json.Marshal(Signal{
 		Kind: "group_join_request",
 		Data: data,
 	})
-	h.sendToUser(data.CreatorID, raw)
+	h.sendToUser(data.Group.CreatorId, raw)
 	return nil
 }
 

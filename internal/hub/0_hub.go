@@ -128,10 +128,10 @@ func (h *Hub) handleAction(act Action) {
 		h.sendToUser(act.OwnerID, raw)
 
 		// -- Group actions ------------
-	case "group_invitation":
+	case "group_invite":
 		h.onGroupInvite(act.OwnerID, act.Payload)
 
-	case "join_request":
+	case "group_join_request":
 		h.onJoinRequest(act.OwnerID, act.Payload)
 
 	case "invite_accepted":

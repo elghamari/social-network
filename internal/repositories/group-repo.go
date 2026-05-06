@@ -383,14 +383,17 @@ func (r *GroupRepo) DeleteJoinRequest(db DBTX, groupId, userId string) error {
 	return nil
 }
 
-func (r *GroupRepo) getJoinRequestUsersSQL(groupId, cursor string) (string, []any) {
-	sql := `
+func (r *GroupRepo) getJoinRequestBaseSQL(groupId string) (string, []any) {
+	return `
 		SELECT u.id, u.first_name, u.last_name, u.created_at, u.avatar
 		FROM group_join_requests gjr
 		JOIN users u ON u.id = gjr.user_id
-		WHERE gjr.group_id = ?`
+		WHERE gjr.group_id = ?`,
+		[]any{groupId}
+}
 
-	args := []any{groupId}
+func (r *GroupRepo) getJoinRequestUsersSQL(groupId, cursor string) (string, []any) {
+	sql, args := r.getJoinRequestBaseSQL(groupId)
 
 	if cursor != "" {
 		sql += `
@@ -423,6 +426,30 @@ func (r *GroupRepo) GetJoinRequestUsersForGroup(groupId, cursor string) ([]types
 		requests = append(requests, req)
 	}
 	return requests, nil
+}
+
+func (r *GroupRepo) getJoinRequestUserSQL(groupId, userId string) (string, []any) {
+	sql, args := r.getJoinRequestBaseSQL(groupId)
+
+	sql += `
+	AND gjr.user_id = ?`
+
+	args = append(args, userId)
+
+	return sql, args
+}
+
+func (r *GroupRepo) GetJoinRequestUserForGroup(groupId, userId string) (types.JoinRequestUser, error) {
+	sql, args := r.getJoinRequestUserSQL(groupId, userId)
+
+	user := types.JoinRequestUser{}
+
+	err := r.DB.QueryRow(sql, args...).Scan(&user.Id, &user.FirstName, &user.LastName, &user.CreatedAt, &user.AvatarPath)
+	if err != nil {
+		return types.JoinRequestUser{}, fmt.Errorf("%s.GetJoinRequestUserForGroup: %w", groupRepoName, err)
+	}
+
+	return user, nil
 }
 
 func (r *GroupRepo) HasJoinRequest(groupId, userId string) (bool, error) {
