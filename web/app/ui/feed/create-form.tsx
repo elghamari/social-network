@@ -33,6 +33,7 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
             <PostForm 
             onCancel={handleClose} 
             onPostCreated={onPostCreated}
+            inGroup={false}
             />
           </div>
         </div>

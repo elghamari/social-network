@@ -13,7 +13,7 @@ import {
 import { validatePostForm } from "@/app/lib/utils/validate";
 import { showToast } from "../layout/toast-store";
 
-export default function PostForm({ onCancel, onPostCreated }: PostFormProps) {
+export default function PostForm({ onCancel, onPostCreated, inGroup, groupId }: PostFormProps) {
   const [inputForm, setInputForm] = useState<FormState>({
     title: "",
     description: "",
@@ -81,6 +81,9 @@ export default function PostForm({ onCancel, onPostCreated }: PostFormProps) {
     formData.append("title", inputForm.title);
     formData.append("description", inputForm.description);
     formData.append("privacy", inputForm.privacy);
+    if (inGroup) {
+      formData.append("groupId", groupId || "");
+    }
 
     if (inputForm.image) {
       formData.append("image", inputForm.image);
@@ -206,6 +209,7 @@ export default function PostForm({ onCancel, onPostCreated }: PostFormProps) {
                 <span>Image</span>
               </button>
             </div>
+            {!inGroup &&(
             <div className="privacy-control">
               <select
                 className={`create-post-privacy ${formErrors?.privacy ? "input-error" : ""}`}
@@ -221,6 +225,7 @@ export default function PostForm({ onCancel, onPostCreated }: PostFormProps) {
                 <option value="private">Private (Selected followers)</option>
               </select>
             </div>
+            )}
 
             <button
               type="button"
