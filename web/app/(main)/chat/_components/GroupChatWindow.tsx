@@ -3,7 +3,7 @@
 import styles from "../../chat/chat.module.css"; 
 import ChatInput from "./ChatInput"; 
 import MessageBubble from "./MessageBubble"; 
-import { useGroupChatManager } from "../../groups/_hooks/useGroupChatManager";
+import { useGroupChatManager } from "../../groups/[id]/chat/_hooks/useGroupChatManager";
 export default function GroupChatWindow() {
   const {
     messages,

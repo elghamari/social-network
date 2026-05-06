@@ -2,10 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
-	"fmt"
+
 	"soc-net/internal/utils"
 
 	"github.com/gorilla/websocket"
@@ -58,9 +59,7 @@ func (h *Handler) GetRecentContacts(w http.ResponseWriter, r *http.Request) {
 
 	contacts, err := h.Services.Chat.GetRecentContacts(userId)
 	if err != nil {
-		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
-			"error": err.Error(),
-		})
+		HandleError(w, err)
 		return
 	}
 
@@ -116,7 +115,7 @@ func (h *Handler) GetAvailableChatUsers(w http.ResponseWriter, r *http.Request) 
 	}
 
 	userId := utils.GetUserId(r)
-	 fmt.Println("LOGGED IN USER ID:", userId)
+	fmt.Println("LOGGED IN USER ID:", userId)
 
 	users, err := h.Services.Chat.GetAvailableChatUsers(userId)
 	if err != nil {
