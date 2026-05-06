@@ -1,13 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import client from "@/app/lib/services/_client";
 import ProfileHeader from "@/app/ui/profile/ProfileHeader";
 import ProfileStats from "@/app/ui/profile/ProfileStats";
 import FollowModal from "@/app/ui/profile/FollowModal";
 import { useAuth } from "@/app/_context/AuthContext";
 import "../profile.css";
-import { useRouter } from "next/navigation";
 
 export default function UserProfilePage() {
   const params = useParams();
@@ -29,12 +28,15 @@ export default function UserProfilePage() {
     const fetchProfile = async () => {
       try {
         const res = await client.get(`/profile?profile_id=${profileId}`);
-        if (res.status === 200) {
-          if (res.user.follow_status === "owner") {
+        if (res) {
+          // هكا غيخدم سواء الباكاند رجع الداتا وسط user ولا نيشان
+          const profileData = res.user || res; 
+          
+          if (profileData.follow_status === "owner") {
             router.push("/profile");
             return;
           }
-          setProfile(res.user);
+          setProfile(profileData);
         }
       } catch (err) {
         console.log("Error fetching profile:", err);
@@ -48,12 +50,11 @@ export default function UserProfilePage() {
 
   const handleFollowToggle = async () => {
     if (!profile) return;
-    console.log("profile---------------------------------------", profile);
 
     try {
       if (profile.follow_status === "following" || profile.follow_status === "pending") {
         const res = await client.delete(`/unfollow?target_id=${profileId}`);
-        if (res.status === 200) {
+        if (res) {
           setProfile((prev: any) => ({
             ...prev,
             follow_status: "none",
@@ -62,11 +63,10 @@ export default function UserProfilePage() {
         }
       } else {
         const res = await client.post(`/follow?target_id=${profileId}`, {});
-        if (res.status === 200) {
+        if (res) {
           setProfile((prev: any) => {
-            const newStatus = res.follow_status;
+            const newStatus = res.follow_status || "pending"; // على حساب شنو كيرجع الباكاند
             let updatedFollowers = prev.followers || [];
-
 
             if (newStatus === "following" && currentUser) {
               updatedFollowers = [
@@ -98,7 +98,7 @@ export default function UserProfilePage() {
   const handleAccept = async (reqId: string) => {
     try {
       const res = await client.post(`/follow/accept?target_id=${reqId}`, {});
-      if (res.status === 200) {
+      if (res) {
         setProfile((prev: any) => {
           const accepted = prev.pending_requests?.find((r: any) => r.id === reqId);
           return {
@@ -116,7 +116,7 @@ export default function UserProfilePage() {
   const handleDecline = async (reqId: string) => {
     try {
       const res = await client.post(`/follow/decline?target_id=${reqId}`, {});
-      if (res.status === 200) {
+      if (res) {
         setProfile((prev: any) => ({
           ...prev,
           pending_requests: prev.pending_requests?.filter((r: any) => r.id !== reqId),
@@ -195,48 +195,6 @@ export default function UserProfilePage() {
         </div>
       )}
 
-      {/* Pending Requests */}
-      {/* {profile.follow_status === "owner" && profile.pending_requests?.length > 0 && (
-        <div className="profile-pending">
-          <h3 className="profile-pending__title">
-            Pending Requests ({profile.pending_requests.length})
-          </h3>
-          {profile.pending_requests.map((req: any) => {
-            const reqId = req.id || req.ID;
-            return (
-              <div key={reqId} className="profile-pending__item">
-                <div className="profile-pending__user">
-                  <div className="profile-pending__avatar">
-                    {req.avatar ? (
-                      <img src={req.avatar} alt="avatar" />
-                    ) : (
-                      (req.first_name)?.[0]
-                    )}
-                  </div>
-                  <span className="profile-pending__name">
-                    {req.first_name} {req.last_name}
-                  </span>
-                </div>
-                <div className="profile-pending__actions">
-                  <button
-                    className="profile-pending__btn profile-pending__btn--accept"
-                    onClick={() => handleAccept(reqId)}
-                  >
-                    Accept
-                  </button>
-                  <button
-                    className="profile-pending__btn profile-pending__btn--decline"
-                    onClick={() => handleDecline(reqId)}
-                  >
-                    Decline
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )} */}
-
       {modalType && (
         <FollowModal
           title={modalType === "followers" ? "Followers" : "Following"}
@@ -245,10 +203,6 @@ export default function UserProfilePage() {
           users={modalType === "followers" ? profile.followers : profile.following}
         />
       )}
-      {
-
-      }
     </div>
-
   );
 }

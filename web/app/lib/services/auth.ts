@@ -1,4 +1,4 @@
-import { LoginInput, RegisterInput, LoginResponse, RegisterResponse } from "../types/auth";
+import { LoginInput, LoginResponse, RegisterResponse, GetMeResponse } from "../types/auth";
 import client from "./_client";
 
 export const authService = {
@@ -11,7 +11,8 @@ export const authService = {
   logout: async () => {
     return await client.post("/auth/logout", {});
   },
-  getMe: async () => {
-    return await client.get("/auth/me");
+
+  getMe: async (): Promise<GetMeResponse> => {
+    return await client.get("/me");
   },
 };

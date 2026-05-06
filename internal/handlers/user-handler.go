@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+
 	"soc-net/internal/types"
 	"soc-net/internal/utils"
 )
@@ -146,6 +147,11 @@ func (h *Handler) GetMe(w http.ResponseWriter, r *http.Request) {
 			FirstName:       user.FirstName,
 			LastName:        user.LastName,
 			IsPublic:        user.IsPublic,
+			Email:           user.Email,
+			Avatar:          *user.Avatar,
+			AboutMe:         *user.AboutMe,
+			Nickname:        *user.Nickname,
+			DateOfBirth:     user.DateOfBirth,
 			FollowStatus:    "owner",
 			Followers:       followers,
 			Following:       following,
@@ -196,6 +202,11 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 			FollowStatus:    followStatus,
 			Followers:       followers,
 			Following:       following,
+			Email:           target.Email,
+			Avatar:          *target.Avatar,
+			AboutMe:         *target.AboutMe,
+			Nickname:        *target.Nickname,
+			DateOfBirth:     target.DateOfBirth,
 			PendingRequests: pending,
 		},
 	})

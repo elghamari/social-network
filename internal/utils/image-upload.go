@@ -8,12 +8,13 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"soc-net/internal/types"
 	"strings"
 	"time"
+
+	"soc-net/internal/types"
 )
 
-const MaxImageSize = 5 * 1024 * 1024
+const MaxImageSize = 2 * 1024 * 1024
 
 func isImageExtension(fileName string) bool {
 	ext := strings.ToLower(filepath.Ext(fileName))
@@ -70,6 +71,11 @@ func HandleImageUpload(r *http.Request, fieldName string) (*string, error) {
 
 	if formErr.HasErrors() {
 		return nil, formErr
+	}
+
+	err = os.MkdirAll("web/public/uploads", 0o755)
+	if err != nil {
+		return nil, err
 	}
 
 	fileName := fmt.Sprintf("%d%s", time.Now().UnixNano(), filepath.Ext(header.Filename))

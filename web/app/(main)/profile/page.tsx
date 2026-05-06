@@ -16,6 +16,7 @@ export default function ProfilePage() {
   );
   const [isPublic, setIsPublic] = useState<boolean>(user?.is_public ?? true);
   const [isEditingProfile, setIsEditingProfile] = useState<boolean>(false);
+  
   useEffect(() => {
     if (user && user.is_public !== undefined) {
       setIsPublic(user.is_public);
@@ -29,6 +30,7 @@ export default function ProfilePage() {
   const handleEditingProfile = () => {
     setIsEditingProfile(!isEditingProfile);
   };
+
   const handlePrivacyToggle = async () => {
     const newStatus = !isPublic;
     setIsPublic(newStatus);
@@ -36,7 +38,7 @@ export default function ProfilePage() {
       const res = await client.put("/profile/privacy", {
         is_public: newStatus,
       });
-      if (res.status !== 200) {
+      if (!res) {
         setIsPublic(!newStatus);
       }
     } catch (err) {
@@ -44,10 +46,11 @@ export default function ProfilePage() {
       setIsPublic(!newStatus);
     }
   };
+
   const handleAccept = async (reqId: string) => {
     try {
       const res = await client.post(`/follow/accept?target_id=${reqId}`, {});
-      if (res.status === 200) {
+      if (res) {
         window.location.reload();
       }
     } catch (err) {
@@ -58,13 +61,14 @@ export default function ProfilePage() {
   const handleDecline = async (reqId: string) => {
     try {
       const res = await client.post(`/follow/decline?target_id=${reqId}`, {});
-      if (res.status === 200) {
+      if (res) {
         window.location.reload();
       }
     } catch (err) {
       console.log("Decline error:", err);
     }
   };
+
   return (
     <div className="profile-page">
       <ProfileHeader
@@ -100,6 +104,7 @@ export default function ProfilePage() {
         onFollowersClick={() => setModalType("followers")}
         onFollowingClick={() => setModalType("following")}
       />
+      
       {user.pending_requests?.length > 0 && (
         <div className="profile-pending">
           <h3 className="profile-pending__title">
