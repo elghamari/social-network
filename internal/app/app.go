@@ -44,7 +44,7 @@ func New(cfg *Config) (*App, error) {
 
 	limiter := middleware.NewLimiterStore()
 	mid := middleware.New(svcs.Auth, limiter)
-	handler := handlers.New(svcs, cfg.Port)
+	handler := handlers.New(svcs)
 
 	mux := http.NewServeMux()
 	handler.RegisterRoutes(mux, mid)

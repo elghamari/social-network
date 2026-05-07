@@ -3,18 +3,20 @@ package handlers
 import (
 	"net/http"
 
+	"soc-net/internal/hub"
 	"soc-net/internal/middleware"
 	"soc-net/internal/services"
 )
 
 type Handler struct {
 	Services *services.Services
-	Hub      *Hub
+	Hub      *hub.Hub
 }
 
-func New(svcs *services.Services, port string) *Handler {
-	hub := NewHub(svcs.Chat)
+func New(svcs *services.Services) *Handler {
+	hub := hub.NewHub(svcs.Chat)
 	go hub.Start()
+
 	return &Handler{
 		Services: svcs,
 		Hub:      hub,

@@ -3,6 +3,8 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"time"
+
 	"soc-net/internal/types"
 	"soc-net/internal/utils"
 )
@@ -37,6 +39,29 @@ func (h *Handler) FollowUser(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+
+	var notif types.Notification
+
+	if finalStatus == "pending" {
+		notif = types.Notification{
+			Type:       "follow_request",
+			SenderID:   userID,
+			ReceiverID: targetID,
+			Content:    "requested to follow you",
+			CreatedAt:  time.Now(),
+		}
+	} else if finalStatus == "following" {
+		notif = types.Notification{
+			Type:       "follow",
+			SenderID:   userID,
+			ReceiverID: targetID,
+			Content:    "started following you",
+			CreatedAt:  time.Now(),
+		}
+	}
+
+	h.Hub.PushNotification(targetID, notif)
+	// --------------------------------
 
 	utils.WriteJson(w, http.StatusOK, map[string]any{
 		"follow_status": finalStatus,
