@@ -1,12 +1,10 @@
 package handlers
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 
-	"soc-net/internal/services"
 	"soc-net/internal/utils"
 )
 
@@ -38,23 +36,8 @@ func (h *Handler) ToggleReaction(w http.ResponseWriter, r *http.Request) {
 
 	isLiked, totalLikes, err := h.Services.Reactions.UpdateReaction(userId, postId)
 	if err != nil {
-		if errors.Is(err, services.ErrPostNotFound) {
-			utils.WriteJson(w, http.StatusNotFound, map[string]any{
-				"error": err.Error(),
-			})
-			return
-		}
-		if errors.Is(err, services.ErrUnauthorizedAccess) {
-			utils.WriteJson(w, http.StatusForbidden, map[string]any{
-				"error": err.Error(),
-			})
-			return
-		}
-
 		fmt.Println("ToggleReaction Error:", err)
-		utils.WriteJson(w, http.StatusInternalServerError, map[string]any{
-			"error": "internal server error",
-		})
+		HandleError(w, err)
 		return
 	}
 

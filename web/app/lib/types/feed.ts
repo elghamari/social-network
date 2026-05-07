@@ -9,6 +9,8 @@ export interface FormState {
 export interface PostFormProps {
   onCancel: () => void;
   onPostCreated?: () => void;
+  inGroup: boolean;
+  groupId?: string;
 }
 
 export interface CreatePostFormProps {

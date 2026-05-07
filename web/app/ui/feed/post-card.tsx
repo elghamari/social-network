@@ -7,6 +7,7 @@ import { ToggleLikePost } from "@/app/lib/services/feed";
 import { showToast } from "../layout/toast-store";
 import CommentSection from "./comment-section";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function PostCard({ post }: { post: PostType }) {
 
@@ -24,13 +25,13 @@ export default function PostCard({ post }: { post: PostType }) {
     try {
       const response = await ToggleLikePost(post.id);
       
-      if (response && response.status === 200) {
+      if (response) {
         setIsLiked(!isLiked);
         setLikesCount(prev => isLiked ? prev - 1 : prev + 1);
       }
     } catch (error: any) {
-        showToast(`${error.message}`)
-        console.log("Error :", error);
+      console.log("Error :", error);
+      showToast("Network error. Please check your connection.");
     } finally {
       setIsLiking(false);
     }
@@ -40,14 +41,22 @@ export default function PostCard({ post }: { post: PostType }) {
   return (
     <article className="post-card">
       <div className="post-card-header">
-          {/* <Image className="post-card-avatar" src={post.author.avatar ?? ''} alt={`${post.author.nickname}'s avatar`}/> */}
-          <div className="post-card-avatar">{post.author.nickname[0]}</div>
-
+          <Link href={`/profile/${post.author.id}`}>
+          {
+            post.author.avatar ? (
+              <Image className="post-card-avatar post-card-image" width={100} height={100} src={post.author.avatar ?? ''} alt={`${post.author.nickname}'s avatar`}/>
+            ) : (
+              <div className="post-card-avatar">{`${post?.author?.fistname[0].toUpperCase() || '?'}${post?.author?.lastname[0].toUpperCase() || '?'}`}</div>
+            )
+          }
+          </Link>
         
         <div className="post-card-meta">
           <div className="post-author-info">
+            <Link href={`/profile/${post.author.id}`}>
             <span className="post-author-name">{`${post.author.fistname} ${post.author.lastname}`}</span>
-            <span className="post-author-username">{`@${post.author.nickname}`}</span>
+            </Link>
+            <span className="post-author-username">{ post.author.nickname ? `@${post.author.nickname}` : '' }</span>
           </div>
           <div className="post-time-privacy">
             <span>{FormatTime(post.created_at)}</span>

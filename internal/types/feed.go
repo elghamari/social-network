@@ -28,11 +28,11 @@ type Reaction struct {
 }
 
 type UserResponse struct {
-	Id        string `json:"id"`
-	Nickname  string `json:"nickname"`
-	FirstName string `json:"fistname"`
-	LastName  string `json:"lastname"`
-	Avatar    string `json:"avatar"`
+	Id        string  `json:"id"`
+	Nickname  *string  `json:"nickname"`
+	FirstName string  `json:"fistname"`
+	LastName  string  `json:"lastname"`
+	Avatar    *string `json:"avatar"`
 }
 
 type PostResponse struct {

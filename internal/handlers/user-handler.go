@@ -165,6 +165,7 @@ func (h *Handler) GetMe(w http.ResponseWriter, r *http.Request) {
     })
 }
 
+
 // GET /api/profile?profile_id=<id>
 func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	viewerID := utils.GetUserId(r)

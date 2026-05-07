@@ -57,6 +57,7 @@
   justify-content: center;
   width: 100%;
   padding-bottom: 20px;
+  padding: 20px;
 }
 
 .create-form-container {
@@ -67,8 +68,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  width: 100%;
-  max-width: 700px;
+  width: 40rem;
   box-shadow: var(--shadow-lg);
   animation: fadeIn var(--transition-normal);
 }
@@ -355,13 +355,7 @@
   to { opacity: 1; }
 }
 
-.create-form-wrapper {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  max-width: 650px;
-  padding: 20px;
-}
+
 
 .input-error {
   border-bottom: 1px solid #ef4444 !important;
@@ -402,6 +396,7 @@
   font-weight: 700;
   font-size: 16px;
   flex-shrink: 0;
+  object-fit: cover;
 }
 
 .post-card-meta {
@@ -603,8 +598,8 @@
 }
 
 .comment-avatar {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: var(--accent-gradient);
   display: flex;

@@ -4,11 +4,16 @@ import "./posts.css";
 import PrivateSection from "./private-section";
 import { useAuth } from "@/app/_context/AuthContext";
 import { CreatePost } from "@/app/lib/services/feed";
-import { CreatePostFormProps, FormState, PostErrors, PostFormProps } from "@/app/lib/types/feed";
+import {
+  CreatePostFormProps,
+  FormState,
+  PostErrors,
+  PostFormProps,
+} from "@/app/lib/types/feed";
 import { validatePostForm } from "@/app/lib/utils/validate";
 import { showToast } from "../layout/toast-store";
 
-export default function PostForm({ onCancel, onPostCreated }: PostFormProps) {
+export default function PostForm({ onCancel, onPostCreated, inGroup, groupId }: PostFormProps) {
   const [inputForm, setInputForm] = useState<FormState>({
     title: "",
     description: "",
@@ -72,39 +77,53 @@ export default function PostForm({ onCancel, onPostCreated }: PostFormProps) {
     }
     setFormErrors(null);
 
+    const formData = new FormData();
+    formData.append("title", inputForm.title);
+    formData.append("description", inputForm.description);
+    formData.append("privacy", inputForm.privacy);
+    if (inGroup) {
+      formData.append("groupId", groupId || "");
+    }
+
+    if (inputForm.image) {
+      formData.append("image", inputForm.image);
+    }
+
+    if (inputForm.privacy === "private") {
+      inputForm.privateUsers.forEach((userId) => {
+        formData.append("privateUsers", userId);
+      });
+    }
+
+    console.log("### Form Data >>>>>>>>>>>>>>> ", formData);
+
     try {
-      const formData = new FormData();
-      formData.append("title", inputForm.title);
-      formData.append("description", inputForm.description);
-      formData.append("privacy", inputForm.privacy);
-
-      if (inputForm.image) {
-        formData.append("image", inputForm.image);
-      }
-
-      if (inputForm.privacy === "private") {
-        inputForm.privateUsers.forEach((userId) => {
-          formData.append("privateUsers", userId);
-        });
-      }
-
-      console.log("###########################>>>>>>>>>>>>>>> ", formData);
-
       const response = await CreatePost(formData);
 
-      console.log("====================================>>>>> ", response);
+      console.log("====== Reasponse >>>>> ", response);
 
-      if (response.status === 201) {
+      if (response) {
+        if (response.fields) {
+          if (response.fields.coverImage.length > 1) {
+            response.fields.coverImage.forEach((el: string, i: number) => {
+              console.log(`Error - ${i} : ${el}`);
+            });
+            showToast("Please check your inputs.");
+          } else {
+            showToast(response.fields.coverImage[0]);
+          }
+          return;
+        }
+
         console.log("Post created successfully:");
         onCancel();
         if (onPostCreated) {
           onPostCreated();
         }
-      } else {
-        showToast("Failed to create post, try again.");
       }
     } catch (error) {
-      showToast("Something went wrong!, try again.");
+      console.log("Network error creating post:", error);
+      showToast("Network error. Please check your connection.");
     }
   };
 
@@ -115,7 +134,7 @@ export default function PostForm({ onCancel, onPostCreated }: PostFormProps) {
       <div className="create-form-container">
         <input
           type="text"
-          className={`create-post-title ${formErrors?.title ? 'input-error' : ''}`}
+          className={`create-post-title ${formErrors?.title ? "input-error" : ""}`}
           placeholder="Post title..."
           value={inputForm.title}
           onChange={(e) => {
@@ -126,7 +145,7 @@ export default function PostForm({ onCancel, onPostCreated }: PostFormProps) {
         />
 
         <textarea
-          className={`create-post-area ${formErrors?.description ? 'input-error' : ''}`}
+          className={`create-post-area ${formErrors?.description ? "input-error" : ""}`}
           placeholder="What's on your mind?"
           value={inputForm.description}
           onChange={(e) => {
@@ -190,19 +209,23 @@ export default function PostForm({ onCancel, onPostCreated }: PostFormProps) {
                 <span>Image</span>
               </button>
             </div>
+            {!inGroup &&(
             <div className="privacy-control">
               <select
-                className={`create-post-privacy ${formErrors?.privacy ? 'input-error' : ''}`}
+                className={`create-post-privacy ${formErrors?.privacy ? "input-error" : ""}`}
                 value={inputForm.privacy}
                 onChange={(e) =>
                   setInputForm((prev) => ({ ...prev, privacy: e.target.value }))
                 }
               >
                 <option value="public">Public</option>
-                <option value="almost private">Almost Private (Followers only)</option>
+                <option value="almost private">
+                  Almost Private (Followers only)
+                </option>
                 <option value="private">Private (Selected followers)</option>
               </select>
             </div>
+            )}
 
             <button
               type="button"

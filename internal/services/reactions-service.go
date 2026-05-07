@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"soc-net/internal/repositories"
+	"soc-net/internal/types"
 )
 
 type ReactionsService struct {
@@ -25,11 +26,11 @@ func (s *ReactionsService) UpdateReaction(currentUserId string, postId int) (boo
 	}
 
 	if !postExists {
-		return false, 0, ErrPostNotFound
+		return false, 0, types.NewNotFoundError("the specified user does not exist.")
 	}
 
 	if !canInteract {
-		return false, 0, ErrUnauthorizedAccess
+		return false, 0, types.NewForbiddenError("you do not have permission to interact with this post.")
 	}
 
 	return s.Reactions.ToggleReaction(currentUserId, postId)

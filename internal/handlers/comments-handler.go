@@ -1,12 +1,10 @@
 package handlers
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 
-	"soc-net/internal/services"
 	"soc-net/internal/types"
 	"soc-net/internal/utils"
 )
@@ -64,30 +62,7 @@ func (h *Handler) CreateComment(w http.ResponseWriter, r *http.Request) {
 
 	commentId, err := h.Services.Comments.CreateComment(userId, input)
 	if err != nil {
-		if errors.Is(err, services.ErrInvalidCommentContent) || errors.Is(err, services.ErrInvalidImage) {
-			utils.WriteJson(w, http.StatusBadRequest, map[string]any{
-				"error": err.Error(),
-			})
-			return
-		}
-
-		if errors.Is(err, services.ErrPostNotFound) {
-			utils.WriteJson(w, http.StatusNotFound, map[string]any{
-				"error": err.Error(),
-			})
-			return
-		}
-		if errors.Is(err, services.ErrUnauthorizedAccess) {
-			utils.WriteJson(w, http.StatusForbidden, map[string]any{
-				"error": err.Error(),
-			})
-			return
-		}
-
-		fmt.Println("CreateComment Error:", err)
-		utils.WriteJson(w, http.StatusInternalServerError, map[string]any{
-			"error": "internal server error",
-		})
+		HandleError(w, err)
 		return
 	}
 
@@ -137,23 +112,8 @@ func (h *Handler) GetPostComments(w http.ResponseWriter, r *http.Request) {
 
 	comments, err := h.Services.Comments.GetPostComments(userId, postId, cursor)
 	if err != nil {
-		if errors.Is(err, services.ErrPostNotFound) {
-			utils.WriteJson(w, http.StatusNotFound, map[string]any{
-				"error": err.Error(),
-			})
-			return
-		}
-		if errors.Is(err, services.ErrUnauthorizedAccess) {
-			utils.WriteJson(w, http.StatusForbidden, map[string]any{
-				"error": err.Error(),
-			})
-			return
-		}
-
 		fmt.Println("GetPostComments Error:", err)
-		utils.WriteJson(w, http.StatusInternalServerError, map[string]any{
-			"error": "internal server error",
-		})
+		HandleError(w, err)
 		return
 	}
 
