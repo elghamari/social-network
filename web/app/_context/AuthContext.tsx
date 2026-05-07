@@ -2,9 +2,11 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "../lib/services/auth";
+import { UserProfile, GetMeResponse } from "@/app/lib/types/auth";
 
 type AuthContextType = {
-  user: any | null;
+  user: UserProfile | null;
+  isLoading: boolean;
   fetchUser: () => Promise<void>;
   logout: () => Promise<void>;
 };
@@ -12,22 +14,31 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<any | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true); 
   const router = useRouter();
 
   const fetchUser = async () => {
     try {
-      const res = await authService.getMe();
-      if (res) setUser(res.user);
+      const res: GetMeResponse = await authService.getMe();
+      
+      if (res && res.user) {
+        setUser(res.user);
+      } else {
+        setUser(null);
+      }
     } catch (err) {
       setUser(null);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const logout = async () => {
     try {
       await authService.logout();
-    } catch (_) {
+    } catch (err) {
+      console.log("Logout error:", err);
     } finally {
       setUser(null);
       router.push("/login");
@@ -39,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, fetchUser, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, fetchUser, logout }}>
       {children}
     </AuthContext.Provider>
   );

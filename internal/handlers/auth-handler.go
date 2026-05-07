@@ -41,13 +41,28 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		defer file.Close()
 		avatarPath, err := utils.HandleImageUpload(r, "avatar")
+		if err != nil {
+			utils.WriteJson(w, http.StatusBadRequest, map[string]any{"error": "invalid avatar image"})
+			return
+		}
 		if err == nil {
 			input.Avatar = avatarPath
 		}
 	}
 
 	if err := h.Services.Auth.Register(input); err != nil {
-		utils.WriteJson(w, http.StatusBadRequest, map[string]any{"fields": "registration failed: " + err.Error()})
+		if formErr, ok := err.(*types.FormError); ok {
+			utils.WriteJson(w, http.StatusBadRequest, map[string]any{
+				"fields": formErr.Fields,
+			})
+			return
+		}
+
+		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
+			"fields": map[string][]string{
+				"first_name": {err.Error()},
+			},
+		})
 		return
 	}
 
