@@ -1,6 +1,6 @@
 package types
 
-type FormError struct {
+type  FormError struct {
 	Fields map[string][]string
 }
 

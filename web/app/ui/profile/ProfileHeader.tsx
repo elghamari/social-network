@@ -25,6 +25,7 @@ export default function ProfileHeader({
   const formattedDate = dateOfBirth 
     ? new Date(dateOfBirth).toLocaleDateString() 
     : null;
+console.log(avatar);
 
   return (
     <div className="profile-header">

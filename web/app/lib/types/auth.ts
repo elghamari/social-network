@@ -49,3 +49,34 @@ export interface LoginResponse extends BaseResponse {
   errors?: LoginFieldErrors;
   user?: User;
 }
+
+export interface FollowerInfo {
+  id: string;
+  first_name: string;
+  last_name: string;
+  avatar: string;
+  nickname: string;
+  email: string;
+  date_of_birth: string;
+  about_me?: string;
+}
+
+export interface UserProfile {
+  id: string;
+  first_name: string;
+  last_name: string;
+  nickname: string;
+  email: string;
+  avatar: string;
+  about_me: string;
+  is_public: boolean;
+  date_of_birth: string;
+  follow_status: string;
+  followers: FollowerInfo[];
+  following: FollowerInfo[];
+  pending_requests: FollowerInfo[];
+}
+
+export interface GetMeResponse {
+  user: UserProfile;
+}

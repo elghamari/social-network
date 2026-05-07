@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"soc-net/internal/utils"
@@ -18,6 +19,7 @@ func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 
 	users, err := h.Services.Search.SearchUsers(query)
 	if err != nil {
+		fmt.Println("Error searching users:", err)
 		utils.WriteJson(w, http.StatusInternalServerError, map[string]any{
 			"error": err.Error(),
 		})
