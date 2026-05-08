@@ -19,6 +19,7 @@ class ClientApi {
           return null;
         case 401:
           showToast(data.error ?? "Unauthorized");
+          window.location.href = "/login";
           return null;
         case 403:
           showToast(data.error ?? "Forbidden");

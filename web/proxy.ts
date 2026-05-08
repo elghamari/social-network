@@ -22,6 +22,7 @@ export async function proxy(request: NextRequest) {
       });
 
       if (!res.ok) {
+        
         const response = NextResponse.redirect(new URL('/login', request.url));
         response.cookies.delete('sessionId'); 
         return response;
