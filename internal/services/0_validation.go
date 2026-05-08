@@ -154,7 +154,7 @@ func ValidatePostInput(input *types.PostInput) error {
 	}
 
 	if input.ImageUrl != nil && strings.TrimSpace(*input.ImageUrl) == "" {
-		formErr.Fields["image"] = append(formErr.Fields["image"], "image url cannot be empty if provided.")
+		formErr.Fields["coverImage"] = append(formErr.Fields["coverImage"], "image url cannot be empty if provided.")
 		// return ErrInvalidImage
 	}
 
@@ -175,7 +175,7 @@ func ValidateCommentInput(input *types.CommentInput) error {
 	}
 
 	if input.ImageUrl != nil && strings.TrimSpace(*input.ImageUrl) == "" {
-		formErr.Fields["image"] = append(formErr.Fields["image"], "image url cannot be empty if provided.")
+		formErr.Fields["coverImage"] = append(formErr.Fields["coverImage"], "image url cannot be empty if provided.")
 		// return ErrInvalidImage
 	}
 

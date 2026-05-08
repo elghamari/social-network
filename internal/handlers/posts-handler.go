@@ -130,12 +130,9 @@ func (h *Handler) GetProfilePosts(w http.ResponseWriter, r *http.Request) {
 
 	currentUserId := utils.GetUserId(r)
 
-	targetUserId := r.URL.Query().Get("targetUserId")
+	targetUserId := r.URL.Query().Get("profile_id")
 	if targetUserId == "" {
-		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
-			"error": "invalid targetUserId",
-		})
-		return
+		targetUserId = currentUserId
 	}
 
 	cursorStr := r.URL.Query().Get("cursor")
