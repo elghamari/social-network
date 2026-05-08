@@ -538,6 +538,11 @@
   border-bottom-right-radius: 12px;
   margin-top: 20px;
 }
+.comment-section {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
 
 .comment-input-wrapper {
   display: flex;
@@ -565,6 +570,7 @@
   padding: 10px 15px;
   cursor: pointer;
   font-weight: 500;
+  height: 100%;
 }
 
 .btn-send-comment:hover {

@@ -47,9 +47,7 @@ func (h *Handler) CreateComment(w http.ResponseWriter, r *http.Request) {
 
 	imageUrl, err := utils.HandleImageUpload(r, "image")
 	if err != nil {
-		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
-			"error": err.Error(),
-		})
+		HandleError(w, err)
 		return
 	}
 

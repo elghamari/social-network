@@ -66,7 +66,7 @@ export interface CommentState {
 
 export type CommentErrors = {
   content?: string;
-  image?: string;
+  coverImage?: string;
 };
 
 export interface CommentType {
@@ -87,4 +87,9 @@ export interface CommentType {
 export interface PostListProps {
   refreshKey?: number;
   fetchData: (cursor: number) => Promise<any>; 
+}
+
+export interface CommentSectionProps {
+  postId: number;
+  onCommentCreated: () => void;
 }

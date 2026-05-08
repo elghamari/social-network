@@ -1,4 +1,3 @@
-import { log } from "node:console";
 import client from "./_client";
 
 export const GetFeedPosts = async (cursor: number = 0) => {

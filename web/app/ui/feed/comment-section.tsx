@@ -2,16 +2,11 @@
 import "./posts.css";
 import CommentCard from "./comment-card";
 import { useEffect, useRef, useState } from "react";
-import { CommentErrors, CommentState, CommentType } from "@/app/lib/types/feed";
+import { CommentErrors, CommentSectionProps, CommentState, CommentType } from "@/app/lib/types/feed";
 import { validateCommentForm } from "@/app/lib/utils/validate";
 import { showToast } from "../layout/toast-store";
 import { CreateComment, GetPostComments } from "@/app/lib/services/feed";
 import { ImageIcon } from "../icons";
-
-interface CommentSectionProps {
-  postId: number;
-  onCommentCreated: () => void;
-}
 
 export default function CommentSection({ postId, onCommentCreated }: CommentSectionProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
