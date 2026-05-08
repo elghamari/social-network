@@ -7,6 +7,9 @@ import FollowModal from "@/app/ui/profile/FollowModal";
 import client from "@/app/lib/services/_client";
 import "./profile.css";
 import EditProfileModal from "@/app/ui/profile/EditProfileModal";
+import PostForm from "@/app/ui/feed/post-form";
+import { GetProfilePosts } from "@/app/lib/services/feed";
+import PostList from "@/app/ui/feed/post-list";
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -16,6 +19,13 @@ export default function ProfilePage() {
   );
   const [isPublic, setIsPublic] = useState<boolean>(user?.is_public ?? true);
   const [isEditingProfile, setIsEditingProfile] = useState<boolean>(false);
+
+  const [showModal, setShowModal] = useState(false);
+  const handleClose = () => setShowModal(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const handlePostCreated = () => {
+    setRefreshKey((prev) => prev + 1);
+  };
   
   useEffect(() => {
     if (user && user.is_public !== undefined) {
@@ -122,8 +132,21 @@ export default function ProfilePage() {
       )}
 
       <div className="profile-posts">
-        <h2 className="profile-posts__title">My Posts</h2>
-        <div className="profile-posts__empty">No posts yet.</div>
+        <div className="profile_post_header">
+          <h2 className="profile-posts__title">My Posts</h2>
+          <button
+            type="button"
+            className="creat-post-btn"
+            onClick={() => setShowModal(true)}
+            >
+            + Create Post
+          </button>
+        </div>
+          
+          <PostList 
+            refreshKey={refreshKey}
+            fetchData={async (cursor) => await GetProfilePosts(cursor, "")}
+          />
       </div>
 
       {modalType && (
@@ -134,7 +157,24 @@ export default function ProfilePage() {
           users={modalType === "followers" ? user.followers : user.following}
         />
       )}
+
+      {showModal && (
+        <div 
+          className="modal-overlay" 
+          onClick={handleClose}
+        >
+          <div onClick={(e) => e.stopPropagation()}>
+            <PostForm 
+            onCancel={handleClose} 
+            onPostCreated={handlePostCreated}
+            inGroup={false}
+            />
+          </div>
+        </div>
+      )}
+
     </div>
+    
   );
 }
 

@@ -7,6 +7,8 @@ import ProfileStats from "@/app/ui/profile/ProfileStats";
 import FollowModal from "@/app/ui/profile/FollowModal";
 import { useAuth } from "@/app/_context/AuthContext";
 import "../profile.css";
+import PostList from "@/app/ui/feed/post-list";
+import { GetProfilePosts } from "@/app/lib/services/feed";
 
 export default function UserProfilePage() {
   const params = useParams();
@@ -29,7 +31,6 @@ export default function UserProfilePage() {
       try {
         const res = await client.get(`/profile?profile_id=${profileId}`);
         if (res) {
-          // هكا غيخدم سواء الباكاند رجع الداتا وسط user ولا نيشان
           const profileData = res.user || res; 
           
           if (profileData.follow_status === "owner") {
@@ -65,7 +66,7 @@ export default function UserProfilePage() {
         const res = await client.post(`/follow?target_id=${profileId}`, {});
         if (res) {
           setProfile((prev: any) => {
-            const newStatus = res.follow_status || "pending"; // على حساب شنو كيرجع الباكاند
+            const newStatus = res.follow_status || "pending";
             let updatedFollowers = prev.followers || [];
 
             if (newStatus === "following" && currentUser) {
@@ -177,7 +178,9 @@ export default function UserProfilePage() {
 
           <div className="profile-posts">
             <h2 className="profile-posts__title">Posts</h2>
-            <div className="profile-posts__empty">No posts yet.</div>
+            <PostList 
+              fetchData={async (cursor) => await GetProfilePosts(cursor, profileId)}
+            />
           </div>
         </>
       ) : (
