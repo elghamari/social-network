@@ -96,38 +96,7 @@ export default function UserProfilePage() {
     }
   };
 
-  const handleAccept = async (reqId: string) => {
-    try {
-      const res = await client.post(`/follow/accept?target_id=${reqId}`, {});
-      if (res) {
-        setProfile((prev: any) => {
-          const accepted = prev.pending_requests?.find((r: any) => r.id === reqId);
-          return {
-            ...prev,
-            pending_requests: prev.pending_requests?.filter((r: any) => r.id !== reqId),
-            followers: accepted ? [...(prev.followers || []), accepted] : prev.followers,
-          };
-        });
-      }
-    } catch (err) {
-      console.log("Accept error:", err);
-    }
-  };
-
-  const handleDecline = async (reqId: string) => {
-    try {
-      const res = await client.post(`/follow/decline?target_id=${reqId}`, {});
-      if (res) {
-        setProfile((prev: any) => ({
-          ...prev,
-          pending_requests: prev.pending_requests?.filter((r: any) => r.id !== reqId),
-        }));
-      }
-    } catch (err) {
-      console.log("Decline error:", err);
-    }
-  };
-
+ 
   if (loading) return <div className="profile-loading">Loading...</div>;
   if (!profile) return <div className="profile-error">User not found.</div>;
 

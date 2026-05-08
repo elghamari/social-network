@@ -31,8 +31,8 @@ export function LoginForm() {
 
       if (!res) return;
 
-      if (res.error) {
-        setError(res.error);
+      if (res.errors) {
+        setError(res.errors);
         return;
       }
 

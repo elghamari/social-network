@@ -38,7 +38,7 @@ export interface User {
 
 export interface BaseResponse {
   status: number;
-  error?: string;
+  errors?: string;
 }
 
 export interface RegisterResponse extends BaseResponse {
@@ -46,7 +46,7 @@ export interface RegisterResponse extends BaseResponse {
 }
 
 export interface LoginResponse extends BaseResponse {
-  errors?: LoginFieldErrors;
+  error?: LoginFieldErrors;
   user?: User;
 }
 
