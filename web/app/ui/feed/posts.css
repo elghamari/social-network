@@ -58,6 +58,7 @@
   width: 100%;
   padding-bottom: 20px;
   padding: 20px;
+  box-sizing: border-box;
 }
 
 .create-form-container {
@@ -68,7 +69,9 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  width: 40rem;
+  width: 100%; 
+  max-width: 40rem; 
+  box-sizing: border-box; 
   box-shadow: var(--shadow-lg);
   animation: fadeIn var(--transition-normal);
 }
@@ -338,8 +341,8 @@
 .modal-overlay {
   position: fixed;
   top: 0;
-  left: 0;
-  width: 100%;
+  left: var(--sidenav-width, 240px);
+  width: calc(100% - var(--sidenav-width, 240px));
   height: 100%;
   background-color: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(8px);
@@ -348,6 +351,12 @@
   justify-content: center;
   align-items: center;
   animation: fadeInModal var(--transition-fast);
+}
+@media (max-width: 768px) {
+  .modal-overlay {
+    left: 0;
+    width: 100%;
+  }
 }
 
 @keyframes fadeInModal {
@@ -409,6 +418,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .post-author-name {
@@ -532,16 +542,19 @@
 .comment-input-wrapper {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .comment-input {
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 200px;
   background-color: var(--bg-surface);
   border: 1px solid var(--bg-body);
   color: var(--text-primary);
   padding: 10px 15px;
   border-radius: 20px;
   outline: none;
+  box-sizing: border-box;
 }
 
 .btn-send-comment {
@@ -549,7 +562,7 @@
   color: var(--text-primary);
   border: none;
   border-radius: 20px;
-  padding: 0 15px;
+  padding: 10px 15px;
   cursor: pointer;
   font-weight: 500;
 }
@@ -653,4 +666,76 @@
   color: #ff4444;
   font-size: 12px;
   margin: 4px 0 0 10px;
+}
+
+
+@media (max-width: 640px) {
+  
+  .create-form-wrapper {
+    padding: 10px;
+  }
+  .create-form-container {
+    padding: 16px;
+  }
+  .post-card {
+    padding: 16px;
+  }
+
+  .create-post-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    width: 100%;
+  }
+
+  .privacy-control {
+    width: 100%;
+    order: -1; 
+    margin-bottom: 10px;
+  }
+  .create-post-privacy {
+    width: 100%;
+  }
+
+  .post-card-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+  .post-title {
+    font-size: 16px;
+  }
+  .post-description {
+    font-size: 14px;
+  }
+  .post-card-footer {
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .post-action-btn {
+    font-size: 13px;
+    padding: 6px 8px;
+  }
+
+  .comment-input-wrapper {
+    flex-wrap: wrap; 
+  }
+  .comment-input {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+  .comment-input-wrapper > div {
+    flex: 1;
+  }
+  .tool-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .btn-send-comment {
+    flex: 1;
+  }
+  .post-author-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
 }
