@@ -19,6 +19,11 @@ export default function PostCard({ post }: { post: PostType }) {
 
   const [showComments, setShowComments] = useState(false);
 
+  const [commentsCount, setCommentsCount] = useState(post.total_comments);
+  const handleCommentCreated = () => {
+    setCommentsCount(prev => prev + 1);
+  };
+
   const handleLike = async () => {
     if (isLiking) return;
     
@@ -98,12 +103,12 @@ export default function PostCard({ post }: { post: PostType }) {
         onClick={() => setShowComments(!showComments)} 
         >
           <CommentIcon size={20} />
-          <span>{post.total_comments} Comments</span>
+          <span>{commentsCount} Comments</span>
         </button>
       </div>
 
       {showComments && (
-        <CommentSection postId={post.id} />
+        <CommentSection postId={post.id} onCommentCreated={handleCommentCreated}/>
       )}
 
     </article>
