@@ -50,8 +50,8 @@ export default function PostForm({ onCancel, onPostCreated, inGroup, groupId }: 
         ? prev.privateUsers.filter((id) => id !== userId)
         : [...prev.privateUsers, userId];
 
-      if (formErrors?.privateUsers && newprivateUsers.length > 0) {
-        setFormErrors({ ...formErrors, privateUsers: undefined });
+      if (formErrors?.private && newprivateUsers.length > 0) {
+        setFormErrors({ ...formErrors, private: undefined });
       }
 
       return { ...prev, privateUsers: newprivateUsers };
@@ -59,22 +59,22 @@ export default function PostForm({ onCancel, onPostCreated, inGroup, groupId }: 
   };
 
   const handleSubmit = async () => {
-    const errors = validatePostForm(inputForm);
-    if (errors) {
-      setFormErrors(errors);
-      const errorKeys = Object.keys(errors);
-      if (errorKeys.length === 1) {
-        const specificErrorMessage = Object.values(errors)[0];
-        console.log("TOAST ERROR: ", specificErrorMessage);
-        showToast(specificErrorMessage);
-      } else {
-        const errorMessage = "Please fix the highlighted fields.";
-        console.log("TOAST ERROR: ", errorMessage);
-        showToast(errorMessage);
-      }
+    // const errors = validatePostForm(inputForm);
+    // if (errors) {
+    //   setFormErrors(errors);
+    //   const errorKeys = Object.keys(errors);
+    //   if (errorKeys.length === 1) {
+    //     const specificErrorMessage = Object.values(errors)[0];
+    //     console.log("TOAST ERROR: ", specificErrorMessage);
+    //     showToast(specificErrorMessage);
+    //   } else {
+    //     const errorMessage = "Please fix the highlighted fields.";
+    //     console.log("TOAST ERROR: ", errorMessage);
+    //     showToast(errorMessage);
+    //   }
 
-      return;
-    }
+    //   return;
+    // }
     setFormErrors(null);
 
     const formData = new FormData();
@@ -104,14 +104,16 @@ export default function PostForm({ onCancel, onPostCreated, inGroup, groupId }: 
 
       if (response) {
         if (response.fields) {
-          if (response.fields.coverImage.length > 1) {
-            response.fields.coverImage.forEach((el: string, i: number) => {
-              console.log(`Error - ${i} : ${el}`);
-            });
-            showToast("Please check your inputs.");
-          } else {
-            showToast(response.fields.coverImage[0]);
-          }
+          const backendErrors: any = {};
+          Object.keys(response.fields).forEach((key) => {
+            // backendErrors[key] = response.fields[key][0];
+            if (key === "coverImage" || key === "image") {
+              backendErrors[key] = response.fields[key]; 
+            } else {
+              backendErrors[key] = response.fields[key][0];
+            }
+          });
+          setFormErrors(backendErrors);
           return;
         }
 
@@ -122,7 +124,7 @@ export default function PostForm({ onCancel, onPostCreated, inGroup, groupId }: 
         }
       }
     } catch (error) {
-      console.log("Network error creating post:", error);
+      console.log("Network error creating post: ", error);
       showToast("Network error. Please check your connection.");
     }
   };
@@ -143,7 +145,7 @@ export default function PostForm({ onCancel, onPostCreated, inGroup, groupId }: 
               setFormErrors({ ...formErrors, title: undefined });
           }}
         />
-
+        {formErrors?.title && <p className="error-text">{formErrors.title}</p>}
         <textarea
           className={`create-post-area ${formErrors?.description ? "input-error" : ""}`}
           placeholder="What's on your mind?"
@@ -154,7 +156,7 @@ export default function PostForm({ onCancel, onPostCreated, inGroup, groupId }: 
               setFormErrors({ ...formErrors, description: undefined });
           }}
         ></textarea>
-
+        {formErrors?.description && <p className="error-text">{formErrors.description}</p>}
         {preview && (
           <div className="image-preview-container">
             <img src={preview} alt="Preview" className="image-preview" />
@@ -166,7 +168,7 @@ export default function PostForm({ onCancel, onPostCreated, inGroup, groupId }: 
 
         {inputForm.privacy === "private" && (
           <div
-            className={formErrors?.privateUsers ? "input-error" : ""}
+            className={formErrors?.private || formErrors?.duplicate ? "input-error" : ""}
             style={{ borderRadius: "12px" }}
           >
             <PrivateSection
@@ -174,8 +176,19 @@ export default function PostForm({ onCancel, onPostCreated, inGroup, groupId }: 
               privateUsers={inputForm.privateUsers}
               toggleUser={toggleUser}
             />
+            {(formErrors?.private || formErrors?.duplicate) && (<p className="error-text">{formErrors.private}</p>)}
           </div>
         )}
+
+        {
+          (formErrors?.coverImage && Array.isArray(formErrors.coverImage)) && (
+            <div className="image-errors-list">
+              {formErrors.coverImage.map((el: string, index: number) => (
+                <p key={index} className="error-text"> {el} </p>
+              ))}
+            </div>
+          )
+        }
 
         <div className="create-post-footer">
           <div className="create-post-actions">
@@ -187,6 +200,7 @@ export default function PostForm({ onCancel, onPostCreated, inGroup, groupId }: 
                 ref={fileInputRef}
                 onChange={handleImageChange}
               />
+              
               <button
                 type="button"
                 className="tool-btn"

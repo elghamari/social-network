@@ -115,7 +115,7 @@ export function validatePostForm(data: FormState): PostErrors | null {
   }
 
   const description = data.description.trim();
-  if (!description || description.length > 500 || description.length < 10) {
+  if (!description || description.length > 500) {
     errors.description =
       "Description cannot be empty and must be between 10 and 500 letters.";
   }
@@ -133,7 +133,7 @@ export function validatePostForm(data: FormState): PostErrors | null {
   if (privacy === "private") {
     const privateUsers = data.privateUsers;
     if (!privateUsers || privateUsers.length < 1) {
-      errors.privateUsers =
+      errors.private =
         "you must select at least one user for a private post.";
     }
   }

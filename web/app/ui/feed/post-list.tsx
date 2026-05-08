@@ -24,7 +24,6 @@ export default function PostList({ refreshKey, fetchData }: PostListProps) {
       const response = await fetchData(currentCursor);
       if (response) {
         const newPosts: PostType[] = response.posts || response || [];
-        
         setPosts((prev) => {
           if (isReset) return newPosts;
           const existingIds = new Set(prev.map(p => p.id));
@@ -44,6 +43,7 @@ export default function PostList({ refreshKey, fetchData }: PostListProps) {
     } catch (error) {
       console.log("Error fetching posts: ", error);
       showToast("Network error. Please check your connection.");
+      setHasMore(false);
     } finally {
       setIsLoading(false);
     }
