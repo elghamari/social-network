@@ -648,3 +648,9 @@
   line-height: 1.5;
   word-break: break-word;
 }
+
+.error-text{
+  color: #ff4444;
+  font-size: 12px;
+  margin: 4px 0 0 10px;
+}

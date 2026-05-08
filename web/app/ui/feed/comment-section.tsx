@@ -6,6 +6,7 @@ import { CommentErrors, CommentState, CommentType } from "@/app/lib/types/feed";
 import { validateCommentForm } from "@/app/lib/utils/validate";
 import { showToast } from "../layout/toast-store";
 import { CreateComment, GetPostComments } from "@/app/lib/services/feed";
+import { ImageIcon } from "../icons";
 
 interface CommentSectionProps {
   postId: number;
@@ -184,20 +185,7 @@ export default function CommentSection({ postId }: CommentSectionProps) {
             className="tool-btn"
             onClick={() => fileInputRef.current?.click()}
           >
-            <svg
-              viewBox="0 0 24 24"
-              width="20"
-              height="20"
-              stroke="currentColor"
-              fill="none"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-              <circle cx="8.5" cy="8.5" r="1.5"></circle>
-              <polyline points="21 15 16 10 5 21"></polyline>
-            </svg>
+            <ImageIcon size={20} />
             <span>Image</span>
           </button>
         </div>

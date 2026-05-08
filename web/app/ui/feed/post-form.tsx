@@ -12,6 +12,7 @@ import {
 } from "@/app/lib/types/feed";
 import { validatePostForm } from "@/app/lib/utils/validate";
 import { showToast } from "../layout/toast-store";
+import { ImageIcon } from "../icons";
 
 export default function PostForm({ onCancel, onPostCreated, inGroup, groupId }: PostFormProps) {
   const [inputForm, setInputForm] = useState<FormState>({
@@ -59,22 +60,22 @@ export default function PostForm({ onCancel, onPostCreated, inGroup, groupId }: 
   };
 
   const handleSubmit = async () => {
-    // const errors = validatePostForm(inputForm);
-    // if (errors) {
-    //   setFormErrors(errors);
-    //   const errorKeys = Object.keys(errors);
-    //   if (errorKeys.length === 1) {
-    //     const specificErrorMessage = Object.values(errors)[0];
-    //     console.log("TOAST ERROR: ", specificErrorMessage);
-    //     showToast(specificErrorMessage);
-    //   } else {
-    //     const errorMessage = "Please fix the highlighted fields.";
-    //     console.log("TOAST ERROR: ", errorMessage);
-    //     showToast(errorMessage);
-    //   }
+    const errors = validatePostForm(inputForm);
+    if (errors) {
+      setFormErrors(errors);
+      const errorKeys = Object.keys(errors);
+      if (errorKeys.length === 1) {
+        const specificErrorMessage = Object.values(errors)[0] as string;
+        console.log("TOAST ERROR: ", specificErrorMessage);
+        showToast(specificErrorMessage);
+      } else {
+        const errorMessage = "Please fix the highlighted fields.";
+        console.log("TOAST ERROR: ", errorMessage);
+        showToast(errorMessage);
+      }
 
-    //   return;
-    // }
+      return;
+    }
     setFormErrors(null);
 
     const formData = new FormData();
@@ -206,20 +207,7 @@ export default function PostForm({ onCancel, onPostCreated, inGroup, groupId }: 
                 className="tool-btn"
                 onClick={() => fileInputRef.current?.click()}
               >
-                <svg
-                  viewBox="0 0 24 24"
-                  width="20"
-                  height="20"
-                  stroke="currentColor"
-                  fill="none"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                  <polyline points="21 15 16 10 5 21"></polyline>
-                </svg>
+                <ImageIcon size={20} />
                 <span>Image</span>
               </button>
             </div>
