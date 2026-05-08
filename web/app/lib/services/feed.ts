@@ -29,3 +29,7 @@ return await client.postForm(`/comments/create?postId=${data.get("postId")}`, da
 export async function GetGroupPosts(cursor: number = 0, groupId: string) {
   return await client.get(`/groups/${groupId}/posts?cursor=${cursor}`);
 }
+
+export async function GetProfilePosts(cursor: number = 0, profile_id: string) {
+  return await client.get(`/posts/profile?profile_id=${profile_id}&cursor=${cursor}`);
+}

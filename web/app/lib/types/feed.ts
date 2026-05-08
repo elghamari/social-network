@@ -33,7 +33,9 @@ export type PostErrors = {
   title?: string;
   description?: string;
   privacy?: string;
-  privateUsers?: string;
+  private?: string;
+  duplicate?: string;
+  coverImage?: [] | string;
 };
 
 export interface PostType {
@@ -83,6 +85,6 @@ export interface CommentType {
 }
 
 export interface PostListProps {
-  refreshKey: number;
+  refreshKey?: number;
   fetchData: (cursor: number) => Promise<any>; 
 }
