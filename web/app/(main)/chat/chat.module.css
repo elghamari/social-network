@@ -316,8 +316,7 @@
 
 .messageWrapper {
   display: flex;
-  align-items: flex-end; /* الـ Avatar كيجي لتحت مع آخر سطر في الميساج */
-  gap: 10px;
+  align-items: flex-end; 
   margin-bottom: 15px;
 }
 
@@ -421,4 +420,32 @@
 .messagesArea {
   flex-grow: 1;
   overflow-y: auto;
+}
+
+.newMessageToast {
+  position: absolute;
+  bottom: 80px; 
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #10b981; 
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  transition: all 0.2s ease;
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.newMessageToast:hover {
+  background-color: #059669; 
+  transform: translateX(-50%) scale(1.05);
+}
+
+@keyframes popIn {
+  0% { transform: translate(-50%, 20px) scale(0.8); opacity: 0; }
+  100% { transform: translate(-50%, 0) scale(1); opacity: 1; }
 }
