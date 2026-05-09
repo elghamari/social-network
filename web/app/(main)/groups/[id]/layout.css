@@ -81,6 +81,54 @@
   color: var(--text-muted);
 }
 
+/* ===== Actions (accept/decline wrapper) ===== */
+.gd__actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* ===== Action buttons ===== */
+.gd__btn {
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  text-align: center;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    opacity var(--transition-fast);
+}
+
+.gd__btn--primary {
+  background: var(--accent-primary);
+  color: #fff;
+}
+
+.gd__btn--primary:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.gd__btn--ghost {
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+}
+
+.gd__btn--ghost:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.gd__btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* ===== Header badge (button + span share layout) ===== */
 .gd__badge {
   flex-shrink: 0;
@@ -323,5 +371,13 @@
 
   .gd__badge {
     width: 100%;
+  }
+
+  .gd__actions {
+    width: 100%;
+  }
+
+  .gd__btn {
+    flex: 1;
   }
 }

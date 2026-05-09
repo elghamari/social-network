@@ -22,7 +22,7 @@ func NewAuthService(r *repositories.AuthRepo) *AuthService {
 
 // ===== Session middleware helpers
 
-func (s *AuthService) GetUser(sessionId string) (types.UserAuth, error) {
+func (s *AuthService) GetUserBySessionId(sessionId string) (types.UserAuth, error) {
 	user, err := s.Auth.GetUserBySessionId(sessionId)
 	if err != nil {
 		return user, err

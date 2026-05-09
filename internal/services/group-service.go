@@ -103,7 +103,7 @@ func (s *GroupService) ensureUserIsNotMember(groupId, userId string) error {
 	}
 	switch role {
 	case "member", "creator":
-		return types.NewActionError("You are already a member of this group")
+		return types.NewActionError("already a member of this group")
 	}
 	return nil
 }
@@ -213,7 +213,7 @@ func (s *GroupService) autoJoinUser(groupId, userId string) error {
 	if err := s.Group.DeleteJoinRequest(tx, groupId, userId); err != nil {
 		return err
 	}
-	if err := s.Group.DeleteGroupInvitation(tx, groupId, userId); err != nil {
+	if err := s.Group.DeleteInvitation(tx, groupId, userId); err != nil {
 		return err
 	}
 
@@ -240,35 +240,47 @@ func (s *GroupService) GetInvitableUsers(groupId, userId, query, cursor string) 
 		return nil, err
 	}
 
-	return s.Group.GetInvitableUsersForGroup(groupId, userId, query, cursor)
+	return s.Group.GetInvitableUsers(groupId, userId, query, cursor)
 }
 
-func (s *GroupService) SendGroupInvitation(groupId, inviterId, userId string) error {
+func (s *GroupService) SendInvitation(groupId, inviterId, userId string) (types.MembershipResult, error) {
 	if inviterId == userId {
-		return types.NewActionError("You cannot invite yourself")
+		return "", types.NewActionError("You cannot invite yourself")
 	}
+
 	if err := s.ensureGroupExists(groupId); err != nil {
-		return err
+		return "", err
 	}
+
 	if err := s.ensureUserExists(userId); err != nil {
-		return err
+		return "", err
 	}
+
 	if err := s.ensureUserIsMember(groupId, inviterId); err != nil {
-		return err
+		return "", err
+	}
+
+	if err := s.ensureUserIsNotMember(groupId, userId); err != nil {
+		return "", err
 	}
 
 	hasRequest, err := s.Group.HasJoinRequest(groupId, userId)
 	if err != nil {
-		return err
-	}
-	if hasRequest {
-		return s.autoJoinUser(groupId, userId)
+		return "", err
 	}
 
-	return s.Group.InsertGroupInvitation(groupId, inviterId, userId)
+	if hasRequest {
+		return types.UserJoined, s.autoJoinUser(groupId, userId)
+	}
+
+	if err := s.Group.InsertInvitation(groupId, inviterId, userId); err != nil {
+		return "", err
+	}
+
+	return types.InvitationCreated, nil
 }
 
-func (s *GroupService) RevokeGroupInvitation(groupId, revokerId, userId string) error {
+func (s *GroupService) RevokeInvitation(groupId, revokerId, userId string) error {
 	if err := s.ensureGroupExists(groupId); err != nil {
 		return err
 	}
@@ -278,22 +290,69 @@ func (s *GroupService) RevokeGroupInvitation(groupId, revokerId, userId string) 
 	if err := s.ensureUserIsMember(groupId, revokerId); err != nil {
 		return err
 	}
-	return s.Group.DeleteGroupInvitation(nil, groupId, userId)
+
+	hasInvitation, err := s.Group.HasInvitation(groupId, userId)
+	if err != nil {
+		return err
+	}
+	if !hasInvitation {
+		return types.NewNotFoundError("No invitation found")
+	}
+
+	return s.Group.DeleteInvitation(nil, groupId, userId)
 }
 
-func (s *GroupService) AcceptGroupInvitation(groupId, userId string) error {
+func (s *GroupService) AcceptInvitation(groupId, userId string) error {
 	if err := s.ensureGroupExists(groupId); err != nil {
 		return err
 	}
+
+	hasInvitation, err := s.Group.HasInvitation(groupId, userId)
+	if err != nil {
+		return err
+	}
+	if !hasInvitation {
+		return types.NewNotFoundError("No invitation found")
+	}
+
 	return s.autoJoinUser(groupId, userId)
 }
 
-func (s *GroupService) DeclineGroupInvitation(groupId, userId string) error {
+func (s *GroupService) DeclineInvitation(groupId, userId string) error {
 	if err := s.ensureGroupExists(groupId); err != nil {
 		return err
 	}
 
-	return s.Group.DeleteGroupInvitation(nil, groupId, userId)
+	hasInvitation, err := s.Group.HasInvitation(groupId, userId)
+	if err != nil {
+		return err
+	}
+	if !hasInvitation {
+		return types.NewNotFoundError("No invitation found")
+	}
+
+	return s.Group.DeleteInvitation(nil, groupId, userId)
+}
+
+func (s *GroupService) GetInvitationNotification(groupId, inviterId, userId string) (types.Notification, error) {
+
+	data, err := s.Group.GetInvitationData(groupId, inviterId)
+	if err != nil {
+		return types.Notification{}, err
+	}
+
+	content := fmt.Sprintf("%s invited you to join %s", data.InviterName, data.GroupTitle)
+
+	notif := types.Notification{
+		Type:       "group_invitation",
+		SenderID:   inviterId,
+		ReceiverID: userId,
+		EntityID:   groupId,
+		Content:    content,
+		CreatedAt:  time.Now(),
+	}
+
+	return notif, nil
 }
 
 // ============================================================
@@ -316,11 +375,8 @@ func (s *GroupService) GetJoinRequestUsers(groupId, userId, cursor string) ([]ty
 	return s.Group.GetJoinRequestUsersForGroup(groupId, cursor)
 }
 
-func (s *GroupService) GetJoinRequestUser(groupId, userId string) (types.JoinRequestUser, error) {
-	return s.Group.GetJoinRequestUserForGroup(groupId, userId)
-}
-
 func (s *GroupService) ApproveJoinRequest(groupId, approverId, userId string) error {
+
 	if err := s.ensureGroupExists(groupId); err != nil {
 		return err
 	}
@@ -328,6 +384,9 @@ func (s *GroupService) ApproveJoinRequest(groupId, approverId, userId string) er
 		return err
 	}
 	if err := s.ensureUserIsCreator(groupId, approverId); err != nil {
+		return err
+	}
+	if err := s.ensureUserIsNotMember(groupId, userId); err != nil {
 		return err
 	}
 
@@ -348,23 +407,27 @@ func (s *GroupService) RejectJoinRequest(groupId, rejecterId, userId string) err
 	return s.Group.DeleteJoinRequest(nil, groupId, userId)
 }
 
-func (s *GroupService) SendJoinRequest(groupId, userId string) error {
+func (s *GroupService) SendJoinRequest(groupId, userId string) (types.MembershipResult, error) {
 	if err := s.ensureGroupExists(groupId); err != nil {
-		return err
+		return "", err
 	}
 	if err := s.ensureUserIsNotMember(groupId, userId); err != nil {
-		return err
+		return "", err
 	}
 
-	hasInvitation, err := s.Group.HasGroupInvitation(groupId, userId)
+	hasInvitation, err := s.Group.HasInvitation(groupId, userId)
 	if err != nil {
-		return err
+		return "", err
 	}
 	if hasInvitation {
-		return s.autoJoinUser(groupId, userId)
+		return types.UserJoined, s.autoJoinUser(groupId, userId)
 	}
 
-	return s.Group.InsertJoinRequest(groupId, userId)
+	if err := s.Group.InsertJoinRequest(groupId, userId); err != nil {
+		return "", err
+	}
+
+	return types.JoinRequestCreated, nil
 }
 
 func (s *GroupService) RevokeJoinRequest(groupId, userId string) error {
@@ -373,6 +436,26 @@ func (s *GroupService) RevokeJoinRequest(groupId, userId string) error {
 	}
 
 	return s.Group.DeleteJoinRequest(nil, groupId, userId)
+}
+
+func (s *GroupService) GetJoinRequestNotification(groupId, userId string) (types.Notification, error) {
+
+	data, err := s.Group.GetJoinRequestData(groupId, userId)
+	if err != nil {
+		return types.Notification{}, err
+	}
+
+	content := fmt.Sprintf("%s requested to join %s", data.RequesterName, data.GroupTitle)
+
+	notif := types.Notification{
+		Type:       "group_join_request",
+		SenderID:   userId,
+		ReceiverID: data.GroupCreatorId,
+		Content:    content,
+		CreatedAt:  time.Now(),
+	}
+
+	return notif, nil
 }
 
 // ============================================================
@@ -418,6 +501,31 @@ func (s *GroupService) CreateEvent(groupId, userId string, event types.Event) (t
 	}
 
 	return event, nil
+}
+
+func (s *GroupService) GetEventNotifications(groupId, eventId, creatorId string) ([]types.Notification, error) {
+	data, err := s.Group.GetEvenNotificationData(groupId, eventId, creatorId)
+	if err != nil {
+		return nil, err
+	}
+
+	content := fmt.Sprintf("New event in %s: %s", data.GroupTitle, data.EventTitle)
+
+	notifications := []types.Notification{}
+	for _, id := range data.GroupMemberIds {
+		notif := types.Notification{
+			Type:       "group_event",
+			SenderID:   creatorId,
+			ReceiverID: id,
+			EntityID:   groupId,
+			Content:    content,
+			CreatedAt:  time.Now(),
+		}
+
+		notifications = append(notifications, notif)
+	}
+
+	return notifications, nil
 }
 
 func (s *GroupService) ListEvents(groupId, userId, cursor string) ([]types.Event, error) {

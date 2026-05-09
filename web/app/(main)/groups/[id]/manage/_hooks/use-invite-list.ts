@@ -92,10 +92,10 @@ export function useInviteList(groupId: string) {
   const markerRef = useIntersectionObserver(loadMore, hasMore);
 
   // ── Actions ────────────────────────────────────────
-  async function toggleInvite(userId: string, isInvited: boolean) {
+  async function toggleInvite(userId: string) {
     setList((prev) =>
       prev.map((user) =>
-        user.id === userId ? { ...user, isInvited: !isInvited } : user,
+        user.id === userId ? { ...user, isInvited: !user.isInvited } : user,
       ),
     );
   }

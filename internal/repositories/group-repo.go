@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"soc-net/internal/types"
 	"strconv"
@@ -257,20 +258,44 @@ func (r *GroupRepo) ListGroups(userId, tab, query, cursor string) ([]types.Group
 // Invitations
 // ============================================================
 
+func (r *GroupRepo) InsertInvitation(groupId, inviterId, invitedUserId string) error {
+	_, err := r.DB.Exec(`
+		INSERT OR IGNORE INTO group_invitations 
+		(group_id, inviter_id, user_id)
+		VALUES (?, ?, ?)
+	`, groupId, inviterId, invitedUserId)
+	if err != nil {
+		return fmt.Errorf("%s.InsertGroupInvitation: %w", groupRepoName, err)
+	}
+	return nil
+}
+
+func (r *GroupRepo) DeleteInvitation(db DBTX, groupId, userId string) error {
+	if db == nil {
+		db = r.DB
+	}
+
+	_, err := db.Exec(`
+		DELETE FROM group_invitations 
+		WHERE group_id = ? AND user_id = ?
+	`, groupId, userId)
+	if err != nil {
+		return fmt.Errorf("%s.DeleteGroupInvitation: %w", groupRepoName, err)
+	}
+	return nil
+}
+
 func (r *GroupRepo) getInvitableUsersSQL(groupId, userId, query, cursor string) (string, []any) {
 	sql := `
-    SELECT u.id, u.first_name, u.last_name, u.created_at, u.avatar,
-    gi.user_id IS NOT NULL AS is_invited
+    SELECT u.id, u.first_name, u.last_name, u.created_at, u.avatar, gi.user_id IS NOT NULL AS is_invited
     FROM users u
-    LEFT JOIN group_invitations gi ON gi.group_id = ? AND gi.user_id = u.id 
+    LEFT JOIN group_invitations gi ON u.id = gi.user_id AND gi.group_id = ?
     WHERE u.id != ?
-    AND NOT EXISTS (
-        SELECT 1 FROM group_members gm 
-        WHERE gm.group_id = ? AND gm.user_id = u.id
-    )`
+    AND NOT EXISTS (SELECT 1 FROM group_members WHERE user_id = u.id AND group_id = ?)`
 	args := []any{groupId, userId, groupId}
 
 	query = strings.ToLower(query)
+
 	if query != "" {
 		sql += `
 		AND (u.first_name || ' ' || u.last_name) LIKE ?`
@@ -290,7 +315,7 @@ func (r *GroupRepo) getInvitableUsersSQL(groupId, userId, query, cursor string) 
 	return sql, args
 }
 
-func (r *GroupRepo) GetInvitableUsersForGroup(groupId, userId, query, cursor string) ([]types.InvitableUser, error) {
+func (r *GroupRepo) GetInvitableUsers(groupId, userId, query, cursor string) ([]types.InvitableUser, error) {
 	sql, args := r.getInvitableUsersSQL(groupId, userId, query, cursor)
 
 	rows, err := r.DB.Query(sql, args...)
@@ -311,34 +336,7 @@ func (r *GroupRepo) GetInvitableUsersForGroup(groupId, userId, query, cursor str
 	return users, nil
 }
 
-func (r *GroupRepo) InsertGroupInvitation(groupId, inviterId, invitedUserId string) error {
-	_, err := r.DB.Exec(`
-		INSERT OR IGNORE INTO group_invitations 
-		(group_id, inviter_id, user_id)
-		VALUES (?, ?, ?)
-	`, groupId, inviterId, invitedUserId)
-	if err != nil {
-		return fmt.Errorf("%s.InsertGroupInvitation: %w", groupRepoName, err)
-	}
-	return nil
-}
-
-func (r *GroupRepo) DeleteGroupInvitation(db DBTX, groupId, userId string) error {
-	if db == nil {
-		db = r.DB
-	}
-
-	_, err := db.Exec(`
-		DELETE FROM group_invitations 
-		WHERE group_id = ? AND user_id = ?
-	`, groupId, userId)
-	if err != nil {
-		return fmt.Errorf("%s.DeleteGroupInvitation: %w", groupRepoName, err)
-	}
-	return nil
-}
-
-func (r *GroupRepo) HasGroupInvitation(groupId, userId string) (bool, error) {
+func (r *GroupRepo) HasInvitation(groupId, userId string) (bool, error) {
 	var exists bool
 	err := r.DB.QueryRow(`
         SELECT EXISTS(
@@ -350,6 +348,24 @@ func (r *GroupRepo) HasGroupInvitation(groupId, userId string) (bool, error) {
 		return false, fmt.Errorf("%s.HasGroupInvitation: %w", groupRepoName, err)
 	}
 	return exists, nil
+}
+
+func (r *GroupRepo) GetInvitationData(groupId, inviterId string) (types.InvitationNotificationData, error) {
+	data := types.InvitationNotificationData{}
+
+	err := r.DB.QueryRow(`
+		SELECT 
+			g.title,
+			u.first_name || ' ' || u.last_name AS inviter_name,
+		FROM groups g
+		JOIN users u ON u.id = ?
+		WHERE g.id = ?
+	`, inviterId, groupId).Scan(&data.GroupTitle, &data.InviterName)
+	if err != nil {
+		return types.InvitationNotificationData{}, fmt.Errorf("%s.GetInvitationData: %w", groupRepoName, err)
+	}
+
+	return data, nil
 }
 
 // ============================================================
@@ -383,17 +399,13 @@ func (r *GroupRepo) DeleteJoinRequest(db DBTX, groupId, userId string) error {
 	return nil
 }
 
-func (r *GroupRepo) getJoinRequestBaseSQL(groupId string) (string, []any) {
-	return `
+func (r *GroupRepo) getJoinRequestUsersSQL(groupId, cursor string) (string, []any) {
+	sql := `
 		SELECT u.id, u.first_name, u.last_name, u.created_at, u.avatar
 		FROM group_join_requests gjr
 		JOIN users u ON u.id = gjr.user_id
-		WHERE gjr.group_id = ?`,
-		[]any{groupId}
-}
-
-func (r *GroupRepo) getJoinRequestUsersSQL(groupId, cursor string) (string, []any) {
-	sql, args := r.getJoinRequestBaseSQL(groupId)
+		WHERE gjr.group_id = ?`
+	args := []any{groupId}
 
 	if cursor != "" {
 		sql += `
@@ -428,30 +440,6 @@ func (r *GroupRepo) GetJoinRequestUsersForGroup(groupId, cursor string) ([]types
 	return requests, nil
 }
 
-func (r *GroupRepo) getJoinRequestUserSQL(groupId, userId string) (string, []any) {
-	sql, args := r.getJoinRequestBaseSQL(groupId)
-
-	sql += `
-	AND gjr.user_id = ?`
-
-	args = append(args, userId)
-
-	return sql, args
-}
-
-func (r *GroupRepo) GetJoinRequestUserForGroup(groupId, userId string) (types.JoinRequestUser, error) {
-	sql, args := r.getJoinRequestUserSQL(groupId, userId)
-
-	user := types.JoinRequestUser{}
-
-	err := r.DB.QueryRow(sql, args...).Scan(&user.Id, &user.FirstName, &user.LastName, &user.CreatedAt, &user.AvatarPath)
-	if err != nil {
-		return types.JoinRequestUser{}, fmt.Errorf("%s.GetJoinRequestUserForGroup: %w", groupRepoName, err)
-	}
-
-	return user, nil
-}
-
 func (r *GroupRepo) HasJoinRequest(groupId, userId string) (bool, error) {
 	var exists bool
 	err := r.DB.QueryRow(`
@@ -464,6 +452,25 @@ func (r *GroupRepo) HasJoinRequest(groupId, userId string) (bool, error) {
 		return false, fmt.Errorf("%s.HasJoinRequest: %w", groupRepoName, err)
 	}
 	return exists, nil
+}
+
+func (r *GroupRepo) GetJoinRequestData(groupId, userId string) (types.JoinRequestNotificationData, error) {
+	data := types.JoinRequestNotificationData{}
+
+	err := r.DB.QueryRow(`
+	SELECT 
+		g.title,
+		g.creator_id,
+		u.first_name || ' ' || u.last_name AS inviter_name,
+	FROM groups g
+	JOIN users u ON u.id = ?
+	WHERE g.id = ?
+	`, userId, groupId).Scan(&data.GroupTitle, &data.GroupCreatorId, &data.RequesterName)
+	if err != nil {
+		return types.JoinRequestNotificationData{}, fmt.Errorf("%s.GetJoinRequestData: %w", groupRepoName, err)
+	}
+
+	return data, nil
 }
 
 // ============================================================
@@ -567,6 +574,38 @@ func (r *GroupRepo) GetEventForUser(db DBTX, userId, eventId string) (types.Even
 		return types.Event{}, fmt.Errorf("%s.GetEventById: %w", groupRepoName, err)
 	}
 	return event, err
+}
+
+func (r *GroupRepo) GetEvenNotificationData(groupId, eventId, creatorId string) (types.EventNotificationData, error) {
+	var memberIdsJSON sql.NullString
+
+	data := types.EventNotificationData{}
+	err := r.DB.QueryRow(`
+		SELECT 
+			g.title,
+			e.title,
+			(
+			SELECT json_group_array(gm.user_id)
+			FROM group_members gm
+			WHERE gm.group_id = g.id AND gm.user_id != ?
+			) AS member_ids
+		FROM events e 
+		JOIN groups g ON g.id = e.group_id
+		WHERE e.id = ?
+	`, creatorId, eventId).Scan(&data.GroupTitle, &data.EventTitle, &memberIdsJSON)
+	if err != nil {
+		return types.EventNotificationData{}, fmt.Errorf("%s.GetEventData: %w", groupRepoName, err)
+	}
+
+	if memberIdsJSON.Valid && memberIdsJSON.String != "" {
+		if err := json.Unmarshal([]byte(memberIdsJSON.String), &data.GroupMemberIds); err != nil {
+			return types.EventNotificationData{}, fmt.Errorf("%s.GetEventNotificationData: unmarshal member_ids: %w", groupRepoName, err)
+		}
+	} else {
+		data.GroupMemberIds = []string{}
+	}
+
+	return data, nil
 }
 
 func (r *GroupRepo) getEventsSQL(groupId, userId, cursor string) (string, []any) {

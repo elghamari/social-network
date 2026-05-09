@@ -14,7 +14,7 @@ type Handler struct {
 }
 
 func New(svcs *services.Services) *Handler {
-	hub := hub.NewHub(svcs)
+	hub := hub.NewHub(svcs.Chat)
 	go hub.Start()
 
 	return &Handler{
@@ -70,7 +70,9 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux, mid *middleware.Middleware)
 		"/api/chat/contacts":        h.GetRecentContacts,
 		"/api/chat/users":           h.GetAvailableChatUsers,
 		"/api/chat/history/private": h.GetPrivateHistory,
+		"/api/chat/history/group":   h.GetGroupHistory,
 		"/api/chat/read/private":    h.MarkAsRead,
+		"/api/chat/read/group":      h.MarkGroupAsRead,
 	}
 
 	for path, hand := range authRoutes {

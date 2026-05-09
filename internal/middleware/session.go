@@ -17,7 +17,7 @@ func (m *Middleware) SessionLoader(next http.Handler) http.Handler {
 			return
 		}
 
-		user, err := m.Auth.GetUser(cookie.Value)
+		user, err := m.Auth.GetUserBySessionId(cookie.Value)
 		if err != nil {
 			log.Println(err)
 			utils.WriteJson(w, http.StatusInternalServerError, map[string]any{

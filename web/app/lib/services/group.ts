@@ -72,7 +72,7 @@ export async function acceptGroupInvitation(groupId: string) {
 }
 
 export async function declineGroupInvitation(groupId: string) {
-  return await clientAPI.delete(`/groups/${groupId}/requests`);
+  return await clientAPI.delete(`/groups/${groupId}/invitations`);
 }
 
 export async function getJoinRequests(groupId: string, cursor: string) {
@@ -95,7 +95,7 @@ export async function revokeJoinRequest(groupId: string) {
 }
 
 export async function approveJoinRequest(groupId: string, userId: string) {
-  return await clientAPI.post(`/groups/${groupId}/requests`, {
+  return await clientAPI.put(`/groups/${groupId}/requests`, {
     userId: userId,
   });
 }

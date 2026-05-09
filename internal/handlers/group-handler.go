@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"soc-net/internal/hub"
 	"soc-net/internal/types"
 	"soc-net/internal/utils"
 )
@@ -142,26 +141,27 @@ func (h *Handler) GroupChat(w http.ResponseWriter, r *http.Request) {
 }
 
 // ============================================================
-// Invitations — /api/groups/{id}/manage/invitations
+// Invitations — /api/groups/{id}/invitations
 // ============================================================
 
 func (h *Handler) GroupInvitations(w http.ResponseWriter, r *http.Request) {
+
 	switch r.Method {
 	case http.MethodGet:
 		h.GetInvitableUsers(w, r)
 
 	case http.MethodPost:
-		h.SendGroupInvitation(w, r)
+		h.SendInvitation(w, r)
 
 	case http.MethodPut:
-		h.AcceptGroupInvitation(w, r)
+		h.AcceptInvitation(w, r)
 
 	case http.MethodDelete:
 		if r.URL.Query().Get("userId") != "" {
-			h.DeclineGroupInvitation(w, r)
+			h.RevokeInvitation(w, r)
 
 		} else {
-			h.RevokeGroupInvitation(w, r)
+			h.DeclineInvitation(w, r)
 
 		}
 
@@ -189,7 +189,7 @@ func (h *Handler) GetInvitableUsers(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *Handler) SendGroupInvitation(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) SendInvitation(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		UserId string `json:"userId"`
 	}
@@ -200,45 +200,47 @@ func (h *Handler) SendGroupInvitation(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+
 	inviterId := utils.GetUserId(r)
 	groupId := r.PathValue("id")
 	userId := body.UserId
 
-	if err := h.Services.Group.SendGroupInvitation(groupId, inviterId, userId); err != nil {
+	result, err := h.Services.Group.SendInvitation(groupId, inviterId, userId)
+	if err != nil {
 		HandleError(w, err)
 		return
 	}
 
-	group, err := h.Services.Group.GetGroup(groupId, inviterId)
-	if err != nil {
-		log.Println("%s.SendGroupInvitation: GetGroup: %w", groupHandlerName, err)
-	} else {
+	if result != types.UserJoined {
 
-		payload, err := json.Marshal(map[string]any{
-			"targetUserId": userId,
-			"group":        group,
-		})
+		notif, err := h.Services.Group.GetInvitationNotification(groupId, inviterId, userId)
 		if err != nil {
-			log.Println("%s.SendGroupInvitation: Marshal: %w", groupHandlerName, err)
+			log.Println(err)
+		} else {
+
+			notif, err := h.Services.Notification.CreateNotification(notif)
+			if err != nil {
+				log.Println(err)
+
+			} else {
+				h.Hub.PushNotification(notif.ReceiverID, notif)
+
+			}
+
 		}
-
-		h.Hub.Dispatch(hub.Action{
-			Kind:    "group_invite",
-			OwnerID: inviterId,
-			Payload: payload,
-		})
-
 	}
 
-	utils.WriteJson(w, http.StatusOK, nil)
+	utils.WriteJson(w, http.StatusOK, map[string]any{
+		"result": result,
+	})
 }
 
-func (h *Handler) RevokeGroupInvitation(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) RevokeInvitation(w http.ResponseWriter, r *http.Request) {
 	revokerId := utils.GetUserId(r)
 	groupId := r.PathValue("id")
 	userId := r.URL.Query().Get("userId")
 
-	if err := h.Services.Group.RevokeGroupInvitation(groupId, revokerId, userId); err != nil {
+	if err := h.Services.Group.RevokeInvitation(groupId, revokerId, userId); err != nil {
 		HandleError(w, err)
 		return
 	}
@@ -246,11 +248,11 @@ func (h *Handler) RevokeGroupInvitation(w http.ResponseWriter, r *http.Request) 
 	utils.WriteJson(w, http.StatusOK, nil)
 }
 
-func (h *Handler) AcceptGroupInvitation(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) AcceptInvitation(w http.ResponseWriter, r *http.Request) {
 	userId := utils.GetUserId(r)
 	groupId := r.PathValue("id")
 
-	if err := h.Services.Group.AcceptGroupInvitation(groupId, userId); err != nil {
+	if err := h.Services.Group.AcceptInvitation(groupId, userId); err != nil {
 		HandleError(w, err)
 		return
 	}
@@ -258,11 +260,11 @@ func (h *Handler) AcceptGroupInvitation(w http.ResponseWriter, r *http.Request) 
 	utils.WriteJson(w, http.StatusOK, nil)
 }
 
-func (h *Handler) DeclineGroupInvitation(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) DeclineInvitation(w http.ResponseWriter, r *http.Request) {
 	userId := utils.GetUserId(r)
 	groupId := r.PathValue("id")
 
-	if err := h.Services.Group.DeclineGroupInvitation(groupId, userId); err != nil {
+	if err := h.Services.Group.DeclineInvitation(groupId, userId); err != nil {
 		HandleError(w, err)
 		return
 	}
@@ -272,11 +274,10 @@ func (h *Handler) DeclineGroupInvitation(w http.ResponseWriter, r *http.Request)
 }
 
 // ============================================================
-// Join Requests — /api/groups/{id}/manage/requests
+// Join Requests — /api/groups/{id}/requests
 // ============================================================
 
 func (h *Handler) GroupJoinRequests(w http.ResponseWriter, r *http.Request) {
-
 	userId := r.URL.Query().Get("userId")
 
 	switch r.Method {
@@ -292,8 +293,8 @@ func (h *Handler) GroupJoinRequests(w http.ResponseWriter, r *http.Request) {
 	case http.MethodDelete:
 		if userId != "" {
 			h.RejectJoinRequest(w, r)
-
 		} else {
+
 			h.RevokeJoinRequest(w, r)
 
 		}
@@ -322,40 +323,30 @@ func (h *Handler) GetJoinRequestUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) SendJoinRequest(w http.ResponseWriter, r *http.Request) {
-
 	userId := utils.GetUserId(r)
 	groupId := r.PathValue("id")
 
-	if err := h.Services.Group.SendJoinRequest(groupId, userId); err != nil {
+	result, err := h.Services.Group.SendJoinRequest(groupId, userId)
+	if err != nil {
 		HandleError(w, err)
 		return
 	}
 
-	user, err := h.Services.Group.GetJoinRequestUser(groupId, userId)
-	if err != nil {
-		log.Println("%s.SendJoinRequest: GetJoinRequestUser: %w", groupHandlerName, err)
-	}
-
-	group, err := h.Services.Group.GetGroup(groupId, userId)
-	if err != nil {
-		log.Println("%s.SendJoinRequest: GetGroup: %w", groupHandlerName, err)
-
-	} else {
-
-		payload, err := json.Marshal(map[string]any{
-			"group": group,
-			"user":  user,
-		})
+	if result != types.UserJoined {
+		notif, err := h.Services.Group.GetJoinRequestNotification(groupId, userId)
 		if err != nil {
-			log.Println("%s.SendJoinRequest: Marshal: %w", groupHandlerName, err)
+			log.Println(err)
+		} else {
+
+			notif, err := h.Services.Notification.CreateNotification(notif)
+			if err != nil {
+				log.Println(err)
+			} else {
+				h.Hub.PushNotification(notif.ReceiverID, notif)
+
+			}
+
 		}
-
-		h.Hub.Dispatch(hub.Action{
-			Kind:    "group_join_request",
-			OwnerID: userId,
-			Payload: payload,
-		})
-
 	}
 
 	utils.WriteJson(w, http.StatusOK, nil)
@@ -450,6 +441,18 @@ func (h *Handler) CreateEvent(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJson(w, http.StatusOK, map[string]any{
 		"event": event,
 	})
+
+	go func() {
+		notifications, err := h.Services.Group.GetEventNotifications(groupId, event.Id, userId)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		for _, notif := range notifications {
+			h.Hub.PushNotification(notif.ReceiverID, notif)
+		}
+	}()
 }
 
 func (h *Handler) GetEvents(w http.ResponseWriter, r *http.Request) {

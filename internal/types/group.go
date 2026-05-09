@@ -1,16 +1,5 @@
 package types
 
-import "io"
-
-type GroupInput struct {
-	CreatorId   string
-	Title       string
-	Description string
-
-	CoverImage     io.Reader
-	CoverImageName string
-}
-
 type Group struct {
 	Id           string `json:"id"`
 	CreatorId    string `json:"creatorId"`
@@ -53,3 +42,30 @@ type EventResponse struct {
 	EventId  string `json:"eventId"`
 	Response string `json:"response"`
 }
+
+// Notifications data
+type InvitationNotificationData struct {
+	GroupTitle  string `json:"groupTitle"`
+	InviterName string `json:"inviterName"`
+}
+
+type JoinRequestNotificationData struct {
+	GroupTitle     string `json:"groupTitle"`
+	GroupCreatorId string `json:"groupCreatorId"`
+	RequesterName  string `json:"requesterName"`
+}
+
+type EventNotificationData struct {
+	GroupTitle     string   `json:"groupTitle"`
+	GroupMemberIds []string `json:"-"`
+	EventTitle     string   `json:"eventTitle"`
+}
+
+// MembershipResult
+type MembershipResult string
+
+const (
+	InvitationCreated  MembershipResult = "invitation_created"
+	JoinRequestCreated MembershipResult = "join_request_created"
+	UserJoined         MembershipResult = "user_joined"
+)

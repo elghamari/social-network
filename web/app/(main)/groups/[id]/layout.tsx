@@ -21,7 +21,7 @@ export default function GroupDetails({
   const params = useParams();
   const id = params.id as string;
 
-  const { group, loading, changeGroupRole } = useGroupDetail(id);
+  const { group, loading, changeGroupRole, updateGroup } = useGroupDetail(id);
 
   if (loading) return <Skeleton />;
 
@@ -37,7 +37,9 @@ export default function GroupDetails({
         <>
           <GroupSections groupId={id} />
           <div className="gd__content">
-            <GroupProvider group={group}>{children}</GroupProvider>
+            <GroupProvider group={group} updateGroup={updateGroup}>
+              {children}
+            </GroupProvider>
           </div>
         </>
       ) : (

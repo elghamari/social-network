@@ -2,7 +2,6 @@
 
 import GroupUserRow from "./group-user-row";
 import type { InviteListState } from "../_hooks/use-invite-list";
-import { useWebSocket } from "@/app/_context/WebSocketContext";
 import { useState } from "react";
 import {
   revokeGroupInvitation,
@@ -10,29 +9,22 @@ import {
 } from "@/app/lib/services/group";
 
 type Props = {
-  groupId: string;
   invites: InviteListState;
+  onInvite: (uid: string, isInvited: boolean) => Promise<void>;
 };
 
 const SKELETON_COUNT = 5;
 
-export default function GroupInviteList({ groupId, invites }: Props) {
+export default function GroupInviteList({ invites, onInvite }: Props) {
   const [pendingId, setPendingId] = useState<string | null>(null);
 
   async function handleInvite(userId: string, isInvited: boolean) {
-    const action = isInvited ? revokeGroupInvitation : sendGroupInvitation;
-
     setPendingId(userId);
-    const resp = await action(groupId, userId);
+    await onInvite(userId, isInvited);
     setPendingId(null);
-
-    if (!resp) return;
-
-    invites.toggleInvite(userId, isInvited);
   }
 
   const isEmpty = !invites.loading && invites.list.length === 0;
-
   return (
     <section className="gd-manage__panel">
       <div className="gd-manage__panel-header">

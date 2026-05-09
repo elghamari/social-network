@@ -9,19 +9,32 @@ class ClientApi {
       switch (resp.status) {
         case 200:
         case 201:
-        case 404:
           return data || true;
-
+        case 204:
+          return true;
         case 400:
+        case 422:
           if (data.fields) return data;
-
           showToast(data.error ?? "Bad request");
           return null;
-
-        case 500:
-          showToast("Somthing went wrong. try again later");
+        case 401:
+          showToast(data.error ?? "Unauthorized");
           return null;
-
+        case 403:
+          showToast(data.error ?? "Forbidden");
+          return null;
+        case 404:
+          showToast(data.error ?? "Not found");
+          return null;
+        case 429:
+          showToast(data.error ?? "Too many requests");
+          return null;
+        case 500:
+        case 502:
+        case 503:
+        case 504:
+          showToast("Server error");
+          return null;
         default:
           showToast("Unexpected error");
           return null;

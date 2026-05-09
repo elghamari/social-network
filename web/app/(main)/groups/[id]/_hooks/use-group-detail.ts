@@ -30,5 +30,9 @@ export function useGroupDetail(id: string) {
     });
   }
 
-  return { group, loading, changeGroupRole };
+  function updateGroup(updater: (prev: Group) => Group) {
+    setGroup((prev) => (prev ? updater(prev) : prev));
+  }
+
+  return { group, loading, changeGroupRole, updateGroup };
 }

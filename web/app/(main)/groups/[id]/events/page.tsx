@@ -12,7 +12,9 @@ import EventFormModal from "./_components/event-form-modal";
 import type { Event } from "@/app/lib/types/group";
 
 export default function EventsPage() {
-  const { id } = useGroupContext();
+  const ctx = useGroupContext();
+
+  const { id } = ctx.group;
 
   const { events, loading, markerRef, actions } = useEvents(id);
   const [showModal, setShowModal] = useState(false);

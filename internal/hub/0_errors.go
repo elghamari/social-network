@@ -18,13 +18,13 @@ func HandleError(err error) (int, string) {
 		return http.StatusBadRequest, ae.Message
 
 	case errors.As(err, &nfe):
-		return http.StatusNotFound, ae.Message
+		return http.StatusNotFound, nfe.Message
 
 	case errors.As(err, &fbe):
-		return http.StatusForbidden, ae.Message
+		return http.StatusForbidden, fbe.Message
 
 	default:
-		log.Println(err)
+		log.Println("WebSocket Internal Error:", err)
 		return http.StatusInternalServerError, "Something went wrong"
 	}
 }
