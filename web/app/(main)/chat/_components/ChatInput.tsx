@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import styles from '../chat.module.css';
 
 interface Props {
-  onSendMessage: (msg: string) => void;
+  onSendMessage: (msg: string) => boolean; 
 }
 
 const EMOJI_LIST = [
@@ -15,6 +15,9 @@ export default function ChatInput({ onSendMessage }: Props) {
   const [text, setText] = useState("");
   const [showEmoji, setShowEmoji] = useState(false);
   const pickerRef = useRef<HTMLDivElement>(null);
+  
+
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -29,15 +32,33 @@ export default function ChatInput({ onSendMessage }: Props) {
   const handleSend = () => {
     const trimmedText = text.trim();
     if (!trimmedText || trimmedText.length > 500) return;
-    
-    onSendMessage(trimmedText);
-    setText(""); 
-    setShowEmoji(false); 
+    const isSent = onSendMessage(trimmedText);
+    if (isSent) {
+      setText(""); 
+      setShowEmoji(false); 
+    }
   };
 
   const handleEmojiClick = (emoji: string) => {
-    if (text.length + emoji.length <= 500) {
-      setText(prev => prev + emoji);
+    const input = inputRef.current;
+    
+    if (input) {
+      const startPos = input.selectionStart || 0;
+      const endPos = input.selectionEnd || 0;
+      const newText = text.substring(0, startPos) + emoji + text.substring(endPos);
+
+      if (newText.length <= 500) {
+        setText(newText);
+        setTimeout(() => {
+          input.focus();
+          const newCursorPos = startPos + emoji.length;
+          input.setSelectionRange(newCursorPos, newCursorPos);
+        }, 0);
+      }
+    } else {
+      if (text.length + emoji.length <= 500) {
+        setText(prev => prev + emoji);
+      }
     }
   };
 
@@ -107,6 +128,7 @@ export default function ChatInput({ onSendMessage }: Props) {
       </button>
 
       <input 
+        ref={inputRef} 
         type="text" 
         placeholder="Type a message..." 
         className={styles.messageInput} 
