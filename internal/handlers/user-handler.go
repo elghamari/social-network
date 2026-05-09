@@ -2,7 +2,10 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
+
 	"soc-net/internal/types"
 	"soc-net/internal/utils"
 )
@@ -38,6 +41,42 @@ func (h *Handler) FollowUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// --------------------------------------------------------
+	// Notification Logic for Follow
+	// --------------------------------------------------------
+	var notif types.Notification
+	var shouldNotify bool
+
+	if finalStatus == "pending" {
+		notif = types.Notification{
+			Type:       "follow_request",
+			SenderID:   userID,
+			ReceiverID: targetID,
+			EntityID:   userID,
+			Content:    "requested to follow you",
+		}
+		shouldNotify = true
+	} else if finalStatus == "following" {
+		notif = types.Notification{
+			Type:       "follow",
+			SenderID:   userID,
+			ReceiverID: targetID,
+			EntityID:   userID,
+			Content:    "started following you",
+		}
+		shouldNotify = true
+	}
+
+	if shouldNotify {
+		savedNotif, err := h.Services.Notification.CreateNotification(notif)
+		if err != nil {
+			log.Printf("Failed to save notification for user %s: %v", targetID, err)
+		} else {
+			h.Hub.PushNotification([]string{targetID}, savedNotif)
+		}
+	}
+	// --------------------------------------------------------
+
 	utils.WriteJson(w, http.StatusOK, map[string]any{
 		"follow_status": finalStatus,
 	})
@@ -67,6 +106,29 @@ func (h *Handler) AcceptFollowRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// --------------------------------------------------------
+	// Notification Logic for Accept
+	// --------------------------------------------------------
+	if err := h.Services.Notification.DeleteNotification(userID, senderID, "follow_request"); err != nil {
+		log.Printf("Non-critical error: failed to delete follow_request notification for user %s: %v", userID, err)
+	}
+
+	notif := types.Notification{
+		Type:       "follow_accept",
+		SenderID:   userID,
+		ReceiverID: senderID,
+		EntityID:   userID,
+		Content:    "accepted your follow request",
+	}
+
+	savedNotif, err := h.Services.Notification.CreateNotification(notif)
+	if err == nil {
+		h.Hub.PushNotification([]string{senderID}, savedNotif)
+	} else {
+		log.Printf("Failed to save accept notification for user %s: %v", senderID, err)
+	}
+	// --------------------------------------------------------
+
 	utils.WriteJson(w, http.StatusOK, nil)
 }
 
@@ -93,6 +155,14 @@ func (h *Handler) DeclineFollowRequest(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+
+	// --------------------------------------------------------
+	// Notification Logic for Decline
+	// --------------------------------------------------------
+	if err := h.Services.Notification.DeleteNotification(userID, senderID, "follow_request"); err != nil {
+		log.Printf("Non-critical error: failed to delete follow_request notification for user %s: %v", userID, err)
+	}
+	// --------------------------------------------------------
 
 	utils.WriteJson(w, http.StatusOK, nil)
 }
@@ -130,10 +200,15 @@ func (h *Handler) GetMe(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.Services.Auth.GetUserById(userID)
 	if err != nil {
-		utils.WriteJson(w, http.StatusNotFound, map[string]any{
-			"error": "user not found",
-		})
+		utils.WriteJson(w, http.StatusNotFound, map[string]any{"error": "user not found"})
 		return
+	}
+
+	safeStr := func(s *string) string {
+		if s == nil {
+			return ""
+		}
+		return *s
 	}
 
 	followers, _ := h.Services.User.GetFollowers(userID)
@@ -141,15 +216,20 @@ func (h *Handler) GetMe(w http.ResponseWriter, r *http.Request) {
 	pending, _ := h.Services.User.GetPendingRequests(userID)
 
 	utils.WriteJson(w, http.StatusOK, map[string]any{
-		"user": types.UserProfileResponse{
-			ID:              user.ID,
-			FirstName:       user.FirstName,
-			LastName:        user.LastName,
-			IsPublic:        user.IsPublic,
-			FollowStatus:    "owner",
-			Followers:       followers,
-			Following:       following,
-			PendingRequests: pending,
+		"user": map[string]any{
+			"id":               user.ID,
+			"first_name":       user.FirstName,
+			"last_name":        user.LastName,
+			"is_public":        user.IsPublic,
+			"email":            user.Email,
+			"avatar":           safeStr(user.Avatar), 
+			"about_me":         safeStr(user.AboutMe), 
+			"nickname":         safeStr(user.Nickname),
+			"date_of_birth":    user.DateOfBirth,
+			"follow_status":    "owner",
+			"followers":        followers,
+			"following":        following,
+			"pending_requests": pending,
 		},
 	})
 }
@@ -158,18 +238,19 @@ func (h *Handler) GetMe(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	viewerID := utils.GetUserId(r)
 	targetID := r.URL.Query().Get("profile_id")
-
+	fmt.Println(targetID)
 	if targetID == "" {
 		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
-			"error": "profile_id is required",
+			"errors": "profile_id is required",
 		})
 		return
 	}
 
 	target, err := h.Services.Auth.GetUserById(targetID)
 	if err != nil {
+		fmt.Println("-----------------------------------------",err)
 		utils.WriteJson(w, http.StatusNotFound, map[string]any{
-			"error": "user not found",
+			"errors": "user not found",
 		})
 		return
 	}
@@ -186,7 +267,12 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 			pending, _ = h.Services.User.GetPendingRequests(targetID)
 		}
 	}
-
+	safeStr := func(s *string) string {
+		if s == nil {
+			return ""
+		}
+		return *s
+	}
 	utils.WriteJson(w, http.StatusOK, map[string]any{
 		"user": types.UserProfileResponse{
 			ID:              target.ID,
@@ -196,6 +282,11 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 			FollowStatus:    followStatus,
 			Followers:       followers,
 			Following:       following,
+			Email:           target.Email,
+			Avatar:          safeStr(target.Avatar),
+			AboutMe:         safeStr(target.AboutMe),
+			Nickname:        safeStr(target.Nickname),
+			DateOfBirth:     target.DateOfBirth,
 			PendingRequests: pending,
 		},
 	})
