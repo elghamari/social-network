@@ -12,6 +12,8 @@ import (
 func HandleError(w http.ResponseWriter, err error) {
 	var fe *types.FormError
 	var ae *types.ActionError
+	var nfe *types.NotFoundError
+	var fbe *types.ForbiddenError
 
 	switch {
 	case errors.As(err, &fe):
@@ -22,6 +24,16 @@ func HandleError(w http.ResponseWriter, err error) {
 	case errors.As(err, &ae):
 		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
 			"error": ae.Message,
+		})
+
+	case errors.As(err, &nfe):
+		utils.WriteJson(w, http.StatusNotFound, map[string]any{
+			"error": nfe.Message,
+		})
+
+	case errors.As(err, &fbe):
+		utils.WriteJson(w, http.StatusForbidden, map[string]any{
+			"error": fbe.Message,
 		})
 
 	default:
