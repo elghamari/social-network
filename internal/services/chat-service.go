@@ -1,8 +1,6 @@
 package services
 
 import (
-	"errors"
-	"fmt"
 	"log"
 
 	"soc-net/internal/repositories"
@@ -24,101 +22,113 @@ func NewChatService(auth *repositories.AuthRepo, chat *repositories.ChatRepo, gr
 }
 
 func (s *ChatService) ProcessPrivateMessage(senderId string, input types.IncomingMessage) (types.Message, error) {
+	if senderId == "" || input.ReceiverID == "" {
+		return types.Message{}, types.NewActionError("sender and receiver IDs are required")
+	}
+
 	if err := ValidateIncomingMessage(&input); err != nil {
 		return types.Message{}, err
 	}
 
 	if senderId == input.ReceiverID {
-		return types.Message{}, ErrSelfChat
+		return types.Message{}, types.NewActionError("you cannot send a message to yourself")
 	}
 
 	userExists, err := s.Auth.UserExists(input.ReceiverID)
 	if err != nil {
-		return types.Message{}, fmt.Errorf("ChatService.ProcessPrivateMessage (Check User): %w", err)
+		return types.Message{}, err
 	}
 	if !userExists {
-		return types.Message{}, ErrUserNotFound
+		return types.Message{}, types.NewNotFoundError("the specified user does not exist")
 	}
 
 	isConnected, err := s.Chat.AreConnected(senderId, input.ReceiverID)
 	if err != nil {
-		return types.Message{}, fmt.Errorf("ChatService.ProcessPrivateMessage (AreConnected): %w", err)
+		return types.Message{}, err 
 	}
 	if !isConnected {
-		return types.Message{}, ErrChatPermissionDenied
+		return types.Message{}, types.NewForbiddenError("you do not have permission to message this user")
 	}
 
 	tx, err := s.Chat.DB.Begin()
 	if err != nil {
-		return types.Message{}, fmt.Errorf("ChatService.ProcessPrivateMessage (Begin Tx): %w", err)
+		return types.Message{}, err 
 	}
 	defer tx.Rollback()
 
 	msgId, err := s.Chat.InsertPrivateMessage(tx, senderId, input.ReceiverID, input.Content)
 	if err != nil {
-		return types.Message{}, fmt.Errorf("ChatService.ProcessPrivateMessage (Insert): %w", err)
+		return types.Message{}, err 
 	}
 
 	savedMsg, err := s.Chat.FetchPrivateMessageByID(tx, msgId)
 	if err != nil {
-		return types.Message{}, fmt.Errorf("ChatService.ProcessPrivateMessage (Fetch): %w", err)
+		return types.Message{}, err
 	}
 
 	if err := tx.Commit(); err != nil {
-		return types.Message{}, fmt.Errorf("ChatService.ProcessPrivateMessage (Commit Tx): %w", err)
+		return types.Message{}, err 
 	}
 
 	return savedMsg, nil
 }
 
 func (s *ChatService) ProcessGroupMessage(senderId string, groupId int, input types.IncomingMessage) (types.Message, []string, error) {
+	if senderId == "" || groupId <= 0 {
+		return types.Message{}, nil, types.NewActionError("valid senderId and groupId are required")
+	}
+
 	if err := ValidateIncomingMessage(&input); err != nil {
 		return types.Message{}, nil, err
 	}
 
 	groupExists, isMember, err := s.Group.CheckGroupAndMembership(groupId, senderId)
 	if err != nil {
-		return types.Message{}, nil, fmt.Errorf("ChatService.ProcessGroupMessage (Check Group/Member): %w", err)
+		return types.Message{}, nil, err 
 	}
 	if !groupExists {
-		return types.Message{}, nil, ErrGroupNotFound
+		return types.Message{}, nil, types.NewNotFoundError("the specified group does not exist")
 	}
 	if !isMember {
-		return types.Message{}, nil, ErrNotGroupMember
+		return types.Message{}, nil, types.NewForbiddenError("you are not a member of this group")
 	}
 
 	members, err := s.Chat.GetGroupMemberIDs(groupId)
 	if err != nil {
-		return types.Message{}, nil, fmt.Errorf("ChatService.ProcessGroupMessage (Get Members): %w", err)
+		return types.Message{}, nil, err 
 	}
 
 	tx, err := s.Chat.DB.Begin()
 	if err != nil {
-		return types.Message{}, nil, fmt.Errorf("ChatService.ProcessGroupMessage (Begin Tx): %w", err)
+		return types.Message{}, nil, err 
 	}
 	defer tx.Rollback()
 
 	msgId, err := s.Chat.InsertGroupMessage(tx, groupId, senderId, input.Content)
 	if err != nil {
-		return types.Message{}, nil, fmt.Errorf("ChatService.ProcessGroupMessage (Insert): %w", err)
+		return types.Message{}, nil, err 
 	}
 
 	savedMsg, err := s.Chat.FetchGroupMessageByID(tx, msgId)
 	if err != nil {
-		return types.Message{}, nil, fmt.Errorf("ChatService.ProcessGroupMessage (Fetch Msg): %w", err)
+		return types.Message{}, nil, err 
 	}
 
 	if err := tx.Commit(); err != nil {
-		return types.Message{}, nil, fmt.Errorf("ChatService.ProcessGroupMessage (Commit Tx): %w", err)
+		return types.Message{}, nil, err 
 	}
 
 	return savedMsg, members, nil
 }
 
 func (s *ChatService) CanReceiveLive(receiverID, senderID string) (bool, error) {
+	if receiverID == "" || senderID == "" {
+		return false, types.NewActionError("receiverID and senderID are required")
+	}
+
 	isPublic, err := s.Chat.CheckUserPrivacy(receiverID)
 	if err != nil {
-		return false, fmt.Errorf("ChatService.CanReceiveLive (Privacy Check): %w", err)
+		return false, err 
 	}
 	if isPublic {
 		return true, nil
@@ -126,57 +136,70 @@ func (s *ChatService) CanReceiveLive(receiverID, senderID string) (bool, error) 
 
 	isFollowing, err := s.Chat.IsFollowing(receiverID, senderID)
 	if err != nil {
-		return false, fmt.Errorf("ChatService.CanReceiveLive (Following Check): %w", err)
+		return false, err 
 	}
+	
 	return isFollowing, nil
 }
 
 func (s *ChatService) GetRecentContacts(userId string) ([]types.Contact, error) {
+	if userId == "" {
+		return nil, types.NewActionError("userId is required")
+	}
 	return s.Chat.GetRecentContacts(userId)
 }
 
 func (s *ChatService) GetAvailableChatUsers(userId string) ([]types.Contact, error) {
+	if userId == "" {
+		return nil, types.NewActionError("userId is required")
+	}
+
 	return s.Chat.GetAvailableChatUsers(userId)
 }
 
 func (s *ChatService) GetPrivateHistory(currentUserId string, targetUserId string, cursor int64) ([]types.Message, error) {
+	if currentUserId == "" || targetUserId == "" {
+		return nil, types.NewActionError("user IDs are required")
+	}
 	if cursor < 0 {
-		return nil, fmt.Errorf("invalid cursor: must be zero or positive")
+		return nil, types.NewActionError("invalid cursor: must be zero or positive")
 	}
 
 	userExists, err := s.Auth.UserExists(targetUserId)
 	if err != nil {
-		return nil, fmt.Errorf("ChatService.GetPrivateHistory (Check User): %w", err)
+		return nil, err 
 	}
 	if !userExists {
-		return nil, ErrUserNotFound
+		return nil, types.NewNotFoundError("the specified user does not exist")
 	}
 
 	isConnected, err := s.Chat.AreConnected(currentUserId, targetUserId)
 	if err != nil {
-		return nil, fmt.Errorf("ChatService.GetPrivateHistory (AreConnected): %w", err)
+		return nil, err
 	}
 	if !isConnected {
-		return nil, ErrChatPermissionDenied
+		return nil, types.NewForbiddenError("you do not have permission to message this user")
 	}
-
 	return s.Chat.GetPrivateHistory(currentUserId, targetUserId, cursor)
 }
 
 func (s *ChatService) GetGroupHistory(groupId int, currentUserId string, cursor int64) (map[string]any, error) {
+	if currentUserId == "" || groupId <= 0 {
+		return nil, types.NewActionError("valid currentUserId and groupId are required")
+	}
 	if cursor < 0 {
-		return nil, fmt.Errorf("invalid cursor: must be zero or positive")
+		return nil, types.NewActionError("invalid cursor: must be zero or positive")
 	}
 
 	groupExists, isMember, err := s.Group.CheckGroupAndMembership(groupId, currentUserId)
 	if err != nil {
-		return nil, fmt.Errorf("ChatService.GetGroupHistory (Check Group/Member): %w", err)
+		return nil, err 
 	}
 	if !groupExists {
-		return nil, ErrGroupNotFound
+		return nil, types.NewNotFoundError("the specified group does not exist")
 	}
 	if !isMember {
-		return nil, ErrNotGroupMember
+		return nil, types.NewForbiddenError("you are not a member of this group")
 	}
 
 	messages, err := s.Chat.GetGroupHistory(groupId, cursor)
@@ -197,19 +220,30 @@ func (s *ChatService) GetGroupHistory(groupId int, currentUserId string, cursor 
 }
 
 func (s *ChatService) MarkMessagesAsRead(currentUserId string, senderId string) error {
+	if currentUserId == "" || senderId == "" {
+		return types.NewActionError("user IDs are required")
+	}
+	if currentUserId == senderId {
+		return types.NewActionError("you cannot mark your own messages as read")
+	}
+
 	return s.Chat.MarkPrivateAsRead(senderId, currentUserId)
 }
 
 func (s *ChatService) MarkGroupAsRead(groupId int, userId string, lastMessageId int64) error {
+	if userId == "" || groupId <= 0 {
+		return types.NewActionError("valid userId and groupId are required")
+	}
+
 	groupExists, isMember, err := s.Group.CheckGroupAndMembership(groupId, userId)
 	if err != nil {
-		return fmt.Errorf("ChatService.MarkGroupAsRead (Check): %w", err)
+		return err 
 	}
 	if !groupExists {
-		return ErrGroupNotFound
+		return types.NewNotFoundError("the specified group does not exist")
 	}
 	if !isMember {
-		return errors.New("unauthorized: not a member of this group")
+		return types.NewForbiddenError("you are not a member of this group")
 	}
 
 	return s.Chat.UpdateGroupLastRead(groupId, userId, lastMessageId)
