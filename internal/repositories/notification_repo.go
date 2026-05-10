@@ -29,7 +29,14 @@ func (r *NotificationRepo) CreateNotification(notif types.Notification) (types.N
 	}
 
 	var savedNotif types.Notification
-	fetchQuery := `SELECT id, receiver_id, sender_id, type, entity_id, content, is_read, created_at FROM notifications WHERE id = ?`
+	fetchQuery := `
+		SELECT n.id, n.receiver_id, n.sender_id, n.type, n.entity_id, 
+		       u.first_name || ' ' || u.last_name || ' ' || n.content, 
+		       n.is_read, n.created_at 
+		FROM notifications n
+		JOIN users u ON n.sender_id = u.id
+		WHERE n.id = ?
+	`
 	err = r.DB.QueryRow(fetchQuery, id).Scan(
 		&savedNotif.ID,
 		&savedNotif.ReceiverID,
@@ -45,10 +52,13 @@ func (r *NotificationRepo) CreateNotification(notif types.Notification) (types.N
 
 func (r *NotificationRepo) GetUserNotifications(userID string) ([]types.Notification, error) {
 	query := `
-		SELECT id, receiver_id, sender_id, type, entity_id, content, is_read, created_at
-		FROM notifications
-		WHERE receiver_id = ?
-		ORDER BY created_at DESC
+		SELECT n.id, n.receiver_id, n.sender_id, n.type, n.entity_id, 
+		       u.first_name || ' ' || u.last_name || ' ' || n.content, 
+		       n.is_read, n.created_at
+		FROM notifications n
+		JOIN users u ON n.sender_id = u.id
+		WHERE n.receiver_id = ?
+		ORDER BY n.created_at DESC
 	`
 	rows, err := r.DB.Query(query, userID)
 	if err != nil {
