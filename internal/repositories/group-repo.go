@@ -156,7 +156,7 @@ func (r *GroupRepo) GetGroupForUser(db DBTX, groupId, userId string) (types.Grou
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return types.Group{}, types.NewNotFoundError("GroupGroup does not exist.")
+			return types.Group{}, types.NewNotFoundError("Group does not exist.")
 		}
 		return types.Group{}, fmt.Errorf("%s.GetGroupForUser: %w", groupRepoName, err)
 	}
@@ -291,8 +291,9 @@ func (r *GroupRepo) getInvitableUsersSQL(groupId, userId, query, cursor string) 
     FROM users u
     LEFT JOIN group_invitations gi ON u.id = gi.user_id AND gi.group_id = ?
     WHERE u.id != ?
-    AND NOT EXISTS (SELECT 1 FROM group_members WHERE user_id = u.id AND group_id = ?)`
-	args := []any{groupId, userId, groupId}
+    AND NOT EXISTS (SELECT 1 FROM group_members gm WHERE gm.user_id = u.id AND gm.group_id = ?)
+	 AND NOT EXISTS (SELECT 1 FROM group_join_requests gjr WHERE gjr.user_id = u.id AND gjr.group_id = ?)`
+	args := []any{groupId, userId, groupId, groupId}
 
 	query = strings.ToLower(query)
 
@@ -356,7 +357,7 @@ func (r *GroupRepo) GetInvitationData(groupId, inviterId string) (types.Invitati
 	err := r.DB.QueryRow(`
 		SELECT 
 			g.title,
-			u.first_name || ' ' || u.last_name AS inviter_name,
+			u.first_name || ' ' || u.last_name AS inviter_name
 		FROM groups g
 		JOIN users u ON u.id = ?
 		WHERE g.id = ?
@@ -461,7 +462,7 @@ func (r *GroupRepo) GetJoinRequestData(groupId, userId string) (types.JoinReques
 	SELECT 
 		g.title,
 		g.creator_id,
-		u.first_name || ' ' || u.last_name AS inviter_name,
+		u.first_name || ' ' || u.last_name AS inviter_name
 	FROM groups g
 	JOIN users u ON u.id = ?
 	WHERE g.id = ?
@@ -541,7 +542,7 @@ func (r *GroupRepo) eventBaseSQL(userId string) (string, []any) {
 	SELECT 
 		e.id, e.title, e.description, e.date,
 
-		COALESCE(er.response,'NONE') AS response,
+		er.response,
 
 		(SELECT COUNT(*) FROM event_responses WHERE response = 'GOING' AND event_id = e.id) AS going_cnt,
 		(SELECT COUNT(*) FROM event_responses WHERE response = 'NOT_GOING' AND event_id = e.id) AS not_going_cnt
@@ -576,7 +577,7 @@ func (r *GroupRepo) GetEventForUser(db DBTX, userId, eventId string) (types.Even
 	return event, err
 }
 
-func (r *GroupRepo) GetEvenNotificationData(groupId, eventId, creatorId string) (types.EventNotificationData, error) {
+func (r *GroupRepo) GetEventNotificationData(eventId, creatorId string) (types.EventNotificationData, error) {
 	var memberIdsJSON sql.NullString
 
 	data := types.EventNotificationData{}

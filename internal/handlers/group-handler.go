@@ -105,7 +105,7 @@ func (h *Handler) Group(w http.ResponseWriter, r *http.Request) {
 }
 
 // ============================================================
-// GroupPosts — /api/groups/{id}/events
+// GroupPosts — /api/groups/{id}/posts
 // ============================================================
 
 func (h *Handler) GroupPosts(w http.ResponseWriter, r *http.Request) {
@@ -215,7 +215,7 @@ func (h *Handler) SendInvitation(w http.ResponseWriter, r *http.Request) {
 
 		notif, err := h.Services.Group.GetInvitationNotification(groupId, inviterId, userId)
 		if err != nil {
-			log.Println(err)
+			log.Println("SendInvitation: %v", err)
 		} else {
 
 			notif, err := h.Services.Notification.CreateNotification(notif)
@@ -340,7 +340,7 @@ func (h *Handler) SendJoinRequest(w http.ResponseWriter, r *http.Request) {
 
 			notif, err := h.Services.Notification.CreateNotification(notif)
 			if err != nil {
-				log.Println(err)
+				log.Printf("SendJoinRequest: %v", err)
 			} else {
 				h.Hub.PushNotification(notif.ReceiverID, notif)
 

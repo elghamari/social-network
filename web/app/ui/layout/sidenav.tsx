@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { useAuth } from "@/app/_context/AuthContext";
 import { usePathname } from "next/navigation";
-import { NavItem } from "@/app/lib/types/layout";
+import { NavItem } from "@/app/lib/types/base";
 import { AppIcon } from "../icons";
 import "./sidenav.css";
 

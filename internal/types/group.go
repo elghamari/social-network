@@ -29,13 +29,13 @@ type InvitableUser struct {
 }
 
 type Event struct {
-	Id          string `json:"id"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Date        string `json:"date"`
-	Response    string `json:"response"`
-	GoingCnt    int    `json:"goingCnt"`
-	NotGoingCnt int    `json:"notGoingCnt"`
+	Id          string  `json:"id"`
+	Title       string  `json:"title"`
+	Description string  `json:"description"`
+	Date        string  `json:"date"`
+	Response    *string `json:"response"`
+	GoingCnt    int     `json:"goingCnt"`
+	NotGoingCnt int     `json:"notGoingCnt"`
 }
 
 type EventResponse struct {

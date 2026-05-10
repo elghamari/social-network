@@ -451,6 +451,7 @@ func (s *GroupService) GetJoinRequestNotification(groupId, userId string) (types
 		Type:       "group_join_request",
 		SenderID:   userId,
 		ReceiverID: data.GroupCreatorId,
+		EntityID:   groupId,
 		Content:    content,
 		CreatedAt:  time.Now(),
 	}
@@ -504,7 +505,7 @@ func (s *GroupService) CreateEvent(groupId, userId string, event types.Event) (t
 }
 
 func (s *GroupService) GetEventNotifications(groupId, eventId, creatorId string) ([]types.Notification, error) {
-	data, err := s.Group.GetEvenNotificationData(groupId, eventId, creatorId)
+	data, err := s.Group.GetEventNotificationData(eventId, creatorId)
 	if err != nil {
 		return nil, err
 	}
