@@ -11,6 +11,7 @@ type Repos struct {
 	User      *UserRepo
 	Chat      *ChatRepo
 	Search    *SearchRepo
+	Notif     *NotificationRepo
 }
 
 func New(db *sql.DB) *Repos {
@@ -23,5 +24,6 @@ func New(db *sql.DB) *Repos {
 		User:      NewUserRepo(db),
 		Chat:      NewChatRepo(db),
 		Search:    NewSearchRepo(db),
+		Notif:     NewNotificationRepo(db),
 	}
 }

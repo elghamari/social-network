@@ -3,17 +3,19 @@ package handlers
 import (
 	"net/http"
 
+	"soc-net/internal/hub"
 	"soc-net/internal/middleware"
 	"soc-net/internal/services"
 )
 
 type Handler struct {
 	Services *services.Services
-	Hub      *Hub
+	Hub      *hub.Hub
 }
 
 func New(svcs *services.Services) *Handler {
-	hub := NewHub(svcs.Chat)
+	hub := hub.NewHub(svcs.Chat)
+	go hub.Start()
 
 	return &Handler{
 		Services: svcs,
@@ -71,6 +73,9 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux, mid *middleware.Middleware)
 		"/api/chat/history/group":   h.GetGroupHistory,
 		"/api/chat/read/private":    h.MarkAsRead,
 		"/api/chat/read/group":      h.MarkGroupAsRead,
+
+		"/api/notifications":      h.GetMyNotifications,
+        "/api/notifications/read": h.MarkNotificationAsRead,
 	}
 
 	for path, hand := range authRoutes {
