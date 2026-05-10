@@ -9,6 +9,10 @@ import "./sidenav.css";
 import { useAuth } from "@/app/_context/AuthContext";
 import SearchModal from "./SearchModal";
 
+import { useNotifications } from "@/app/_context/NotificationContext";
+import { useWebSocket } from "@/app/_context/WebSocketContext";
+import NotificationPanel from "./notification-panel";
+
 const navItems: NavItem[] = [
   {
     id: "feed",
@@ -37,7 +41,7 @@ const navItems: NavItem[] = [
   {
     id: "notifications",
     label: "Notifications",
-    href: "/notifications",
+    href: "#", 
     icon: "M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9 M13.73 21a2 2 0 0 1-3.46 0",
   },
 ];
@@ -45,6 +49,11 @@ const navItems: NavItem[] = [
 export default function Sidenav() {
   const pathname = usePathname();
   const router = useRouter();
+
+  const { unreadCount } = useNotifications();
+  const { socket } = useWebSocket();
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
 
   const { user, logout } = useAuth();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -92,25 +101,12 @@ export default function Sidenav() {
                       onClick={() => setIsSearchOpen(true)}
                       className="sidenav__link"
                       style={{
-                        background: "transparent",
-                        border: "none",
-                        width: "100%",
-                        textAlign: "left",
-                        cursor: "pointer",
-                        padding: "12px 16px",
+                        background: "transparent", border: "none", width: "100%",
+                        textAlign: "left", cursor: "pointer", padding: "12px 16px",
                       }}
                     >
                       <span className="sidenav__icon">
-                        <svg
-                          viewBox="0 0 24 24"
-                          width="20"
-                          height="20"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d={item.icon} />
                         </svg>
                       </span>
@@ -120,11 +116,45 @@ export default function Sidenav() {
                 );
               }
 
+              if (item.id === "notifications") {
+                return (
+                  <li key={item.id} style={{ position: "relative" }}>
+                    <button
+                      onClick={() => setIsNotifOpen(!isNotifOpen)}
+                      className={`sidenav__link ${isNotifOpen ? "sidenav__link--active" : ""}`}
+                      style={{
+                        width: "100%", background: "transparent", border: "none",
+                        textAlign: "left", cursor: "pointer", padding: "12px 16px",
+                        fontFamily: "inherit", fontSize: "inherit", display: 'flex', alignItems: 'center'
+                      }}
+                    >
+                      <span className="sidenav__icon">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d={item.icon} />
+                        </svg>
+                      </span>
+                      <span className="sidenav__label">{item.label}</span>
+                      
+                      {unreadCount > 0 && (
+                        <span style={{
+                          backgroundColor: '#ef4444', color: 'white', fontSize: '10px',
+                          minWidth: '18px', height: '18px', display: 'flex', alignItems: 'center', 
+                          justifyContent: 'center', borderRadius: '50%', fontWeight: 'bold', marginLeft: 'auto'
+                        }}>
+                          {unreadCount > 99 ? '99+' : unreadCount}
+                        </span>
+                      )}
+                    </button>
+                    <NotificationPanel isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
+                  </li>
+                );
+              }
               return (
                 <li key={item.id}>
                   <Link
                     href={item.href}
                     className={`sidenav__link ${isActive(item.href) ? "sidenav__link--active" : ""}`}
+                    style={{ display: 'flex', alignItems: 'center' }}
                   >
                     <span className="sidenav__icon">
                       <svg
@@ -141,6 +171,15 @@ export default function Sidenav() {
                       </svg>
                     </span>
                     <span className="sidenav__label">{item.label}</span>
+                    {item.id === "messages" && unreadMessagesCount > 0 && (
+                      <span style={{
+                        backgroundColor: '#3b82f6', color: 'white', fontSize: '10px',
+                        minWidth: '18px', height: '18px', display: 'flex', alignItems: 'center', 
+                        justifyContent: 'center', borderRadius: '50%', fontWeight: 'bold', marginLeft: 'auto'
+                      }}>
+                        {unreadMessagesCount}
+                      </span>
+                    )}
                   </Link>
                 </li>
               );
@@ -178,7 +217,6 @@ export default function Sidenav() {
               </div>
             </div>
           </Link>
-
           <button
             onClick={handleLogout}
             className="sidenav__logout"
@@ -194,16 +232,7 @@ export default function Sidenav() {
               gap: "12px"
             }}
           >
-            <svg
-              viewBox="0 0 24 24"
-              width="18"
-              height="18"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
               <polyline points="16 17 21 12 16 7" />
               <line x1="21" y1="12" x2="9" y2="12" />

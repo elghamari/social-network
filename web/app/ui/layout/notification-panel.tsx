@@ -1,6 +1,8 @@
 "use client";
 
 import { useNotifications } from '@/app/_context/NotificationContext';
+import { useRouter } from 'next/navigation'; 
+import { Notification } from '@/app/lib/types/notification'; 
 
 interface Props {
   isOpen: boolean;
@@ -8,6 +10,7 @@ interface Props {
 }
 
 export default function NotificationPanel({ isOpen, onClose }: Props) {
+    const router = useRouter(); 
     const { 
         notifications, 
         markAsRead, 
@@ -25,6 +28,20 @@ export default function NotificationPanel({ isOpen, onClose }: Props) {
         if (type.includes('group')) return '👥';
         if (type.includes('event')) return '📅';
         return '👤';
+    };
+
+    const handleNotificationClick = async (notif: Notification) => {
+        if (!notif.is_read) {
+            await markAsRead(notif.id);
+        }
+        onClose();
+        if (notif.type.includes('follow')) {
+            router.push(`/profile/${notif.sender_id}`); 
+        } else if (notif.type.includes('group') || notif.type === 'join_request') {
+            router.push(`/groups/${notif.entity_id}`);
+        } else if (notif.type.includes('event')) {
+            router.push(`/events/${notif.entity_id}`);
+        }
     };
 
     return (
@@ -82,7 +99,7 @@ export default function NotificationPanel({ isOpen, onClose }: Props) {
                         notifications.map((notif) => (
                             <div 
                                 key={notif.id}
-                                onClick={() => !notif.is_read && markAsRead(notif.id)}
+                                onClick={() => handleNotificationClick(notif)} 
                                 style={{
                                     padding: '14px',
                                     marginBottom: '10px',
