@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useGroupChatBadge } from "../_hooks/use-group-chat-badge";
 
 export default function GroupSections({ groupId }: { groupId: string }) {
   const pathname = usePathname();
+  const { unreadCount } = useGroupChatBadge(Number(groupId));
 
   const sections = [
     { label: "Posts", href: `/groups/${groupId}/posts` },
@@ -22,8 +24,27 @@ export default function GroupSections({ groupId }: { groupId: string }) {
           className={`gd__section ${
             pathname === tab.href ? "gd__section--active" : ""
           }`}
+          style={{ display: "flex", alignItems: "center", gap: "6px" }}
         >
           {tab.label}
+          {tab.label === "Chat" && unreadCount > 0 && (
+            <span
+              style={{
+                backgroundColor: "#3b82f6",
+                color: "white",
+                fontSize: "10px",
+                minWidth: "18px",
+                height: "18px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: "50%",
+                fontWeight: "bold",
+              }}
+            >
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          )}
         </Link>
       ))}
     </nav>
