@@ -38,7 +38,7 @@ export function useGroupChatBadge(groupId: number | undefined) {
       socket.removeEventListener("message", handleWsMessage);
       channel.close();
     };
-  }, [socket, isChatActive, groupId, user?.id]); // 👈 ضفنا user?.id للتبعيات
+  }, [socket, isChatActive, groupId, user?.id]); 
 
   useEffect(() => {
     if (!groupId) return;
