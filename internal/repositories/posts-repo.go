@@ -81,13 +81,18 @@ func (r *PostsRepo) GetProfilePosts(targetUserId string, currentUserId string, c
 		whereClause = " WHERE p.user_id = ? AND p.group_id IS NULL "
 		args = append(args, targetUserId)
 	} else {
-		whereClause = ` WHERE p.user_id = ? AND p.group_id IS NULL AND (
-            p.privacy = 'public' OR
+        whereClause = ` WHERE p.user_id = ? AND p.group_id IS NULL AND (
+            
+            (p.privacy = 'public' AND (
+                (SELECT is_public FROM users WHERE id = p.user_id) = 1 OR 
+                p.user_id IN (SELECT following_id FROM followers WHERE follower_id = ?)
+            )) OR
+            
             (p.privacy = 'almost private' AND p.user_id IN (SELECT following_id FROM followers WHERE follower_id = ?)) OR
             (p.privacy = 'private' AND p.id IN (SELECT post_id FROM post_private WHERE user_id = ?))
         ) `
-		args = append(args, targetUserId, currentUserId, currentUserId)
-	}
+        args = append(args, targetUserId, currentUserId, currentUserId, currentUserId)
+    }
 
 	if cursor != 0 {
 		whereClause += " AND p.id < ? "
@@ -175,7 +180,9 @@ func (r *PostsRepo) GetFeedPosts(userId string, cursor int) ([]types.PostRespons
 
 	whereClause := `
         (
-            (p.privacy = 'public' AND p.group_id IS NULL) OR
+            (p.privacy = 'public' AND p.group_id IS NULL AND (
+            (SELECT is_public FROM users WHERE id = p.user_id) = 1 OR 
+            p.user_id IN (SELECT following_id FROM followers WHERE follower_id = ?) )) OR
             (p.user_id = ?) OR
             (p.group_id IN (SELECT group_id FROM group_members WHERE user_id = ?)) OR
             (p.privacy = 'almost private' AND p.user_id IN (SELECT following_id FROM followers WHERE follower_id = ?)) OR
@@ -184,10 +191,10 @@ func (r *PostsRepo) GetFeedPosts(userId string, cursor int) ([]types.PostRespons
     `
 	if cursor == 0 {
 		query = selectClause + " WHERE " + whereClause + " ORDER BY p.id DESC LIMIT 20 "
-		args = []interface{}{userId, userId, userId, userId, userId}
+		args = []interface{}{userId, userId, userId, userId, userId, userId}
 	} else {
 		query = selectClause + " WHERE " + whereClause + " AND p.id < ? ORDER BY p.id DESC LIMIT 20 "
-		args = []interface{}{userId, userId, userId, userId, userId, cursor}
+		args = []interface{}{userId, userId, userId, userId, userId, userId, cursor}
 	}
 
 	rows, err := r.DB.Query(query, args...)
@@ -229,14 +236,17 @@ func (r *PostsRepo) CanUserInteractWithPost(postId int, userId string) (bool, bo
                 SELECT 1 FROM posts p
                 WHERE p.id = ? AND (
                     (p.user_id = ?) OR 
-                    (p.privacy = 'public' AND p.group_id IS NULL) OR 
+                    (p.privacy = 'public' AND p.group_id IS NULL AND (
+                        (SELECT is_public FROM users WHERE id = p.user_id) = 1 OR 
+                        p.user_id IN (SELECT following_id FROM followers WHERE follower_id = ?)
+                    )) OR 
                     (p.group_id IN (SELECT group_id FROM group_members WHERE user_id = ?)) OR 
                     (p.privacy = 'almost private' AND p.user_id IN (SELECT following_id FROM followers WHERE follower_id = ?)) OR 
                     (p.id IN (SELECT post_id FROM post_private WHERE user_id = ?))
                 )
             )
     `
-	err := r.DB.QueryRow(query, postId, postId, userId, userId, userId, userId).Scan(&postExists, &canInteract)
+	err := r.DB.QueryRow(query, postId, postId, userId, userId, userId, userId, userId).Scan(&postExists, &canInteract)
 	if err != nil {
 		return false, false, fmt.Errorf("PostsRepo.CanUserInteractWithPost: %w", err)
 	}
