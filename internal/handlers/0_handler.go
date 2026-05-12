@@ -54,7 +54,6 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux, mid *middleware.Middleware)
 		"/api/groups/{id}/events":      h.GroupEvents,
 		"/api/groups/{id}/invitations": h.GroupInvitations,
 		"/api/groups/{id}/requests":    h.GroupJoinRequests,
-		"/api/groups/{id}/chat":        h.GroupChat,
 
 
 		// feed routes

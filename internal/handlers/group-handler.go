@@ -122,24 +122,6 @@ func (h *Handler) GroupPosts(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// ============================================================
-// GroupChat — /api/groups/{id}/chat
-// ============================================================
-
-func (h *Handler) GroupChat(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		h.GetGroupHistory(w, r)
-
-	case http.MethodPut:
-		h.MarkGroupAsRead(w, r)
-
-	default:
-		utils.WriteJson(w, http.StatusMethodNotAllowed, map[string]any{
-			"error": "Method not allowed",
-		})
-	}
-}
 
 // ============================================================
 // Invitations — /api/groups/{id}/invitations

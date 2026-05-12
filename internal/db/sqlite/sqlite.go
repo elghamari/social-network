@@ -20,11 +20,6 @@ func RunMigrations(db *sql.DB, migrationsPath string) (err error) {
 		return fmt.Errorf("RunMigrations: Enabling PRAGMA: %w", err)
 	}
 
-	_, err = db.Exec(`PRAGMA journal_mode=WAL;`)
-	if err != nil {
-		return fmt.Errorf("RunMigrations: Enabling PRAGMA: %w", err)
-	}
-
 	entries, err := os.ReadDir(migrationsPath)
 	if err != nil {
 		return fmt.Errorf("RunMigrations: ReadDir: %w", err)

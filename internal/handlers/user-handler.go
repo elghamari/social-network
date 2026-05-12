@@ -182,10 +182,12 @@ func (h *Handler) UnfollowUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.Services.Notification.DeleteNotification(targetID, userID, "follow_request"); err != nil {
+	if err :=h.Services.Notification.DeleteNotification(targetID, userID, "follow_request"); err != nil {
 		log.Println(err)
 	}
-
+if err := h.Services.Notification.DeleteNotification(targetID, userID, "follow"); err != nil {
+        log.Println("Delete follow notif:", err)
+    }
 	if err := h.Services.User.UnfollowUser(userID, targetID); err != nil {
 		utils.WriteJson(w, http.StatusInternalServerError, map[string]any{
 			"error": "action failed",
@@ -310,7 +312,12 @@ func (h *Handler) TogglePrivacy(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	userID := utils.GetUserId(r)
-
+    if payload.IsPublic {
+        if err := h.Services.User.AcceptAllFollowRequests(userID); err != nil {
+            utils.WriteJson(w, http.StatusInternalServerError, map[string]any{"error": "Failed to accept pending requests"})
+            return
+        }
+    }
 	if err := h.Services.Auth.UpdatePrivacy(userID, payload.IsPublic); err != nil {
 		utils.WriteJson(w, http.StatusInternalServerError, map[string]any{"error": "Update failed"})
 		return

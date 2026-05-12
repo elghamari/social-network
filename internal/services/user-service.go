@@ -66,5 +66,10 @@ func (s *UserService) DeclineFollowRequest(senderID, receiverID string) error {
 }
 
 func (s *UserService) UnfollowUser(followerID, followingID string) error {
+	_ = s.Follow.DeclineFollowRequest(followerID, followingID)
 	return s.Follow.UnfollowUser(followerID, followingID)
+}
+
+func (s *UserService) AcceptAllFollowRequests(receiverID string) error {
+    return s.Follow.AcceptAllFollowRequests(receiverID)
 }

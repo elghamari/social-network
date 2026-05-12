@@ -144,7 +144,7 @@ func (f *UserRepo) AcceptFollowRequest(senderID, receiverID string) error {
 	}
 	rows, _ := res.RowsAffected()
 	if rows == 0 {
-		return fmt.Errorf("no pending request found")
+		return &types.NotFoundError{"no pending request"}
 	}
 
 	_, err = tx.Exec(
@@ -166,9 +166,42 @@ func (f *UserRepo) DeclineFollowRequest(senderID, receiverID string) error {
 }
 
 func (f *UserRepo) UnfollowUser(followerID, followingID string) error {
-	_, err := f.DB.Exec(
-		`DELETE FROM followers WHERE follower_id = ? AND following_id = ?`,
-		followerID, followingID,
-	)
-	return err
+    _, err := f.DB.Exec(
+        `DELETE FROM followers WHERE follower_id = ? AND following_id = ?`,
+        followerID, followingID,
+    )
+    if err != nil {
+        return err
+    }
+
+    _, err = f.DB.Exec(
+        `DELETE FROM follow_requests WHERE sender_id = ? AND receiver_id = ?`,
+        followerID, followingID,
+    )
+    return err
+}
+func (f *UserRepo) AcceptAllFollowRequests(receiverID string) error {
+    tx, err := f.DB.Begin()
+    if err != nil {
+        return err
+    }
+    defer tx.Rollback()
+    _, err = tx.Exec(
+        `INSERT OR IGNORE INTO followers (follower_id, following_id)
+         SELECT sender_id, receiver_id FROM follow_requests WHERE receiver_id = ?`,
+        receiverID,
+    )
+    if err != nil {
+        return err
+    }
+
+    _, err = tx.Exec(
+        `DELETE FROM follow_requests WHERE receiver_id = ?`,
+        receiverID,
+    )
+    if err != nil {
+        return err
+    }
+
+    return tx.Commit()
 }

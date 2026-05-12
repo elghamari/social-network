@@ -17,7 +17,9 @@ export default function UserProfilePage() {
   const router = useRouter();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [modalType, setModalType] = useState<"followers" | "following" | null>(null);
+  const [modalType, setModalType] = useState<"followers" | "following" | null>(
+    null,
+  );
 
   useEffect(() => {
     if (!profileId) return;
@@ -31,8 +33,8 @@ export default function UserProfilePage() {
       try {
         const res = await client.get(`/profile?profile_id=${profileId}`);
         if (res) {
-          const profileData = res.user || res; 
-          
+          const profileData = res.user || res;
+
           if (profileData.follow_status === "owner") {
             router.push("/profile");
             return;
@@ -53,13 +55,20 @@ export default function UserProfilePage() {
     if (!profile) return;
 
     try {
-      if (profile.follow_status === "following" || profile.follow_status === "pending") {
+      if (
+        profile.follow_status === "following" ||
+        profile.follow_status === "pending"
+      ) {
         const res = await client.delete(`/unfollow?target_id=${profileId}`);
         if (res) {
+          console.log(res);
+
           setProfile((prev: any) => ({
             ...prev,
             follow_status: "none",
-            followers: prev.followers?.filter((f: any) => f.id !== currentUser?.id)
+            followers: prev.followers?.filter(
+              (f: any) => f.id !== currentUser?.id,
+            ),
           }));
         }
       } else {
@@ -79,7 +88,7 @@ export default function UserProfilePage() {
                   avatar: currentUser.avatar,
                   nickname: currentUser.nickname,
                   about_me: currentUser.about_me,
-                }
+                },
               ];
             }
 
@@ -96,7 +105,6 @@ export default function UserProfilePage() {
     }
   };
 
- 
   if (loading) return <div className="profile-loading">Loading...</div>;
   if (!profile) return <div className="profile-error">User not found.</div>;
 
@@ -125,10 +133,11 @@ export default function UserProfilePage() {
       >
         {profile.follow_status !== "owner" && (
           <button
-            className={`profile-btn ${profile.follow_status === "none"
+            className={`profile-btn ${
+              profile.follow_status === "none"
                 ? "profile-btn--follow"
                 : "profile-btn--unfollow"
-              }`}
+            }`}
             onClick={handleFollowToggle}
           >
             {followBtnText}
@@ -147,15 +156,24 @@ export default function UserProfilePage() {
 
           <div className="profile-posts">
             <h2 className="profile-posts__title">Posts</h2>
-            <PostList 
-              fetchData={async (cursor) => await GetProfilePosts(cursor, profileId)}
+            <PostList
+              fetchData={async (cursor) =>
+                await GetProfilePosts(cursor, profileId)
+              }
             />
           </div>
         </>
       ) : (
         <div className="profile-private">
           <div className="profile-private__icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="48" height="48">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              width="48"
+              height="48"
+            >
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
               <path d="M7 11V7a5 5 0 0 1 10 0v4" />
             </svg>
@@ -172,7 +190,9 @@ export default function UserProfilePage() {
           title={modalType === "followers" ? "Followers" : "Following"}
           isOpen={!!modalType}
           onClose={() => setModalType(null)}
-          users={modalType === "followers" ? profile.followers : profile.following}
+          users={
+            modalType === "followers" ? profile.followers : profile.following
+          }
         />
       )}
     </div>
