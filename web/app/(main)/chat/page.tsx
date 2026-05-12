@@ -48,6 +48,7 @@ export default function ChatPage() {
               justifyContent: "center",
               height: "100%",
               color: "#9ca3af",
+              padding:"20px"
             }}
           >
             Select a conversation to start chatting

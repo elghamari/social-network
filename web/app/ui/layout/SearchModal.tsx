@@ -49,7 +49,7 @@ export default function SearchModal({ isOpen, onClose }: { isOpen: boolean, onCl
           </svg>
           <input
             type="text"
-            placeholder="Search users or groups..."
+            placeholder="Search users ..."
             value={searchQuery}
             onChange={handleSearchChange}
             autoFocus
