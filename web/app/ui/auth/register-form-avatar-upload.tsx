@@ -22,8 +22,8 @@ export function RegisterAvatarUpload({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      onError(["Image size must be less than 5MB"]);
+    if (file.size > 2 * 1024 * 1024) {
+      onError(["Image size must be less than 2MB"]);
       return;
     }
 
