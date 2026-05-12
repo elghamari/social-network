@@ -60,7 +60,6 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux, mid *middleware.Middleware)
 		"/api/posts/create":  h.CreatePost,
 		"/api/posts/feed":    h.GetFeedPosts,
 		"/api/posts/profile": h.GetProfilePosts,
-		// "/api/posts/group":      h.GetGroupPosts,
 		"/api/comments/create":  h.CreateComment,
 		"/api/comments":         h.GetPostComments,
 		"/api/reactions/toggle": h.ToggleReaction,
