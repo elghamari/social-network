@@ -3,7 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { GroupTab } from "@/app/lib/types/group";
 
-const TABS: GroupTab[] = ["discover", "joined", "pending"];
+const TABS: GroupTab[] = ["discover", "joined", "requests", "invitations"];
 
 export default function GroupTabs() {
   const router = useRouter();

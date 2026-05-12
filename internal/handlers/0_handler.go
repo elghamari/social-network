@@ -48,19 +48,20 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux, mid *middleware.Middleware)
 		"/api/profile/privacy": h.TogglePrivacy,
 
 		// group routes
-		"/api/groups":                      h.Groups,
-		"/api/groups/join":                 h.JoinRequests,
-		"/api/groups/{id}":                 h.Group,
-		"/api/groups/{id}/posts":           h.GroupPosts,
-		"/api/groups/{id}/events":          h.GroupEvents,
-		"/api/groups/{id}/manage/invite":   h.GroupInvitations,
-		"/api/groups/{id}/manage/requests": h.GroupJoinRequests,
+		"/api/groups":                  h.Groups,
+		"/api/groups/{id}":             h.Group,
+		"/api/groups/{id}/posts":       h.GroupPosts,
+		"/api/groups/{id}/events":      h.GroupEvents,
+		"/api/groups/{id}/invitations": h.GroupInvitations,
+		"/api/groups/{id}/requests":    h.GroupJoinRequests,
+		"/api/groups/{id}/chat":        h.GroupChat,
+
 
 		// feed routes
-		"/api/posts/create":     h.CreatePost,
-		"/api/posts/feed":       h.GetFeedPosts,
-		"/api/posts/profile":    h.GetProfilePosts,
-		"/api/posts/group":      h.GetGroupPosts,
+		"/api/posts/create":  h.CreatePost,
+		"/api/posts/feed":    h.GetFeedPosts,
+		"/api/posts/profile": h.GetProfilePosts,
+		// "/api/posts/group":      h.GetGroupPosts,
 		"/api/comments/create":  h.CreateComment,
 		"/api/comments":         h.GetPostComments,
 		"/api/reactions/toggle": h.ToggleReaction,
@@ -75,7 +76,7 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux, mid *middleware.Middleware)
 		"/api/chat/read/group":      h.MarkGroupAsRead,
 
 		"/api/notifications":      h.GetMyNotifications,
-        "/api/notifications/read": h.MarkNotificationAsRead,
+		"/api/notifications/read": h.MarkNotificationAsRead,
 	}
 
 	for path, hand := range authRoutes {

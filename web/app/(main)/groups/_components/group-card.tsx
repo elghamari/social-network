@@ -1,38 +1,17 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { cancelJoinRequest, submitJoinRequest } from "@/app/lib/services/group";
-
-import { Group } from "@/app/lib/types/group";
+import { Group, GroupRole } from "@/app/lib/types/group";
+import GroupActions from "./group-actions";
 
 type Props = {
   group: Group;
-  onRequest: (gid: string) => void;
+  onRoleChange: () => void;
 };
 
-export default function GroupCard({ group, onRequest }: Props) {
-  const isMember = group.role === "CREATOR" || group.role === "MEMBER";
-  const isPending = group.role === "PENDING";
-
+export default function GroupCard({ group, onRoleChange }: Props) {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
-
-  const handleRequest = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const action = isPending ? cancelJoinRequest : submitJoinRequest;
-
-    setLoading(true);
-    const resp = await action(group.id);
-    setLoading(false);
-
-    if (!resp) return;
-
-    onRequest(group.id);
-  };
 
   return (
     <div
@@ -54,19 +33,12 @@ export default function GroupCard({ group, onRequest }: Props) {
             {group.memberCount} members
           </span>
 
-          {isMember ? (
-            <span className="group-card__badge group-card__badge--member">
-              Joined
-            </span>
-          ) : (
-            <button
-              className={`group-card__badge group-card__badge--${isPending ? "pending" : "request"}`}
-              onClick={handleRequest}
-              disabled={loading}
-            >
-              {loading ? "..." : isPending ? "Pending" : "Request"}
-            </button>
-          )}
+          <GroupActions
+            type={"card"}
+            id={group.id}
+            role={group.role}
+            onRoleChange={onRoleChange}
+          />
         </div>
       </div>
     </div>

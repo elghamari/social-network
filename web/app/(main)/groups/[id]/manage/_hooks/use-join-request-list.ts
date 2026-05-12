@@ -8,7 +8,7 @@ import {
   rejectJoinRequest,
 } from "@/app/lib/services/group";
 import type { JoinRequestUser } from "@/app/lib/types/group";
-import { useIntersectionObserver } from "../../../../../ui/use-intersection-observer";
+import { useIntersectionObserver } from "@/app/ui/use-intersection-observer";
 
 export type JoinRequestState = ReturnType<typeof useJoinRequestList>;
 
@@ -19,7 +19,6 @@ export function useJoinRequestList(groupId: string) {
   const [loading, setLoading] = useState(false);
   const [cursor, setCursor] = useState("");
   const [hasMore, setHasMore] = useState(false);
-  const [pendingId, setPendingId] = useState<string | null>(null);
 
   const fetchingRef = useRef(false);
 
@@ -80,35 +79,15 @@ export function useJoinRequestList(groupId: string) {
 
   const markerRef = useIntersectionObserver(loadMore, hasMore);
 
-  // ── Actions ────────────────────────────────────────
-  async function approve(userId: string): Promise<boolean> {
-    setPendingId(userId);
-    const resp = await approveJoinRequest(groupId, userId);
-    setPendingId(null);
-
-    if (!resp) return false;
-
+  function removeUser(userId: string) {
     setList((prev) => prev.filter((u) => u.id !== userId));
-    return true;
-  }
-
-  async function reject(userId: string): Promise<boolean> {
-    setPendingId(userId);
-    const resp = await rejectJoinRequest(groupId, userId);
-    setPendingId(null);
-
-    if (!resp) return false;
-
-    setList((prev) => prev.filter((u) => u.id !== userId));
-    return true;
   }
 
   return {
     list,
     loading,
     markerRef,
-    pendingId,
-    approve,
-    reject,
+
+    removeUser,
   };
 }

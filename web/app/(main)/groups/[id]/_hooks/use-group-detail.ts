@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { getGroup } from "@/app/lib/services/group";
-import { Group } from "@/app/lib/types/group";
+import { Group, GroupRole } from "@/app/lib/types/group";
 
 export function useGroupDetail(id: string) {
   const [group, setGroup] = useState<Group | null>(null);
@@ -23,12 +23,16 @@ export function useGroupDetail(id: string) {
       });
   }, []);
 
-  function toggleInvite(pending: boolean) {
+  function changeGroupRole(nextRole: GroupRole) {
     setGroup((prev) => {
       if (!prev) return prev;
-      return { ...prev, role: pending ? "PENDING" : "NONE" };
+      return { ...prev, role: nextRole };
     });
   }
 
-  return { group, loading, toggleInvite };
+  function updateGroup(updater: (prev: Group) => Group) {
+    setGroup((prev) => (prev ? updater(prev) : prev));
+  }
+
+  return { group, loading, changeGroupRole, updateGroup };
 }

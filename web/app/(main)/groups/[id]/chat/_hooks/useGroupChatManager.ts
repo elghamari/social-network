@@ -6,7 +6,7 @@ import { useWebSocket } from "@/app/_context/WebSocketContext";
 import { getGroupHistory, markGroupAsRead } from "@/app/lib/services/contact";
 
 export function useGroupChatManager() {
-  const group = useGroupContext();
+  const {group} = useGroupContext();
   const { user } = useAuth();
   const { socket, isConnected } = useWebSocket();
 

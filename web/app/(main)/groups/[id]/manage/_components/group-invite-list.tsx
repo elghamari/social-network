@@ -2,16 +2,29 @@
 
 import GroupUserRow from "./group-user-row";
 import type { InviteListState } from "../_hooks/use-invite-list";
+import { useState } from "react";
+import {
+  revokeGroupInvitation,
+  sendGroupInvitation,
+} from "@/app/lib/services/group";
 
 type Props = {
   invites: InviteListState;
+  onInvite: (uid: string, isInvited: boolean) => Promise<void>;
 };
 
 const SKELETON_COUNT = 5;
 
-export default function GroupInviteList({ invites }: Props) {
-  const isEmpty = !invites.loading && invites.list.length === 0;
+export default function GroupInviteList({ invites, onInvite }: Props) {
+  const [pendingId, setPendingId] = useState<string | null>(null);
 
+  async function handleInvite(userId: string, isInvited: boolean) {
+    setPendingId(userId);
+    await onInvite(userId, isInvited);
+    setPendingId(null);
+  }
+
+  const isEmpty = !invites.loading && invites.list.length === 0;
   return (
     <section className="gd-manage__panel">
       <div className="gd-manage__panel-header">
@@ -44,10 +57,10 @@ export default function GroupInviteList({ invites }: Props) {
                       ? "gd-manage__btn--invited"
                       : "gd-manage__btn--invite"
                   }`}
-                  onClick={() => invites.toggleInvite(user.id, user.isInvited)}
-                  disabled={invites.pendingId === user.id}
+                  onClick={() => handleInvite(user.id, user.isInvited)}
+                  disabled={pendingId === user.id}
                 >
-                  {invites.pendingId === user.id
+                  {pendingId === user.id
                     ? "..."
                     : user.isInvited
                       ? "Invited"

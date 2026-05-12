@@ -7,13 +7,11 @@ import {
     markNotificationAsRead, 
     acceptFollowRequest, 
     declineFollowRequest,
-    acceptGroupInvitation,
-    declineGroupInvitation,
-    approveGroupJoinRequest,
-    rejectGroupJoinRequest
+
 } from '../lib/services/_notification';
 
 import { useWebSocket } from './WebSocketContext'; 
+import { acceptGroupInvitation, approveJoinRequest, declineGroupInvitation, rejectJoinRequest } from '../lib/services/group';
 
 interface NotificationContextType {
     notifications: Notification[];
@@ -104,12 +102,12 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     const handleApproveJoinReq = async (groupId: string, userId: string, notifId: number) => {
         removeNotif(notifId);
-        await approveGroupJoinRequest(groupId, userId);
+        await approveJoinRequest(groupId, userId);
     };
 
     const handleRejectJoinReq = async (groupId: string, userId: string, notifId: number) => {
         removeNotif(notifId);
-        await rejectGroupJoinRequest(groupId, userId);
+        await rejectJoinRequest(groupId, userId);
     };
 
     return (

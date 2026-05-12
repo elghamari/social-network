@@ -32,6 +32,8 @@ export default function NotificationPanel({ isOpen, onClose }: Props) {
 
     const handleNotificationClick = async (notif: Notification) => {
         if (!notif.is_read) {
+            console.log(notif.id);
+            
             await markAsRead(notif.id);
         }
         onClose();
@@ -144,7 +146,7 @@ export default function NotificationPanel({ isOpen, onClose }: Props) {
                                                 </>
                                             )}
 
-                                            {notif.type === 'join_request' && (
+                                            {notif.type === 'group_join_request' && (
                                                 <>
                                                     <button onClick={(e) => { e.stopPropagation(); handleApproveJoinReq(notif.entity_id, notif.sender_id, notif.id); }} style={btnStyle(true)}>Approve</button>
                                                     <button onClick={(e) => { e.stopPropagation(); handleRejectJoinReq(notif.entity_id, notif.sender_id, notif.id); }} style={btnStyle(false)}>Reject</button>

@@ -8,7 +8,9 @@ import PostList from "@/app/ui/feed/post-list";
 import { GetGroupPosts } from "@/app/lib/services/feed";
 
 export default function GroupPostsPage() {
-  const { id } = useGroupContext();
+  const ctx = useGroupContext();
+  const {id} = ctx.group
+
   const [showModal, setShowModal] = useState(false);
   const handleClose = () => setShowModal(false);
   const [refreshKey, setRefreshKey] = useState(0);

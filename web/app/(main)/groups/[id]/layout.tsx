@@ -21,23 +21,25 @@ export default function GroupDetails({
   const params = useParams();
   const id = params.id as string;
 
-  const { group, loading, toggleInvite } = useGroupDetail(id);
+  const { group, loading, changeGroupRole, updateGroup } = useGroupDetail(id);
 
   if (loading) return <Skeleton />;
 
   if (!group || !group?.id) notFound();
 
-  const isMember = group.role === "CREATOR" || group.role === "MEMBER";
+  const isMember = group.role === "creator" || group.role === "member";
 
   return (
     <div className="gd">
-      <GroupHeader group={group} onRequest={toggleInvite} />
+      <GroupHeader group={group} onRoleChange={changeGroupRole} />
 
       {isMember ? (
         <>
           <GroupSections groupId={id} />
           <div className="gd__content">
-            <GroupProvider group={group}>{children}</GroupProvider>
+            <GroupProvider group={group} updateGroup={updateGroup}>
+              {children}
+            </GroupProvider>
           </div>
         </>
       ) : (
@@ -47,7 +49,7 @@ export default function GroupDetails({
           </div>
           <h2 className="gd__restricted-title">Members only</h2>
           <p className="gd__restricted-text">
-            {group.role === "PENDING"
+            {group.role === "pending_request"
               ? "Your request is pending. You'll get access once accepted."
               : "Request to join this group to see posts, events, and chat."}
           </p>

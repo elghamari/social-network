@@ -1,17 +1,37 @@
 "use client";
 
+import { useState } from "react";
+
 import GroupUserRow from "./group-user-row";
+
 import type { JoinRequestState } from "../_hooks/use-join-request-list";
 
 type Props = {
   requests: JoinRequestState;
-  onApprove: (uid: string) => void;
+  onApprove: (userId: string) => Promise<void>;
+  onReject: (userId: string) => Promise<void>;
 };
 
-const SKELETON_COUNT = 5;
+export default function GroupJoinRequestList({
+  requests,
+  onApprove,
+  onReject,
+}: Props) {
+  const [pendingId, setPendingId] = useState<string | null>(null);
 
-export default function GroupJoinRequestList({ requests, onApprove }: Props) {
   const isEmpty = !requests.loading && requests.list.length === 0;
+
+  async function handleApprove(userId: string) {
+    setPendingId(userId);
+    await onApprove(userId);
+    setPendingId(null);
+  }
+
+  async function handleReject(userId: string) {
+    setPendingId(userId);
+    await onReject(userId);
+    setPendingId(null);
+  }
 
   return (
     <section className="gd-manage__panel">
@@ -33,8 +53,8 @@ export default function GroupJoinRequestList({ requests, onApprove }: Props) {
                   <button
                     type="button"
                     className="gd-manage__btn gd-manage__btn--approve"
-                    disabled={requests.pendingId === user.id}
-                    onClick={() => onApprove(user.id)}
+                    disabled={pendingId === user.id}
+                    onClick={() => handleApprove(user.id)}
                   >
                     Approve
                   </button>
@@ -42,58 +62,19 @@ export default function GroupJoinRequestList({ requests, onApprove }: Props) {
                   <button
                     type="button"
                     className="gd-manage__btn gd-manage__btn--reject"
-                    disabled={requests.pendingId === user.id}
-                    onClick={() => requests.reject(user.id)}
+                    disabled={pendingId === user.id}
+                    onClick={() => handleReject(user.id)}
                   >
                     Reject
                   </button>
                 </div>
               </GroupUserRow>
             ))}
-
-            {requests.loading && <SkeletonRows />}
           </>
         )}
 
         <div ref={requests.markerRef} aria-hidden="true" />
       </div>
     </section>
-  );
-}
-
-function SkeletonRows() {
-  return (
-    <>
-      {Array.from({ length: SKELETON_COUNT }, (_, i) => (
-        <div key={i} className="gd-manage__row gd-manage__row--skeleton">
-          <div className="skeleton gd-avatar" />
-          <div className="gd-manage__user">
-            <div className="skeleton" style={{ height: 14, width: "55%" }} />
-            <div
-              className="skeleton"
-              style={{ height: 12, width: "30%", marginTop: 4 }}
-            />
-          </div>
-          <div className="gd-manage__actions">
-            <div
-              className="skeleton"
-              style={{
-                height: 30,
-                width: 65,
-                borderRadius: "var(--radius-sm)",
-              }}
-            />
-            <div
-              className="skeleton"
-              style={{
-                height: 30,
-                width: 65,
-                borderRadius: "var(--radius-sm)",
-              }}
-            />
-          </div>
-        </div>
-      ))}
-    </>
   );
 }

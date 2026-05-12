@@ -4,11 +4,11 @@ import { useEffect, useRef, useState } from "react";
 
 import {
   getInvitableUsers,
-  submitGroupInvitation,
-  cancelGroupInvitation,
+  sendGroupInvitation,
+  revokeGroupInvitation,
 } from "@/app/lib/services/group";
 import type { InvitableUser } from "@/app/lib/types/group";
-import { useIntersectionObserver } from "../../../../../ui/use-intersection-observer";
+import { useIntersectionObserver } from "@/app/ui/use-intersection-observer";
 
 export type InviteListState = ReturnType<typeof useInviteList>;
 
@@ -22,7 +22,6 @@ export function useInviteList(groupId: string) {
   const [loading, setLoading] = useState(false);
   const [cursor, setCursor] = useState("");
   const [hasMore, setHasMore] = useState(false);
-  const [pendingId, setPendingId] = useState<string | null>(null);
 
   const fetchingRef = useRef(false);
 
@@ -93,25 +92,12 @@ export function useInviteList(groupId: string) {
   const markerRef = useIntersectionObserver(loadMore, hasMore);
 
   // ── Actions ────────────────────────────────────────
-  async function toggleInvite(
-    userId: string,
-    isInvited: boolean,
-  ): Promise<boolean> {
-    const action = isInvited ? cancelGroupInvitation : submitGroupInvitation;
-
-    setPendingId(userId);
-    const resp = await action(groupId, userId);
-    setPendingId(null);
-
-    if (!resp) return false;
-
+  async function toggleInvite(userId: string) {
     setList((prev) =>
       prev.map((user) =>
-        user.id === userId ? { ...user, isInvited: !isInvited } : user,
+        user.id === userId ? { ...user, isInvited: !user.isInvited } : user,
       ),
     );
-
-    return true;
   }
 
   function removeUser(userId: string) {
@@ -126,7 +112,6 @@ export function useInviteList(groupId: string) {
     query,
     setQuery,
 
-    pendingId,
     toggleInvite,
     removeUser,
   };

@@ -33,32 +33,3 @@ export async function declineFollowRequest(targetId: string): Promise<boolean> {
         return response !== null;
     } catch (error) { return false; }
 }
-
-// --- Group Actions ---
-export async function acceptGroupInvitation(groupId: string): Promise<boolean> {
-    try {
-        const response = await client.post(`/groups/${groupId}/invites/accept`, {});
-        return response !== null;
-    } catch (error) { return false; }
-}
-
-export async function declineGroupInvitation(groupId: string): Promise<boolean> {
-    try {
-        const response = await client.post(`/groups/${groupId}/invites/decline`, {});
-        return response !== null;
-    } catch (error) { return false; }
-}
-
-export async function approveGroupJoinRequest(groupId: string, userId: string): Promise<boolean> {
-    try {
-        const response = await client.post(`/groups/${groupId}/join-requests/${userId}/approve`, {});
-        return response !== null;
-    } catch (error) { return false; }
-}
-
-export async function rejectGroupJoinRequest(groupId: string, userId: string): Promise<boolean> {
-    try {
-        const response = await client.post(`/groups/${groupId}/join-requests/${userId}/reject`, {});
-        return response !== null;
-    } catch (error) { return false; }
-}

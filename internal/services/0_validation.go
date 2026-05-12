@@ -73,15 +73,7 @@ func ValidateRegisterInput(input types.RegisterInput) error {
 	return nil
 }
 
-func ValidateTab(tab string) *types.ActionError {
-	validTabs := map[string]bool{"discover": true, "joined": true, "pending": true}
 
-	if !validTabs[tab] {
-		return types.NewActionError("Not a valid tab Try: (discover || joined || pending)")
-	}
-
-	return nil
-}
 
 func ValidateIntegerCursor(cursor string) *types.ActionError {
 	_, err := strconv.Atoi(cursor)

@@ -2,16 +2,19 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
+
 	"soc-net/internal/types"
 	"soc-net/internal/utils"
 )
+
+var groupHandlerName = "group-handler"
 
 // ============================================================
 // Groups — /api/groups
 // ============================================================
 
-// Groups routes GET and POST requests for /api/groups
 func (h *Handler) Groups(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
@@ -25,8 +28,6 @@ func (h *Handler) Groups(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// CreateGroup handles POST /api/groups
-// Parses multipart form data, creates a group, returns the created group.
 func (h *Handler) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	userId := utils.GetUserId(r)
 
@@ -58,9 +59,6 @@ func (h *Handler) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// GetGroups handles GET /api/groups
-// Supports tab filtering and search.
-// Query params: tab (discover | joined | pending), query (search string)
 func (h *Handler) GetGroups(w http.ResponseWriter, r *http.Request) {
 	userId := utils.GetUserId(r)
 	tab := r.URL.Query().Get("tab")
@@ -78,8 +76,6 @@ func (h *Handler) GetGroups(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// Group handles GET /api/groups/{id}
-// Returns a single group with the current user's role.
 func (h *Handler) Group(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		utils.WriteJson(w, http.StatusMethodNotAllowed, map[string]any{
@@ -110,67 +106,7 @@ func (h *Handler) Group(w http.ResponseWriter, r *http.Request) {
 }
 
 // ============================================================
-// Join Requests (user-facing) — /api/groups/join
-// ============================================================
-
-// JoinRequests routes POST and DELETE for /api/groups/join
-func (h *Handler) JoinRequests(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodPost:
-		h.SubmitJoinRequest(w, r)
-	case http.MethodDelete:
-		h.CancelJoinRequest(w, r)
-	default:
-		utils.WriteJson(w, http.StatusMethodNotAllowed, map[string]any{
-			"error": "Method not allowed",
-		})
-	}
-}
-
-// SubmitJoinRequest handles POST /api/groups/join
-// Submits a join request for the authenticated user.
-// Body: { groupId }
-func (h *Handler) SubmitJoinRequest(w http.ResponseWriter, r *http.Request) {
-	userId := utils.GetUserId(r)
-
-	req := types.JoinRequest{}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
-			"error": "Invalid request body",
-		})
-		return
-	}
-	req.UserId = userId
-
-	if err := h.Services.Group.SubmitJoinRequest(req); err != nil {
-		HandleError(w, err)
-		return
-	}
-
-	utils.WriteJson(w, http.StatusOK, nil)
-}
-
-// CancelJoinRequest handles DELETE /api/groups/join
-// Cancels the authenticated user's pending join request.
-// Query params: groupId
-func (h *Handler) CancelJoinRequest(w http.ResponseWriter, r *http.Request) {
-	userId := utils.GetUserId(r)
-
-	req := types.JoinRequest{
-		UserId:  userId,
-		GroupId: r.URL.Query().Get("groupId"),
-	}
-
-	if err := h.Services.Group.CancelJoinRequest(req); err != nil {
-		HandleError(w, err)
-		return
-	}
-
-	utils.WriteJson(w, http.StatusOK, nil)
-}
-
-// ============================================================
-// GroupPosts — /api/groups/{id}/events
+// GroupPosts — /api/groups/{id}/posts
 // ============================================================
 
 func (h *Handler) GroupPosts(w http.ResponseWriter, r *http.Request) {
@@ -187,18 +123,17 @@ func (h *Handler) GroupPosts(w http.ResponseWriter, r *http.Request) {
 }
 
 // ============================================================
-// Invitations (member-facing) — /api/groups/{id}/manage/invite
+// GroupChat — /api/groups/{id}/chat
 // ============================================================
 
-// GroupInvitations routes GET, POST, DELETE for /api/groups/{id}/manage/invite
-func (h *Handler) GroupInvitations(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GroupChat(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		h.GetInvitableUsers(w, r)
-	case http.MethodPost:
-		h.CreateGroupInvitation(w, r)
-	case http.MethodDelete:
-		h.RevokeGroupInvitation(w, r)
+		h.GetGroupHistory(w, r)
+
+	case http.MethodPut:
+		h.MarkGroupAsRead(w, r)
+
 	default:
 		utils.WriteJson(w, http.StatusMethodNotAllowed, map[string]any{
 			"error": "Method not allowed",
@@ -206,8 +141,35 @@ func (h *Handler) GroupInvitations(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// GetInvitableUsers handles GET /api/groups/{id}/manage/invite
-// Returns all non-members that can be invited, with an IsInvited flag.
+// ============================================================
+// Invitations — /api/groups/{id}/invitations
+// ============================================================
+
+func (h *Handler) GroupInvitations(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		h.GetInvitableUsers(w, r)
+
+	case http.MethodPost:
+		h.SendInvitation(w, r)
+
+	case http.MethodPut:
+		h.AcceptInvitation(w, r)
+
+	case http.MethodDelete:
+		if r.URL.Query().Get("userId") != "" {
+			h.RevokeInvitation(w, r)
+		} else {
+			h.DeclineInvitation(w, r)
+		}
+
+	default:
+		utils.WriteJson(w, http.StatusMethodNotAllowed, map[string]any{
+			"error": "Method not allowed",
+		})
+	}
+}
+
 func (h *Handler) GetInvitableUsers(w http.ResponseWriter, r *http.Request) {
 	userId := utils.GetUserId(r)
 	groupId := r.PathValue("id")
@@ -225,23 +187,60 @@ func (h *Handler) GetInvitableUsers(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// CreateGroupInvitation handles POST /api/groups/{id}/manage/invite
-// Sends an invitation to a user. Only group members can invite.
-// Body: { userId }
-func (h *Handler) CreateGroupInvitation(w http.ResponseWriter, r *http.Request) {
-	userId := utils.GetUserId(r)
-	groupId := r.PathValue("id")
+func (h *Handler) SendInvitation(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		UserId string `json:"userId"`
+	}
 
-	inv := types.Invitation{}
-	if err := json.NewDecoder(r.Body).Decode(&inv); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
 			"error": "Invalid request body",
 		})
 		return
 	}
-	inv.GroupId = groupId
 
-	if err := h.Services.Group.CreateGroupInvitation(groupId, userId, inv); err != nil {
+	inviterId := utils.GetUserId(r)
+	groupId := r.PathValue("id")
+	userId := body.UserId
+
+	result, err := h.Services.Group.SendInvitation(groupId, inviterId, userId)
+	if err != nil {
+		HandleError(w, err)
+		return
+	}
+
+	if result != types.UserJoined {
+
+		notif, err := h.Services.Group.GetInvitationNotification(groupId, inviterId, userId)
+		if err != nil {
+			log.Println("SendInvitation: %v", err)
+		} else {
+
+			notif, err := h.Services.Notification.CreateNotification(notif)
+			if err != nil {
+				log.Println(err)
+			} else {
+				h.Hub.PushNotification([]string{notif.ReceiverID}, notif)
+			}
+
+		}
+	}
+
+	utils.WriteJson(w, http.StatusOK, map[string]any{
+		"result": result,
+	})
+}
+
+func (h *Handler) RevokeInvitation(w http.ResponseWriter, r *http.Request) {
+	revokerId := utils.GetUserId(r)
+	groupId := r.PathValue("id")
+	userId := r.URL.Query().Get("userId")
+
+	if err := h.Services.Notification.DeleteSingleNotification(userId, "group_invitation"); err != nil {
+		log.Println(err)
+	}
+
+	if err := h.Services.Group.RevokeInvitation(groupId, revokerId, userId); err != nil {
 		HandleError(w, err)
 		return
 	}
@@ -249,18 +248,31 @@ func (h *Handler) CreateGroupInvitation(w http.ResponseWriter, r *http.Request) 
 	utils.WriteJson(w, http.StatusOK, nil)
 }
 
-// RevokeGroupInvitation handles DELETE /api/groups/{id}/manage/invite
-// Revokes a previously sent invitation. Only group members can revoke.
-// Query params: userId
-func (h *Handler) RevokeGroupInvitation(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) AcceptInvitation(w http.ResponseWriter, r *http.Request) {
 	userId := utils.GetUserId(r)
+	groupId := r.PathValue("id")
 
-	inv := types.Invitation{
-		GroupId: r.PathValue("id"),
-		UserId:  r.URL.Query().Get("userId"),
+	if err := h.Services.Notification.DeleteSingleNotification(userId, "group_invitation"); err != nil {
+		log.Println(err)
 	}
 
-	if err := h.Services.Group.RevokeGroupInvitation(inv.GroupId, userId, inv); err != nil {
+	if err := h.Services.Group.AcceptInvitation(groupId, userId); err != nil {
+		HandleError(w, err)
+		return
+	}
+
+	utils.WriteJson(w, http.StatusOK, nil)
+}
+
+func (h *Handler) DeclineInvitation(w http.ResponseWriter, r *http.Request) {
+	userId := utils.GetUserId(r)
+	groupId := r.PathValue("id")
+
+	if err := h.Services.Notification.DeleteSingleNotification(userId, "group_invitation"); err != nil {
+		log.Println(err)
+	}
+
+	if err := h.Services.Group.DeclineInvitation(groupId, userId); err != nil {
 		HandleError(w, err)
 		return
 	}
@@ -269,18 +281,29 @@ func (h *Handler) RevokeGroupInvitation(w http.ResponseWriter, r *http.Request) 
 }
 
 // ============================================================
-// Join Requests (creator-facing) — /api/groups/{id}/manage/requests
+// Join Requests — /api/groups/{id}/requests
 // ============================================================
 
-// GroupJoinRequests routes GET, POST, DELETE for /api/groups/{id}/manage/requests
 func (h *Handler) GroupJoinRequests(w http.ResponseWriter, r *http.Request) {
+	userId := r.URL.Query().Get("userId")
+
 	switch r.Method {
 	case http.MethodGet:
 		h.GetJoinRequestUsers(w, r)
+
 	case http.MethodPost:
+		h.SendJoinRequest(w, r)
+
+	case http.MethodPut:
 		h.ApproveJoinRequest(w, r)
+
 	case http.MethodDelete:
-		h.RejectJoinRequest(w, r)
+		if userId != "" {
+			h.RejectJoinRequest(w, r)
+		} else {
+			h.RevokeJoinRequest(w, r)
+		}
+
 	default:
 		utils.WriteJson(w, http.StatusMethodNotAllowed, map[string]any{
 			"error": "Method not allowed",
@@ -288,8 +311,6 @@ func (h *Handler) GroupJoinRequests(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// GetJoinRequestUsers handles GET /api/groups/{id}/manage/requests
-// Returns all users with pending join requests. Creator only.
 func (h *Handler) GetJoinRequestUsers(w http.ResponseWriter, r *http.Request) {
 	userId := utils.GetUserId(r)
 	groupId := r.PathValue("id")
@@ -306,23 +327,41 @@ func (h *Handler) GetJoinRequestUsers(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// ApproveJoinRequest handles POST /api/groups/{id}/manage/requests
-// Approves a user's join request and adds them as a member. Creator only.
-// Body: { userId }
-func (h *Handler) ApproveJoinRequest(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) SendJoinRequest(w http.ResponseWriter, r *http.Request) {
 	userId := utils.GetUserId(r)
 	groupId := r.PathValue("id")
 
-	req := types.JoinRequest{}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
-			"error": "Invalid request body",
-		})
+	result, err := h.Services.Group.SendJoinRequest(groupId, userId)
+	if err != nil {
+		HandleError(w, err)
 		return
 	}
-	req.GroupId = groupId
 
-	if err := h.Services.Group.ApproveJoinRequest(groupId, userId, req); err != nil {
+	if result != types.UserJoined {
+		notif, err := h.Services.Group.GetJoinRequestNotification(groupId, userId)
+
+		if err != nil {
+			log.Println(err)
+		} else {
+
+			notif, err := h.Services.Notification.CreateNotification(notif)
+			if err != nil {
+				log.Printf("SendJoinRequest: %v", err)
+			} else {
+				h.Hub.PushNotification([]string{notif.ReceiverID}, notif)
+			}
+
+		}
+	}
+
+	utils.WriteJson(w, http.StatusOK, nil)
+}
+
+func (h *Handler) RevokeJoinRequest(w http.ResponseWriter, r *http.Request) {
+	userId := utils.GetUserId(r)
+	groupId := r.PathValue("id")
+
+	if err := h.Services.Group.RevokeJoinRequest(groupId, userId); err != nil {
 		HandleError(w, err)
 		return
 	}
@@ -330,18 +369,44 @@ func (h *Handler) ApproveJoinRequest(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJson(w, http.StatusOK, nil)
 }
 
-// RejectJoinRequest handles DELETE /api/groups/{id}/manage/requests
-// Rejects and removes a user's join request. Creator only.
-// Query params: userId
-func (h *Handler) RejectJoinRequest(w http.ResponseWriter, r *http.Request) {
-	userId := utils.GetUserId(r)
-
-	req := types.JoinRequest{
-		GroupId: r.PathValue("id"),
-		UserId:  r.URL.Query().Get("userId"),
+func (h *Handler) ApproveJoinRequest(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		UserId string `json:"userId"`
 	}
 
-	if err := h.Services.Group.RejectJoinRequest(req.GroupId, userId, req); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
+			"error": "Invalid request body",
+		})
+		return
+	}
+
+	approverId := utils.GetUserId(r)
+	groupId := r.PathValue("id")
+	userId := body.UserId
+
+	if err := h.Services.Notification.DeleteNotification(approverId, userId, "group_join_request"); err != nil {
+		log.Println(err)
+	}
+
+	if err := h.Services.Group.ApproveJoinRequest(groupId, approverId, userId); err != nil {
+		HandleError(w, err)
+		return
+	}
+
+	utils.WriteJson(w, http.StatusOK, nil)
+}
+
+func (h *Handler) RejectJoinRequest(w http.ResponseWriter, r *http.Request) {
+	rejecterId := utils.GetUserId(r)
+	groupId := r.PathValue("id")
+	userId := r.URL.Query().Get("userId")
+
+	if err := h.Services.Notification.DeleteNotification(rejecterId, userId, "group_join_request"); err != nil {
+		log.Println(err)
+	}
+
+	if err := h.Services.Group.RejectJoinRequest(groupId, rejecterId, userId); err != nil {
 		HandleError(w, err)
 		return
 	}
@@ -353,7 +418,6 @@ func (h *Handler) RejectJoinRequest(w http.ResponseWriter, r *http.Request) {
 // GroupEvents — /api/groups/{id}/events
 // ============================================================
 
-// Events routes GET, POST, PUT for /api/groups/{id}/events
 func (h *Handler) GroupEvents(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
@@ -369,9 +433,6 @@ func (h *Handler) GroupEvents(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// CreateEvent handles POST /api/groups/{id}/events
-// Creates a new event in the group. Members only.
-// Body: { title, description, date }
 func (h *Handler) CreateEvent(w http.ResponseWriter, r *http.Request) {
 	userId := utils.GetUserId(r)
 	groupId := r.PathValue("id")
@@ -393,10 +454,25 @@ func (h *Handler) CreateEvent(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJson(w, http.StatusOK, map[string]any{
 		"event": event,
 	})
+
+	go func() {
+		notifications, err := h.Services.Group.GetEventNotifications(groupId, event.Id, userId)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		for _, notif := range notifications {
+			notif, err := h.Services.Notification.CreateNotification(notif)
+			if err != nil {
+				log.Println(err)
+			} else {
+				h.Hub.PushNotification([]string{notif.ReceiverID}, notif)
+			}
+		}
+	}()
 }
 
-// GetEvents handles GET /api/groups/{id}/events
-// Returns all events for the group. Members only.
 func (h *Handler) GetEvents(w http.ResponseWriter, r *http.Request) {
 	userId := utils.GetUserId(r)
 	groupId := r.PathValue("id")
@@ -413,9 +489,6 @@ func (h *Handler) GetEvents(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// EventRespond handles PUT /api/groups/{id}/events
-// Usertes the authenticated user's Response for an event.
-// Body: { eventId, response (GOING | NOT_GOING) }
 func (h *Handler) EventRespond(w http.ResponseWriter, r *http.Request) {
 	userId := utils.GetUserId(r)
 	groupId := r.PathValue("id")

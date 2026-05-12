@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"database/sql"
+
 	"soc-net/internal/types"
 )
 
@@ -86,5 +87,11 @@ func (r *NotificationRepo) MarkAsRead(notifID int, userID string) error {
 func (r *NotificationRepo) DeleteNotification(receiverID string, senderID string, notifType string) error {
 	query := `DELETE FROM notifications WHERE receiver_id = ? AND sender_id = ? AND type = ?`
 	_, err := r.DB.Exec(query, receiverID, senderID, notifType)
+	return err
+}
+
+func (r *NotificationRepo) DeleteSingleNotification(receiverID string, notifType string) error {
+	query := `DELETE FROM notifications WHERE receiver_id = ? AND type = ?`
+	_, err := r.DB.Exec(query, receiverID, notifType)
 	return err
 }

@@ -45,3 +45,10 @@ func (s *NotificationService) DeleteNotification(receiverID string, senderID str
     }
     return s.Repo.DeleteNotification(receiverID, senderID, notifType)
 }
+
+func (s *NotificationService) DeleteSingleNotification(receiverID string, notifType string) error {
+    if receiverID == ""  || notifType == "" {
+        return types.NewActionError("missing parameters for deleting notification")
+    }
+    return s.Repo.DeleteSingleNotification(receiverID , notifType)
+}

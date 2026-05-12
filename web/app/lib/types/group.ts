@@ -1,7 +1,12 @@
-export type LoadingStatus = "loading" | "loading-more" | "";
-
 // ===== Groups
-export type GroupTab = "discover" | "joined" | "pending";
+export type GroupTab = "discover" | "joined" | "requests" | "invitations";
+
+export type GroupRole =
+  | "creator"
+  | "member"
+  | "pending_request"
+  | "pending_invitation"
+  | "none";
 
 export type Group = {
   id: string;
@@ -11,7 +16,7 @@ export type Group = {
   createdAt: string;
   creatorId: string;
   memberCount: number;
-  role: string;
+  role: GroupRole;
 };
 
 // ===== Group Create form

@@ -100,9 +100,7 @@ func (h *Handler) AcceptFollowRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.Services.User.AcceptFollowRequest(senderID, userID); err != nil {
-		utils.WriteJson(w, http.StatusNotFound, map[string]any{
-			"error": err.Error(),
-		})
+		HandleError(w, err)
 		return
 	}
 
@@ -184,6 +182,10 @@ func (h *Handler) UnfollowUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := h.Services.Notification.DeleteNotification(targetID, userID, "follow_request"); err != nil {
+		log.Println(err)
+	}
+
 	if err := h.Services.User.UnfollowUser(userID, targetID); err != nil {
 		utils.WriteJson(w, http.StatusInternalServerError, map[string]any{
 			"error": "action failed",
@@ -222,8 +224,8 @@ func (h *Handler) GetMe(w http.ResponseWriter, r *http.Request) {
 			"last_name":        user.LastName,
 			"is_public":        user.IsPublic,
 			"email":            user.Email,
-			"avatar":           safeStr(user.Avatar), 
-			"about_me":         safeStr(user.AboutMe), 
+			"avatar":           safeStr(user.Avatar),
+			"about_me":         safeStr(user.AboutMe),
 			"nickname":         safeStr(user.Nickname),
 			"date_of_birth":    user.DateOfBirth,
 			"follow_status":    "owner",
@@ -238,7 +240,6 @@ func (h *Handler) GetMe(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	viewerID := utils.GetUserId(r)
 	targetID := r.URL.Query().Get("profile_id")
-	fmt.Println(targetID)
 	if targetID == "" {
 		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
 			"errors": "profile_id is required",
@@ -248,7 +249,7 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 
 	target, err := h.Services.Auth.GetUserById(targetID)
 	if err != nil {
-		fmt.Println("-----------------------------------------",err)
+		fmt.Println("-----------------------------------------", err)
 		utils.WriteJson(w, http.StatusNotFound, map[string]any{
 			"errors": "user not found",
 		})

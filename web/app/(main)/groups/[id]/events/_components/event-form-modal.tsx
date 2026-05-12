@@ -16,8 +16,6 @@ interface Props {
 }
 
 export default function EventFormModal({ groupId, onClose, onCreated }: Props) {
-  const router = useRouter();
-
   const [errors, setErrors] = useState<EventFormErrors>({});
   const [loading, setLoading] = useState(false);
 
@@ -56,8 +54,13 @@ export default function EventFormModal({ groupId, onClose, onCreated }: Props) {
     }
   }
 
+  function handleOverlayPointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    if (e.target !== e.currentTarget) return;
+    onClose();
+  }
+
   return (
-    <div className="ef-overlay" onClick={onClose}>
+    <div className="ef-overlay" onPointerDown={handleOverlayPointerDown}>
       <div className="ef-modal" onClick={(e) => e.stopPropagation()}>
         <div className="ef-modal__header">
           <h2 className="ef-modal__title">Create Event</h2>

@@ -1,15 +1,31 @@
-import type { Group } from "@/app/lib/types/group";
+"use client";
+
+import type { Group, GroupRole } from "@/app/lib/types/group";
 import { createContext, useContext } from "react";
 
-const Context = createContext<Group | null>(null);
-
-type GroupContextProps = {
+type GroupContextValue = {
   group: Group;
+  updateGroup: (updater: (prev: Group) => Group) => void;
+};
+
+const Context = createContext<GroupContextValue | null>(null);
+
+type GroupProviderProps = {
+  group: Group;
+  updateGroup: (updater: (prev: Group) => Group) => void;
   children: React.ReactNode;
 };
 
-export default function GroupProvider({ group, children }: GroupContextProps) {
-  return <Context.Provider value={group}>{children}</Context.Provider>;
+export default function GroupProvider({
+  group,
+  updateGroup,
+  children,
+}: GroupProviderProps) {
+  return (
+    <Context.Provider value={{ group, updateGroup }}>
+      {children}
+    </Context.Provider>
+  );
 }
 
 export function useGroupContext() {

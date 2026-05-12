@@ -1,9 +1,10 @@
 "use client";
 
-import styles from "../../chat/chat.module.css"; 
-import ChatInput from "./ChatInput"; 
-import MessageBubble from "./MessageBubble"; 
-import { useGroupChatManager } from "../../groups/[id]/chat/_hooks/useGroupChatManager";
+import styles from "@/app/(main)/chat/chat.module.css"; 
+import ChatInput from "../../../../chat/_components/ChatInput"; 
+import MessageBubble from "../../../../chat/_components/MessageBubble"; 
+import { useGroupChatManager } from "../_hooks/useGroupChatManager";
+import { useGroupContext } from "../../_context/context";
 export default function GroupChatWindow() {
   const {
     messages,
@@ -14,9 +15,11 @@ export default function GroupChatWindow() {
     handleTrackScroll,
     scrollToBottom,
     handleSendMessage,
-    group,
     user
   } = useGroupChatManager(); 
+
+  const ctx  = useGroupContext()
+  const {role} = ctx.group
 
   return (
     <div className={styles.chatWindow} style={{ position: 'relative' }}>
@@ -47,7 +50,7 @@ export default function GroupChatWindow() {
           ⬇️ New Message
         </div>
       )}
-      {group.role === "MEMBER" || group.role === "CREATOR" ? (
+      {role === "member" || role === "creator" ? (
         <ChatInput onSendMessage={handleSendMessage} /> 
       ) : (
         <div style={{ padding: "15px", textAlign: "center", color: "#9ca3af" }}>
