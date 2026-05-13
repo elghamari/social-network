@@ -173,13 +173,6 @@ func (s *ChatService) GetPrivateHistory(currentUserId string, targetUserId strin
 		return nil, types.NewNotFoundError("the specified user does not exist")
 	}
 
-	isConnected, err := s.Chat.AreConnected(currentUserId, targetUserId)
-	if err != nil {
-		return nil, err
-	}
-	if !isConnected {
-		return nil, types.NewForbiddenError("you do not have permission to message this user")
-	}
 	return s.Chat.GetPrivateHistory(currentUserId, targetUserId, cursor)
 }
 

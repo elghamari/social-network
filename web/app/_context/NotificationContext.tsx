@@ -7,7 +7,6 @@ import {
     markNotificationAsRead, 
     acceptFollowRequest, 
     declineFollowRequest,
-
 } from '../lib/services/_notification';
 
 import { useWebSocket } from './WebSocketContext'; 
@@ -51,6 +50,18 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }, [fetchNotifications]);
 
     useEffect(() => {
+        const channel = new BroadcastChannel('nexus_notif_sync');
+        
+        channel.onmessage = (event) => {
+            if (event.data === 'sync_notifications') {
+                fetchNotifications();
+            }
+        };
+
+        return () => channel.close();
+    }, [fetchNotifications]);
+
+    useEffect(() => {
         if (!socket) return;
 
         const handleWsMessage = (event: MessageEvent) => {
@@ -71,13 +82,21 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     const unreadCount = notifications.filter(n => !n.is_read).length;
 
+    const notifyOtherTabs = () => {
+        const channel = new BroadcastChannel('nexus_notif_sync');
+        channel.postMessage('sync_notifications');
+        channel.close();
+    };
+
     const markAsRead = async (id: number) => {
         setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
         await markNotificationAsRead(id);
+        notifyOtherTabs(); 
     };
 
     const removeNotif = (notifId: number) => {
         setNotifications(prev => prev.filter(n => n.id !== notifId));
+        notifyOtherTabs();
     };
 
     const handleAcceptFollow = async (targetId: string, notifId: number) => {

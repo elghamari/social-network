@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Contact, Message } from '../../../lib/types/chat';
 import { markAsRead } from '../../../lib/services/contact';
+import { showToast } from '@/app/ui/layout/toast-store'; 
 
 interface UseChatWebSocketProps {
   socket: WebSocket | null;
@@ -30,6 +31,11 @@ export const useChatWebSocket = ({
     const handleMessage = (event: MessageEvent) => {
       try {
         const parsed = JSON.parse(event.data);
+        if (parsed.type === "error") {
+          const errorMessage = parsed.error || parsed.message || "You don't have permission to message this user.";
+          showToast(errorMessage);
+          return; 
+        }
 
         if (parsed.type === "user_status_change") {
           const { user_id, status } = parsed.data;
@@ -56,6 +62,7 @@ export const useChatWebSocket = ({
 
           const currentContact = selectedContactRef.current;
           const currentContactsList = contactsRef.current;
+          
           if (currentContact && (newMsg.senderId === currentContact.id || newMsg.receiverId === currentContact.id)) {
             setMessages(prev => [...prev, newMsg]);
             
