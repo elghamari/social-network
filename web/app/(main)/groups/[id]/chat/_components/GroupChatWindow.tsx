@@ -22,25 +22,26 @@ export default function GroupChatWindow() {
   const {role} = ctx.group
 
   return (
-    <div className={styles.chatWindow} style={{ position: 'relative' }}>
-      
-      <div 
-        className={styles.messagesArea} 
+    <div className={styles.chatCard} style={{ position: "relative" }}>
+      <div
+        className={styles.messagesArea}
         ref={scrollContainerRef}
-        onScroll={handleTrackScroll} 
-        style={{ overflowAnchor: 'auto' }}
+        onScroll={handleTrackScroll}
+        style={{ overflowAnchor: "auto" }}
       >
-        <div ref={observerTarget} style={{ height: '1px' }} />
+        <div ref={observerTarget} style={{ height: "1px" }} />
 
-        {isLoadingMore && <div className={styles.loaderSmall}>Loading older messages...</div>}
+        {isLoadingMore && (
+          <div className={styles.loaderSmall}>Loading older messages...</div>
+        )}
 
         {messages.map((msg, index) => {
-          const isMine = msg.senderId === user?.id; 
+          const isMine = msg.senderId === user?.id;
           return (
-            <MessageBubble 
-               key={msg.id || index}
-               msg={msg}
-               isReceived={!isMine} 
+            <MessageBubble
+              key={msg.id || index}
+              msg={msg}
+              isReceived={!isMine}
             />
           );
         })}
@@ -51,7 +52,7 @@ export default function GroupChatWindow() {
         </div>
       )}
       {role === "member" || role === "creator" ? (
-        <ChatInput onSendMessage={handleSendMessage} /> 
+        <ChatInput onSendMessage={handleSendMessage} />
       ) : (
         <div style={{ padding: "15px", textAlign: "center", color: "#9ca3af" }}>
           You must join the group to send messages.

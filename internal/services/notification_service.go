@@ -1,8 +1,8 @@
 package services
 
 import (
-    "soc-net/internal/repositories"
-    "soc-net/internal/types"
+	"soc-net/internal/repositories"
+	"soc-net/internal/types"
 )
 
 type NotificationService struct {

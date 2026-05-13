@@ -106,11 +106,7 @@ func (h *Handler) AcceptFollowRequest(w http.ResponseWriter, r *http.Request) {
 
 	// --------------------------------------------------------
 	// Notification Logic for Accept
-	// --------------------------------------------------------
-	if err := h.Services.Notification.DeleteNotification(userID, senderID, "follow_request"); err != nil {
-		log.Printf("Non-critical error: failed to delete follow_request notification for user %s: %v", userID, err)
-	}
-
+	
 	notif := types.Notification{
 		Type:       "follow_accept",
 		SenderID:   userID,
@@ -118,14 +114,18 @@ func (h *Handler) AcceptFollowRequest(w http.ResponseWriter, r *http.Request) {
 		EntityID:   userID,
 		Content:    "accepted your follow request",
 	}
-
+	
 	savedNotif, err := h.Services.Notification.CreateNotification(notif)
 	if err == nil {
 		h.Hub.PushNotification([]string{senderID}, savedNotif)
-	} else {
+		} else {
 		log.Printf("Failed to save accept notification for user %s: %v", senderID, err)
 	}
 	// --------------------------------------------------------
+	// --------------------------------------------------------
+	if err := h.Services.Notification.DeleteNotification(userID, senderID, "follow_request"); err != nil {
+		log.Printf("Non-critical error: failed to delete follow_request notification for user %s: %v", userID, err)
+	}
 
 	utils.WriteJson(w, http.StatusOK, nil)
 }
@@ -316,6 +316,9 @@ func (h *Handler) TogglePrivacy(w http.ResponseWriter, r *http.Request) {
         if err := h.Services.User.AcceptAllFollowRequests(userID); err != nil {
             utils.WriteJson(w, http.StatusInternalServerError, map[string]any{"error": "Failed to accept pending requests"})
             return
+        }
+		if err := h.Services.Notification.DeleteSingleNotification(userID, "follow_request"); err != nil {
+            log.Printf("Non-critical error: failed to clear follow_requests for user %s: %v", userID, err)
         }
     }
 	if err := h.Services.Auth.UpdatePrivacy(userID, payload.IsPublic); err != nil {
