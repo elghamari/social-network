@@ -70,7 +70,6 @@ var selectClause = `
 		LEFT JOIN groups as g ON p.group_id = g.id    `
 
 func (r *PostsRepo) GetProfilePosts(targetUserId string, currentUserId string, cursor int) ([]types.PostResponse, error) {
-	fmt.Println("in profile -----------")
 	posts := []types.PostResponse{}
 
 	var whereClause string
@@ -131,7 +130,6 @@ func (r *PostsRepo) GetProfilePosts(targetUserId string, currentUserId string, c
 }
 
 func (r *PostsRepo) GetGroupPosts(groupId int, currentUserId string, cursor int) ([]types.PostResponse, error) {
-	fmt.Println("in Group -----------")
 	posts := []types.PostResponse{}
 
 	var query string
@@ -175,7 +173,6 @@ func (r *PostsRepo) GetGroupPosts(groupId int, currentUserId string, cursor int)
 }
 
 func (r *PostsRepo) GetFeedPosts(userId string, cursor int) ([]types.PostResponse, error) {
-	fmt.Println("in feed -----------")
 	posts := []types.PostResponse{}
 
 	var query string
