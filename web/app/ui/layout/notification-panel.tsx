@@ -3,6 +3,8 @@
 import { useNotifications } from '@/app/_context/NotificationContext';
 import { useRouter } from 'next/navigation'; 
 import { Notification } from '@/app/lib/types/notification'; 
+import { createPortal } from 'react-dom';
+import './notification-panel.css';
 
 interface Props {
   isOpen: boolean;
@@ -32,8 +34,6 @@ export default function NotificationPanel({ isOpen, onClose }: Props) {
 
     const handleNotificationClick = async (notif: Notification) => {
         if (!notif.is_read) {
-            console.log(notif.id);
-            
             await markAsRead(notif.id);
         }
         onClose();
@@ -46,55 +46,19 @@ export default function NotificationPanel({ isOpen, onClose }: Props) {
         }
     };
 
-    return (
+    return createPortal(
         <>
-            <div 
-                onClick={onClose}
-                style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    width: '100vw',
-                    height: '100vh',
-                    backgroundColor: 'rgba(0, 0, 0, 0.4)', 
-                    zIndex: 998, 
-                    cursor: 'default'
-                }}
-            />
-            <div style={{
-                position: 'fixed', 
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                width: '400px', 
-                backgroundColor: '#111827', 
-                border: '1px solid #1f2937',
-                borderRadius: '16px', 
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)',
-                zIndex: 999, 
-                maxHeight: '80vh', 
-                overflowY: 'auto',
-                display: 'flex',
-                flexDirection: 'column'
-            }}>
-                <div style={{ 
-                    padding: '20px', 
-                    borderBottom: '1px solid #1f2937', 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center',
-                    position: 'sticky',
-                    top: 0,
-                    backgroundColor: '#111827',
-                    zIndex: 1
-                }}>
-                    <h3 style={{ margin: 0, color: 'white', fontSize: '18px', fontWeight: '600' }}>Notifications</h3>
-                    <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: '20px' }}>✕</button>
+            <div className="notif-overlay" onClick={onClose} />
+            
+            <div className="notif-panel">
+                <div className="notif-header">
+                    <h3 className="notif-title">Notifications</h3>
+                    <button className="notif-close-btn" onClick={onClose}>✕</button>
                 </div>
 
-                <div style={{ padding: '15px' }}>
+                <div className="notif-content">
                     {notifications.length === 0 ? (
-                        <div style={{ textAlign: 'center', color: '#9ca3af', padding: '40px 0', fontSize: '14px' }}>
+                        <div className="notif-empty">
                             No new notifications
                         </div>
                     ) : (
@@ -102,54 +66,40 @@ export default function NotificationPanel({ isOpen, onClose }: Props) {
                             <div 
                                 key={notif.id}
                                 onClick={() => handleNotificationClick(notif)} 
-                                style={{
-                                    padding: '14px',
-                                    marginBottom: '10px',
-                                    backgroundColor: notif.is_read ? 'transparent' : 'rgba(59, 130, 246, 0.08)',
-                                    border: '1px solid',
-                                    borderColor: notif.is_read ? 'transparent' : 'rgba(59, 130, 246, 0.2)',
-                                    borderRadius: '10px',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s ease'
-                                }}
+                                className={`notif-item ${notif.is_read ? 'read' : 'unread'}`}
                             >
-                                <div style={{ display: 'flex', gap: '12px' }}>
-                                    <div style={{ 
-                                        width: '40px', height: '40px', borderRadius: '50%', 
-                                        backgroundColor: '#1f2937', display: 'flex', alignItems: 'center', 
-                                        justifyContent: 'center', fontSize: '18px', flexShrink: 0,
-                                        border: '1px solid #374151'
-                                    }}>
+                                <div className="notif-body">
+                                    <div className="notif-icon">
                                         {getIcon(notif.type)}
                                     </div>
                                     
-                                    <div style={{ flex: 1 }}>
-                                        <p style={{ margin: 0, fontSize: '14px', color: '#f3f4f6', lineHeight: '1.5' }}>
+                                    <div className="notif-text-wrapper">
+                                        <p className="notif-message">
                                             {notif.content}
                                         </p>
-                                        <span style={{ fontSize: '11px', color: '#6b7280', display: 'block', marginTop: '6px' }}>
+                                        <span className="notif-time">
                                             {new Date(notif.created_at).toLocaleString()}
                                         </span>
 
-                                        <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
+                                        <div className="notif-actions">
                                             {notif.type === 'follow_request' && (
                                                 <>
-                                                    <button onClick={(e) => { e.stopPropagation(); handleAcceptFollow(notif.sender_id, notif.id); }} style={btnStyle(true)}>Accept</button>
-                                                    <button onClick={(e) => { e.stopPropagation(); handleDeclineFollow(notif.sender_id, notif.id); }} style={btnStyle(false)}>Decline</button>
+                                                    <button className="notif-btn primary" onClick={(e) => { e.stopPropagation(); handleAcceptFollow(notif.sender_id, notif.id); }}>Accept</button>
+                                                    <button className="notif-btn secondary" onClick={(e) => { e.stopPropagation(); handleDeclineFollow(notif.sender_id, notif.id); }}>Decline</button>
                                                 </>
                                             )}
 
                                             {notif.type === 'group_invitation' && (
                                                 <>
-                                                    <button onClick={(e) => { e.stopPropagation(); handleAcceptGroupInv(notif.entity_id, notif.id); }} style={btnStyle(true)}>Join</button>
-                                                    <button onClick={(e) => { e.stopPropagation(); handleDeclineGroupInv(notif.entity_id, notif.id); }} style={btnStyle(false)}>Ignore</button>
+                                                    <button className="notif-btn primary" onClick={(e) => { e.stopPropagation(); handleAcceptGroupInv(notif.entity_id, notif.id); }}>Join</button>
+                                                    <button className="notif-btn secondary" onClick={(e) => { e.stopPropagation(); handleDeclineGroupInv(notif.entity_id, notif.id); }}>Ignore</button>
                                                 </>
                                             )}
 
                                             {notif.type === 'group_join_request' && (
                                                 <>
-                                                    <button onClick={(e) => { e.stopPropagation(); handleApproveJoinReq(notif.entity_id, notif.sender_id, notif.id); }} style={btnStyle(true)}>Approve</button>
-                                                    <button onClick={(e) => { e.stopPropagation(); handleRejectJoinReq(notif.entity_id, notif.sender_id, notif.id); }} style={btnStyle(false)}>Reject</button>
+                                                    <button className="notif-btn primary" onClick={(e) => { e.stopPropagation(); handleApproveJoinReq(notif.entity_id, notif.sender_id, notif.id); }}>Approve</button>
+                                                    <button className="notif-btn secondary" onClick={(e) => { e.stopPropagation(); handleRejectJoinReq(notif.entity_id, notif.sender_id, notif.id); }}>Reject</button>
                                                 </>
                                             )}
                                         </div>
@@ -160,17 +110,7 @@ export default function NotificationPanel({ isOpen, onClose }: Props) {
                     )}
                 </div>
             </div>
-        </>
+        </>,
+        document.body
     );
 }
-
-const btnStyle = (isPrimary: boolean) => ({
-    padding: '7px 14px',
-    backgroundColor: isPrimary ? '#3b82f6' : 'rgba(55, 65, 81, 0.5)',
-    color: isPrimary ? 'white' : '#d1d5db',
-    border: 'none',
-    borderRadius: '6px',
-    fontSize: '12px',
-    cursor: 'pointer',
-    fontWeight: 600 as const
-});

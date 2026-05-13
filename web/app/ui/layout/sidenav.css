@@ -1,4 +1,3 @@
-/* app/ui/layout/sidenav.css */
 
 .sidenav {
   width: var(--sidenav-width, 240px);
@@ -12,8 +11,6 @@
   flex-direction: column;
   z-index: 100;
 }
-
-/* ── Header / Logo ── */
 
 .sidenav__header {
   padding: 20px 16px;
@@ -47,7 +44,6 @@
   background-clip: text;
 }
 
-/* ── Search ── */
 
 .sidenav__search {
   position: relative;
@@ -102,7 +98,6 @@
   background-color: var(--bg-hover, rgba(255, 255, 255, 0.05));
 }
 
-/* ── Search Dropdown ── */
 
 .sidenav__search-dropdown {
   position: absolute;
@@ -176,7 +171,6 @@
   font-size: 13px;
 }
 
-/* ── Nav ── */
 
 .sidenav__nav {
   flex: 1;
@@ -243,7 +237,6 @@
   flex: 1;
 }
 
-/* ── Footer ── */
 
 .sidenav__footer {
   padding: 12px;
@@ -318,7 +311,6 @@
   box-shadow: 0 0 8px #10b981;
 }
 
-/* ── Logout ── */
 
 .sidenav__logout {
   display: flex;
@@ -337,9 +329,222 @@
   background: rgba(239, 68, 68, 0.1);
 }
 
-@media (max-width: 768px) {
+
+@media (max-width: 1024px) {
+
   .sidenav {
+    --sidenav-width: 80px;
+    width: 80px;
+    min-width: 80px;
+  }
+
+  .sidenav__logo-text,
+  .sidenav__label,
+  .sidenav__user-info,
+  .sidenav__logout > span,
+  .sidenav__search {
+    display: none !important;
+  }
+
+  .sidenav__header {
+    display: flex;
+    justify-content: center;
+    padding: 20px 0;
+  }
+
+  .sidenav__logo {
+    justify-content: center;
+    gap: 0;
+  }
+
+  
+  .sidenav__nav {
+    padding: 0 8px;
+  }
+
+  .sidenav__link {
+    justify-content: center;
+    padding: 14px 0;
+    gap: 0;
+  }
+
+  .sidenav__link--active::before {
+    left: 50%;
+    top: auto;
+    bottom: 0;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 3px;
+    border-radius: 4px 4px 0 0;
+  }
+  .sidenav__footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 0;
+  }
+
+  .sidenav__divider {
+    width: 48px;
+  }
+
+  .sidenav__user {
+    justify-content: center;
+    padding: 12px 0;
+    gap: 0;
+  }
+
+  .sidenav__avatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  .sidenav__logout {
+    justify-content: center;
+    padding: 12px 0;
+    gap: 0;
+  }
+}
+
+
+
+@media (max-width: 768px) {
+
+  .sidenav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    top: auto;
+    width: 100%;
+    min-width: 0;
+    height: 65px;
+    flex-direction: row;
+    border-right: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+
+    background: rgba(18, 19, 26, 0.72);
+    -webkit-backdrop-filter: blur(20px) saturate(1.6);
+    backdrop-filter: blur(20px) saturate(1.6);
+    box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.45);
+    z-index: 9999;
+  }
+
+  .sidenav__header,
+  .sidenav__search {
+    display: none !important;
+  }
+
+  .sidenav__footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+  }
+
+  .sidenav__divider {
     display: none;
+  }
+
+  .sidenav__user {
+    display: none !important;
+  }
+
+  .sidenav__logout {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 8px 4px;
+    border-radius: 12px;
+    min-height: 50px;
+    width: 100%;
+    max-width: 72px;
+    color: var(--text-secondary, #a1a1aa);
+    margin-top: 0;
+    font-size: 0; 
+  }
+
+  .sidenav__logout > span {
+    display: none !important;
+  }
+
+  .sidenav__logout svg {
+    width: 26px;
+    height: 26px;
+  }
+
+  .sidenav__logout:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: #ef4444;
+  }
+
+  .sidenav__nav {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    padding: 0;
+    overflow: visible;
+  }
+
+  .sidenav__list {
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    width: 100%;
+    gap: 0;
+  }
+
+  .sidenav__list > li {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+  }
+
+  .sidenav__link {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 8px 4px;
+    border-radius: 12px;
+    width: 100%;
+    min-height: 50px;
+    position: relative;
+  }
+
+  .sidenav__link:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .sidenav__label {
+    display: none !important;
+  }
+
+  
+  .sidenav__icon {
+    width: 26px;
+    height: 26px;
+  }
+
+  .sidenav__link--active {
+    background: rgba(6, 182, 212, 0.12);
+  }
+
+  .sidenav__link--active::before {
+    left: 50%;
+    top: auto;
+    bottom: 2px;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-primary, #06b6d4);
+    box-shadow: 0 0 10px var(--accent-primary, #06b6d4);
+  }
+
+  .sidenav__link--active .sidenav__icon {
+    filter: drop-shadow(0 0 6px var(--accent-primary, #06b6d4));
   }
 }
 
