@@ -54,7 +54,7 @@ func (s *CommentsService) GetPostComments(currentUserId string, postId int, curs
 	}
 
 	if !postExists {
-		return nil, types.NewNotFoundError("the specified user does not exist.")
+		return nil, types.NewNotFoundError("the specified post does not exist.")
 	}
 
 	if !canInteract {

@@ -50,7 +50,7 @@ func (s *PostsService) CreatePost(input types.PostInput) (int64, error) {
 			return 0, fmt.Errorf("PostsService.CreatePost (Check All Users): %w", err)
 		}
 		if !allExist {
-			return 0, types.NewActionError("one or meny on this users are not exist!")
+			return 0, types.NewActionError("one or many on this users are not exist!")
 		}
 	}
 
@@ -62,7 +62,6 @@ func (s *PostsService) GetProfilePosts(currentUserId string, targetUserId string
 		return nil, errors.New("invalid cursor: must be zero or positive")
 	}
 
-	// TODO: Move this UserExists function to UsersRepo.
 	userExists, err := s.Auth.UserExists(targetUserId)
 	if err != nil {
 		return nil, fmt.Errorf("PostsService.GetProfilePosts (Check User): %w", err)
@@ -97,9 +96,5 @@ func (s *PostsService) GetGroupPosts(groupId int, currentUserId string, cursor i
 }
 
 func (s *PostsService) GetFeedPosts(currentUserId string, cursor int) ([]types.PostResponse, error) {
-	if cursor < 0 {
-		return nil, errors.New("invalid cursor: must be zero or positive")
-	}
-
 	return s.Posts.GetFeedPosts(currentUserId, cursor)
 }

@@ -64,6 +64,11 @@ export default function PostCard({ post }: { post: PostType }) {
             </Link>
             <span className="post-author-username">{ post.author.nickname ? `@${post.author.nickname}` : '' }</span>
           </div>
+          <div>
+            <Link  href={`/groups/${post.group.group_id}`}>
+              <span className="post-author-username">{ post.group.group_title ? ` Group - @${post.group.group_title}` : '' }</span>
+            </Link>
+          </div>
           <div className="post-time-privacy">
             <span>{FormatTime(post.created_at)}</span>
             <span className="dot-separator">•</span>

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -36,7 +35,6 @@ func (h *Handler) ToggleReaction(w http.ResponseWriter, r *http.Request) {
 
 	isLiked, totalLikes, err := h.Services.Reactions.UpdateReaction(userId, postId)
 	if err != nil {
-		fmt.Println("ToggleReaction Error:", err)
 		HandleError(w, err)
 		return
 	}

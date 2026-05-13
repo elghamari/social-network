@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -11,7 +10,6 @@ import (
 
 func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		fmt.Println("Error - 1 ")
 		utils.WriteJson(w, http.StatusMethodNotAllowed, map[string]any{
 			"error": "method not allowed",
 		})
@@ -22,7 +20,6 @@ func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
-		fmt.Println("Error - 2 ")
 		utils.WriteJson(w, http.StatusBadRequest, map[string]any{
 			"error": "failed to parse form data, file might be too large",
 		})
@@ -39,7 +36,6 @@ func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
 	if groupIdStr != "" {
 		id, err := strconv.Atoi(groupIdStr)
 		if err != nil {
-			fmt.Println("Error - 3 ")
 			utils.WriteJson(w, http.StatusBadRequest, map[string]any{
 				"error": "invalid group ID",
 			})
@@ -50,8 +46,6 @@ func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	imageUrl, err := utils.HandleImageUpload(r, "image")
 	if err != nil {
-		fmt.Println("Error - 4 ")
-		fmt.Println(err)
 		HandleError(w, err)
 		return
 	}
@@ -72,7 +66,6 @@ func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("Created Success !!! ")
 	utils.WriteJson(w, http.StatusCreated, map[string]any{
 		"message": "Post created successfully",
 		"postId":  postId,
@@ -94,7 +87,7 @@ func (h *Handler) GetFeedPosts(w http.ResponseWriter, r *http.Request) {
 	var err error
 	if cursorStr != "" {
 		cursor, err = strconv.Atoi(cursorStr)
-		if err != nil {
+		if err != nil || cursor < 0 {
 			utils.WriteJson(w, http.StatusBadRequest, map[string]any{
 				"error": "invalid cursor",
 			})
@@ -104,7 +97,6 @@ func (h *Handler) GetFeedPosts(w http.ResponseWriter, r *http.Request) {
 
 	posts, err := h.Services.Posts.GetFeedPosts(userId, cursor)
 	if err != nil {
-		fmt.Println("GetFeedPosts Error:", err)
 		utils.WriteJson(w, http.StatusInternalServerError, map[string]any{
 			"error": "internal server error",
 		})
@@ -140,7 +132,7 @@ func (h *Handler) GetProfilePosts(w http.ResponseWriter, r *http.Request) {
 	var err error
 	if cursorStr != "" {
 		cursor, err = strconv.Atoi(cursorStr)
-		if err != nil {
+		if err != nil || cursor < 0 {
 			utils.WriteJson(w, http.StatusBadRequest, map[string]any{
 				"error": "invalid cursor",
 			})
@@ -150,7 +142,6 @@ func (h *Handler) GetProfilePosts(w http.ResponseWriter, r *http.Request) {
 
 	posts, err := h.Services.Posts.GetProfilePosts(currentUserId, targetUserId, cursor)
 	if err != nil {
-		fmt.Println("GetProfilePosts Error:", err)
 		HandleError(w, err)
 		return
 	}
@@ -194,7 +185,7 @@ func (h *Handler) GetGroupPosts(w http.ResponseWriter, r *http.Request) {
 	cursor := 0
 	if cursorStr != "" {
 		cursor, err = strconv.Atoi(cursorStr)
-		if err != nil {
+		if err != nil || cursor < 0 {
 			utils.WriteJson(w, http.StatusBadRequest, map[string]any{
 				"error": "invalid cursor",
 			})
@@ -204,7 +195,6 @@ func (h *Handler) GetGroupPosts(w http.ResponseWriter, r *http.Request) {
 
 	posts, err := h.Services.Posts.GetGroupPosts(groupId, currentUserId, cursor)
 	if err != nil {
-		fmt.Println("GetGroupPosts Error:", err)
 		HandleError(w, err)
 		return
 	}

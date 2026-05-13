@@ -41,7 +41,7 @@ export default function PostList({ refreshKey, fetchData }: PostListProps) {
         if (isReset) setHasMore(false);
       }
     } catch (error) {
-      console.log("Error fetching posts: ", error);
+      // console.log("Error fetching posts: ", error);
       showToast("Network error. Please check your connection.");
       setHasMore(false);
     } finally {
@@ -83,7 +83,7 @@ export default function PostList({ refreshKey, fetchData }: PostListProps) {
   return (
     <div className="post-list-container">
       {posts.length === 0 && !isLoading ? (
-        <p className="no-posts-message">No posts yet. Be the first to post!</p>
+        <p className="no-posts-message">No posts yet.</p>
       ) : (
         posts.map((post) => <PostCard key={post.id} post={post} />)
       )}

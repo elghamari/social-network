@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -100,7 +99,7 @@ func (h *Handler) GetPostComments(w http.ResponseWriter, r *http.Request) {
 	cursor := 0
 	if cursorStr != "" {
 		cursor, err = strconv.Atoi(cursorStr)
-		if err != nil {
+		if err != nil || cursor < 0 {
 			utils.WriteJson(w, http.StatusBadRequest, map[string]any{
 				"error": "invalid cursor",
 			})
@@ -110,7 +109,6 @@ func (h *Handler) GetPostComments(w http.ResponseWriter, r *http.Request) {
 
 	comments, err := h.Services.Comments.GetPostComments(userId, postId, cursor)
 	if err != nil {
-		fmt.Println("GetPostComments Error:", err)
 		HandleError(w, err)
 		return
 	}

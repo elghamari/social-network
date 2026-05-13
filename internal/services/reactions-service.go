@@ -26,7 +26,7 @@ func (s *ReactionsService) UpdateReaction(currentUserId string, postId int) (boo
 	}
 
 	if !postExists {
-		return false, 0, types.NewNotFoundError("the specified user does not exist.")
+		return false, 0, types.NewNotFoundError("the specified post does not exist.")
 	}
 
 	if !canInteract {

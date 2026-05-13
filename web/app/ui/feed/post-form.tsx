@@ -173,7 +173,7 @@ export default function PostForm({ onCancel, onPostCreated, inGroup, groupId }: 
             style={{ borderRadius: "12px" }}
           >
             <PrivateSection
-              users={user?.user?.following || []}
+              users={user?.user?.followers || []}
               privateUsers={inputForm.privateUsers}
               toggleUser={toggleUser}
             />
