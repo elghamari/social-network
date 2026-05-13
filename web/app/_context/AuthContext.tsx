@@ -1,6 +1,6 @@
 "use client";
 import { createContext, useContext, useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { authService } from "../lib/services/auth";
 import { UserProfile, GetMeResponse } from "@/app/lib/types/auth";
 
@@ -15,20 +15,27 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true); 
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const router = useRouter();
+  const pathname = usePathname();
 
   const fetchUser = async () => {
     try {
       const res: GetMeResponse = await authService.getMe();
-      
+
       if (res && res.user) {
         setUser(res.user);
       } else {
         setUser(null);
+        if (pathname !== "/login" && pathname !== "/register") {
+          router.replace("/login");
+        }
       }
     } catch (err) {
       setUser(null);
+      if (pathname !== "/login" && pathname !== "/register") {
+        router.replace("/login");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -41,13 +48,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log("Logout error:", err);
     } finally {
       setUser(null);
-      router.push("/login");
+      router.replace("/login");
     }
   };
 
   useEffect(() => {
     fetchUser();
-  }, []);
+  }, [pathname]); 
 
   return (
     <AuthContext.Provider value={{ user, isLoading, fetchUser, logout }}>

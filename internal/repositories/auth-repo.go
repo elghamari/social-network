@@ -79,7 +79,12 @@ func (r *AuthRepo) CreateUser(input types.RegisterInput, hashedPassword, uuid st
 	`, uuid, input.Email, hashedPassword, input.FirstName, input.LastName,
 		input.DateOfBirth, input.Nickname, input.Avatar, input.AboutMe)
 	if err != nil {
-		return fmt.Errorf("Email already registered")
+		if strings.Contains(err.Error(), "UNIQUE constraint failed") || strings.Contains(err.Error(), "1062") {
+            formErr := types.NewFormError()
+            formErr.Fields["email"] = append(formErr.Fields["email"], "Email already registered")
+            return formErr
+        }
+		return fmt.Errorf("database error: %w", err)
 	}
 	return nil
 }

@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"database/sql"
+	"strings"
 
 	"soc-net/internal/types"
 )
@@ -15,13 +16,17 @@ func NewSearchRepo(db *sql.DB) *SearchRepo {
 }
 
 func (r *SearchRepo) SearchUsers(query string) ([]types.FollowerInfo, error) {
-	q := `SELECT id, first_name, last_name, avatar 
-	      FROM users 
-	      WHERE first_name LIKE ? OR last_name LIKE ? 
-	      LIMIT 10`
-
-	searchTerm := "%" + query + "%"
-	return r.getUsersByQuery(q, searchTerm, searchTerm)
+    q := `SELECT id, first_name, last_name, avatar 
+          FROM users 
+          WHERE (first_name || ' ' || last_name) LIKE ? 
+          OR (last_name || ' ' || first_name) LIKE ? 
+          LIMIT 10`
+          
+    words := strings.Fields(query)
+    cleanQuery := strings.Join(words, " ")
+    
+    searchTerm := "%" + cleanQuery + "%"
+    return r.getUsersByQuery(q, searchTerm, searchTerm)
 }
 
 func (r *SearchRepo) getUsersByQuery(query string, args ...any) ([]types.FollowerInfo, error) {

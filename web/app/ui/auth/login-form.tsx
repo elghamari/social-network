@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/app/lib/services/auth";
 import { LoginInput } from "@/app/lib/types/auth";
@@ -15,6 +15,13 @@ export function LoginForm() {
     email: "",
     password: "",
   });
+
+  useEffect(() => {
+    if (document.cookie.includes("sessionId=")) {
+      router.replace("/");
+      router.refresh();
+    }
+  }, [router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -36,7 +43,7 @@ export function LoginForm() {
         return;
       }
 
-      router.push("/");
+      router.replace("/");
     } catch (err: any) {
       setError(err.message || "Connection error with Nexus server");
     } finally {
