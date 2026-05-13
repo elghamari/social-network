@@ -47,7 +47,10 @@ export interface PostType {
     lastname: string;
     avatar?: string;
   };
-  group_id?: number;
+  group: {
+    group_id?: number;
+    group_title?: string;
+  };
   title: string;
   description: string;
   privacy: string;

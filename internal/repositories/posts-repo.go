@@ -61,15 +61,16 @@ func (r *PostsRepo) InsertPost(input types.PostInput) (int64, error) {
 var selectClause = `
         SELECT 
             p.id, p.user_id, u.nickname, u.first_name, u.last_name, u.avatar,
-			p.group_id, p.title, p.description, p.privacy, p.image_url, p.created_at,
+			p.group_id, g.title, p.title, p.description, p.privacy, p.image_url, p.created_at,
             EXISTS(SELECT 1 FROM reactions WHERE post_id = p.id AND user_id = ?),
             (SELECT COUNT(*) FROM reactions WHERE post_id = p.id),
             (SELECT COUNT(*) FROM comments WHERE post_id = p.id)
         FROM posts as p
         INNER JOIN users as u ON p.user_id = u.id
-    `
+		LEFT JOIN groups as g ON p.group_id = g.id    `
 
 func (r *PostsRepo) GetProfilePosts(targetUserId string, currentUserId string, cursor int) ([]types.PostResponse, error) {
+	fmt.Println("in profile -----------")
 	posts := []types.PostResponse{}
 
 	var whereClause string
@@ -81,7 +82,7 @@ func (r *PostsRepo) GetProfilePosts(targetUserId string, currentUserId string, c
 		whereClause = " WHERE p.user_id = ? AND p.group_id IS NULL "
 		args = append(args, targetUserId)
 	} else {
-        whereClause = ` WHERE p.user_id = ? AND p.group_id IS NULL AND (
+		whereClause = ` WHERE p.user_id = ? AND p.group_id IS NULL AND (
             
             (p.privacy = 'public' AND (
                 (SELECT is_public FROM users WHERE id = p.user_id) = 1 OR 
@@ -91,8 +92,8 @@ func (r *PostsRepo) GetProfilePosts(targetUserId string, currentUserId string, c
             (p.privacy = 'almost private' AND p.user_id IN (SELECT following_id FROM followers WHERE follower_id = ?)) OR
             (p.privacy = 'private' AND p.id IN (SELECT post_id FROM post_private WHERE user_id = ?))
         ) `
-        args = append(args, targetUserId, currentUserId, currentUserId, currentUserId)
-    }
+		args = append(args, targetUserId, currentUserId, currentUserId, currentUserId)
+	}
 
 	if cursor != 0 {
 		whereClause += " AND p.id < ? "
@@ -112,7 +113,7 @@ func (r *PostsRepo) GetProfilePosts(targetUserId string, currentUserId string, c
 		err := rows.Scan(
 			&p.Id, &p.User.Id, &p.User.Nickname,
 			&p.User.FirstName, &p.User.LastName, &p.User.Avatar,
-			&p.GroupId, &p.Title, &p.Description,
+			&p.Group.GroupId, &p.Group.Title, &p.Title, &p.Description,
 			&p.Privacy, &p.ImageUrl, &p.CreatedAt,
 			&p.IsLiked, &p.TotalLikes, &p.TotalComments,
 		)
@@ -130,6 +131,7 @@ func (r *PostsRepo) GetProfilePosts(targetUserId string, currentUserId string, c
 }
 
 func (r *PostsRepo) GetGroupPosts(groupId int, currentUserId string, cursor int) ([]types.PostResponse, error) {
+	fmt.Println("in Group -----------")
 	posts := []types.PostResponse{}
 
 	var query string
@@ -155,7 +157,7 @@ func (r *PostsRepo) GetGroupPosts(groupId int, currentUserId string, cursor int)
 		err := rows.Scan(
 			&p.Id, &p.User.Id, &p.User.Nickname,
 			&p.User.FirstName, &p.User.LastName, &p.User.Avatar,
-			&p.GroupId, &p.Title, &p.Description,
+			&p.Group.GroupId, &p.Group.Title, &p.Title, &p.Description,
 			&p.Privacy, &p.ImageUrl, &p.CreatedAt,
 			&p.IsLiked, &p.TotalLikes, &p.TotalComments,
 		)
@@ -173,6 +175,7 @@ func (r *PostsRepo) GetGroupPosts(groupId int, currentUserId string, cursor int)
 }
 
 func (r *PostsRepo) GetFeedPosts(userId string, cursor int) ([]types.PostResponse, error) {
+	fmt.Println("in feed -----------")
 	posts := []types.PostResponse{}
 
 	var query string
@@ -209,7 +212,7 @@ func (r *PostsRepo) GetFeedPosts(userId string, cursor int) ([]types.PostRespons
 		err := rows.Scan(
 			&p.Id, &p.User.Id, &p.User.Nickname,
 			&p.User.FirstName, &p.User.LastName, &p.User.Avatar,
-			&p.GroupId, &p.Title, &p.Description,
+			&p.Group.GroupId, &p.Group.Title, &p.Title, &p.Description,
 			&p.Privacy, &p.ImageUrl, &p.CreatedAt,
 			&p.IsLiked, &p.TotalLikes, &p.TotalComments,
 		)
