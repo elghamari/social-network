@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { Suspense, useRef } from "react";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 
 import type { GroupTab } from "@/app/lib/types/group";
@@ -9,7 +9,7 @@ import { SearchIcon } from "@/app/ui/icons";
 
 const DEBOUNCE_MS = 400;
 
-export default function GroupSearch() {
+function SearchContent() {
   const { replace } = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -44,5 +44,14 @@ export default function GroupSearch() {
         defaultValue={searchParams.get("query") ?? ""}
       />
     </div>
+  );
+}
+
+// 2. التغلاف
+export default function GroupSearch() {
+  return (
+    <Suspense fallback={<div>Loading search...</div>}>
+      <SearchContent />
+    </Suspense>
   );
 }
