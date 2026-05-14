@@ -298,3 +298,28 @@ func (h *Handler) MarkGroupAsRead(w http.ResponseWriter, r *http.Request) {
 		"message": "group messages marked as read",
 	})
 }
+
+func (h *Handler) GetSingleGroupUnreadCount(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.WriteJson(w, http.StatusMethodNotAllowed, map[string]any{"error": "method not allowed"})
+		return
+	}
+
+	userId := utils.GetUserId(r)
+	if userId == "" {
+		HandleError(w, types.NewForbiddenError("unauthorized access"))
+		return
+	}
+	groupIdStr := r.URL.Query().Get("groupId") 
+	groupId, _ := strconv.Atoi(groupIdStr)
+
+	count, err := h.Services.Chat.GetSingleGroupUnreadCount(groupId, userId)
+	if err != nil {
+		HandleError(w, err)
+		return
+	}
+
+	utils.WriteJson(w, http.StatusOK, map[string]any{
+		"unreadCount": count,
+	})
+}

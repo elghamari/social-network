@@ -285,3 +285,20 @@ func (r *ChatRepo) GetGroupLastRead(groupId int, userId string) (int64, error) {
 
 	return lastRead, nil
 }
+
+func (r *ChatRepo) GetSingleGroupUnreadCount(groupId int, userId string) (int, error) {
+    var count int
+    query := `
+        SELECT COUNT(*) 
+        FROM group_messages m 
+        WHERE m.group_id = ? 
+          AND m.sender_id != ? 
+          AND m.message_id > COALESCE((SELECT last_read_message_id FROM group_chat_cursors glr WHERE glr.group_id = ? AND glr.user_id = ?), 0)
+    `
+    err := r.DB.QueryRow(query, groupId, userId, groupId, userId).Scan(&count)
+    if err != nil {
+        return 0, err
+    }
+    return count, nil
+}
+

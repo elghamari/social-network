@@ -26,6 +26,14 @@ func (s *ChatService) ProcessPrivateMessage(senderId string, input types.Incomin
 		return types.Message{}, types.NewActionError("sender and receiver IDs are required")
 	}
 
+	senderExists, err := s.Auth.UserExists(senderId)
+    if err != nil {
+        return types.Message{}, err
+    }
+    if !senderExists {
+        return types.Message{}, types.NewNotFoundError("your account no longer exists")
+    }
+	
 	if err := ValidateIncomingMessage(&input); err != nil {
 		return types.Message{}, err
 	}
@@ -240,4 +248,11 @@ func (s *ChatService) MarkGroupAsRead(groupId int, userId string, lastMessageId 
 	}
 
 	return s.Chat.UpdateGroupLastRead(groupId, userId, lastMessageId)
+}
+
+func (s *ChatService) GetSingleGroupUnreadCount(groupId int, userId string) (int, error) {
+	if userId == "" || groupId <= 0 {
+		return 0, types.NewActionError("valid userId and groupId are required")
+	}
+	return s.Chat.GetSingleGroupUnreadCount(groupId, userId)
 }

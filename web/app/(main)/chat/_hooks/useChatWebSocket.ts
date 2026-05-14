@@ -31,96 +31,83 @@ export const useChatWebSocket = ({
     const handleMessage = (event: MessageEvent) => {
       try {
         const parsed = JSON.parse(event.data);
+
+        // 1. التعامل مع الأخطاء (Security & Permissions)
         if (parsed.type === "error") {
-          const errorMessage = parsed.error || parsed.message || "You don't have permission to message this user.";
-          showToast(errorMessage);
-          return; 
-        }
+          const { status, error } = parsed;
 
-        if (parsed.type === "user_status_change") {
-          const { user_id, status } = parsed.data;
-
-          setContacts(prev => prev.map(c => 
-            c.id === user_id ? { ...c, isOnline: status } : c
-          ));
-
-          if (selectedContactRef.current?.id === user_id) {
-            setSelectedContact(prev => prev ? { ...prev, isOnline: status } : null);
+          // حالة اليوزر ممسوح من الداتابيز (Unauthorized)
+          if (status === 401) {
+            localStorage.clear();
+            window.location.href = '/login?reason=deleted';
+            return;
           }
+
+          // حالة قطع الـ Follow أو المنع (Forbidden)
+          if (status === 403) {
+            showToast(error || "You don't have permission to message this user.");
+            return;
+          }
+
+          showToast(error || "An unexpected error occurred.");
+          return;
         }
 
+        // 2. التعامل مع الميساجات الجديدة
         if (parsed.type === "new_message") {
           const m = parsed.data;
+          
+          // 🚨 تصفية: إيلا كان ميساج ديال ݣروب، تجاهله هنا (بلاصتو فـ useGroupChatManager)
+          if (m.group_id || m.groupId) return; 
+
           const newMsg: Message = {
-            id: m.message_id,        
-            senderId: m.sender_id,   
+            id: m.message_id,
+            senderId: m.sender_id,
             receiverId: m.receiver_id,
             content: m.content,
-            isRead: m.is_read === 1, 
+            isRead: m.is_read === 1,
             createdAt: m.created_at
           };
 
           const currentContact = selectedContactRef.current;
           const currentContactsList = contactsRef.current;
-          
+
+          // تحديث واجهة الشات إيلا كان مفتوح مع نفس الشخص
           if (currentContact && (newMsg.senderId === currentContact.id || newMsg.receiverId === currentContact.id)) {
             setMessages(prev => [...prev, newMsg]);
-            
-            if (newMsg.senderId === currentContact.id) {
-              markAsRead(currentContact.id);
-            }
+            if (newMsg.senderId === currentContact.id) markAsRead(currentContact.id);
             
             setTimeout(() => {
               if (scrollContainerRef.current) {
-                const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
-                const isNearBottom = scrollHeight - scrollTop - clientHeight < 150;
-                if (isNearBottom) {
-                  scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
-                }
+                scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
               }
             }, 100);
           }
 
+          // تحديث قائمة الـ Contacts (Sidebar)
           const isKnown = currentContactsList.some(c => c.id === newMsg.senderId || c.id === newMsg.receiverId);
-          
           if (!isKnown) {
             fetchContactsList();
           } else {
             setContacts(prev => {
               const otherContacts: Contact[] = [];
               let targetContact: Contact | null = null;
-
               prev.forEach(c => {
                 if (c.id === newMsg.senderId || c.id === newMsg.receiverId) {
                   targetContact = {
                     ...c,
                     lastMessage: newMsg.content,
-                    unreadCount: (newMsg.senderId === c.id && currentContact?.id !== c.id) 
-                                  ? (c.unreadCount || 0) + 1 
-                                  : c.unreadCount
+                    unreadCount: (newMsg.senderId === c.id && currentContact?.id !== c.id) ? (c.unreadCount || 0) + 1 : c.unreadCount
                   };
                 } else {
                   otherContacts.push(c);
                 }
               });
-
-              if (targetContact) {
-                return [targetContact, ...otherContacts];
-              }
-              
-              return prev;
+              return targetContact ? [targetContact, ...otherContacts] : prev;
             });
           }
         }
-
-        if (parsed.type === "messages_read") {
-          const readSenderId = parsed.data.senderId;
-          setContacts(prev => prev.map(c => 
-            c.id === readSenderId ? { ...c, unreadCount: 0 } : c
-          ));
-        }
-
-      } catch (error) {
+      } catch (error) { 
         console.error("WS Parse Error:", error);
       }
     };

@@ -260,6 +260,9 @@
   transition: all 0.2s;
   border: 1px solid #ffffff1f;
   margin-bottom: 10px;
+  white-space: nowrap;     
+  overflow: hidden;         
+  text-overflow: ellipsis;
 }
 
 .contactItem:hover {
@@ -411,6 +414,7 @@
   }
 
   .messagesArea {
-    max-height: 300px;
+    max-height: 390px;
   }
+ 
 }

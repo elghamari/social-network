@@ -65,3 +65,14 @@ export async function markGroupAsRead(groupId: number, lastMessageId: number): P
         console.log('Error marking group as read:', error);
     }
 }
+
+
+export async function getGroupUnreadCount(groupId: string | number) {
+    try {
+        const response = await client.get(`/chat/groups/unread?groupId=${groupId}`);
+        return response?.unreadCount || response?.data?.unreadCount || 0;
+    } catch (error) {
+        console.error('Error fetching group unread count:', error);
+        return 0;
+    }
+}
