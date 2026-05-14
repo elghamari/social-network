@@ -69,7 +69,11 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                 const parsed = JSON.parse(event.data);
                 if (parsed.type === "new_notification") { 
                     const newNotif: Notification = parsed.data;
-                    setNotifications(prev => [newNotif, ...prev]); 
+                    setNotifications(prev => {
+                        const cleanList = prev.filter((n)=> 
+                        !(n.type === newNotif.type && n.sender_id=== newNotif.sender_id));
+                        return [newNotif, ...cleanList]
+                    }); 
                 }
             } catch (error) {
                 console.error("Error parsing notification WS message:", error);
