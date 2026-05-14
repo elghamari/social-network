@@ -272,10 +272,12 @@ func (h *Hub) onNewUser(payload []byte) error {
     return nil
 }
 
+
+
 func (h *Hub) sendError(userID string, status int, errMsg string) {
     raw, err := json.Marshal(map[string]any{
         "type":   "error",
-        "status": status,
+        "status": status, 
         "error":  errMsg,
     })
     if err == nil {

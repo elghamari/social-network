@@ -72,6 +72,7 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux, mid *middleware.Middleware)
 		"/api/chat/history/group":   h.GetGroupHistory,
 		"/api/chat/read/private":    h.MarkAsRead,
 		"/api/chat/read/group":      h.MarkGroupAsRead,
+		"/api/chat/groups/unread":   h.GetSingleGroupUnreadCount,
 
 		"/api/notifications":      h.GetMyNotifications,
 		"/api/notifications/read": h.MarkNotificationAsRead,

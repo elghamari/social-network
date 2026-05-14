@@ -13,12 +13,15 @@ import { useNotifications } from "@/app/_context/NotificationContext";
 import { useWebSocket } from "@/app/_context/WebSocketContext";
 import NotificationPanel from "./notification-panel";
 
+
+import { getContacts } from "@/app/lib/services/contact"; 
+
 const navItems: NavItem[] = [
   { id: "feed",
     label: "Feed",
     href: "/",
     icon: "M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10" 
-  },
+    },
   { id: "search",
     label: "Search",
     href: "#",
@@ -52,6 +55,25 @@ export default function Sidenav() {
 
   const { user, logout } = useAuth();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  useEffect(() => {
+    const fetchInitialUnreadCount = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const contactsList = await getContacts();
+        if (contactsList) {
+          const totalUnread = contactsList.reduce((acc, contact) => acc + (contact.unreadCount || 0), 0);
+          if (!pathname.startsWith("/chat")) {
+            setUnreadMessagesCount(totalUnread);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch initial unread counts (Private Chat):", error);
+      }
+    };
+    
+    fetchInitialUnreadCount();
+  }, [user?.id, pathname]);
 
   useEffect(() => {
     if (!socket || !user?.id) return;
@@ -60,11 +82,13 @@ export default function Sidenav() {
     const handleWsMessage = (event: MessageEvent) => {
       try {
         const parsed = JSON.parse(event.data);
+        
         if (parsed.type === "new_message") {
           const msgData = parsed.data;
-          const isGroupMessage = !!msgData.group_id; 
-          const isMyMessage = msgData.sender_id === user.id;
-          if (!isGroupMessage && !isMyMessage) {
+          const incomingGroupId = msgData.group_id || msgData.groupId;
+          const isGroupMessage = !!incomingGroupId; 
+          const isMyMessage = String(msgData.sender_id || msgData.senderId) === String(user.id);
+          if (!isMyMessage && !isGroupMessage) {
             if (!pathname.startsWith("/chat")) {
               setUnreadMessagesCount(prev => prev + 1);
             } else {
@@ -96,7 +120,6 @@ export default function Sidenav() {
       setUnreadMessagesCount(0);
       channel.postMessage('clear_chat_badge');
     }
-
     return () => channel.close();
   }, [pathname]);
 
@@ -108,9 +131,7 @@ export default function Sidenav() {
 
   const handleLogout = async () => {
     try {
-      if (logout) {
-        await logout();
-      }
+      if (logout) await logout();
       router.push("/login");
     } catch (error) {
       console.log("Logout error:", error);
@@ -127,9 +148,7 @@ export default function Sidenav() {
       <aside className="sidenav">
         <div className="sidenav__header">
           <Link href="/" className="sidenav__logo">
-            <div className="sidenav__logo-icon">
-              <AppIcon />
-            </div>
+            <div className="sidenav__logo-icon"><AppIcon /></div>
             <span className="sidenav__logo-text">Nexus</span>
           </Link>
         </div>
@@ -140,19 +159,8 @@ export default function Sidenav() {
               if (item.id === "search") {
                 return (
                   <li key={item.id}>
-                    <button
-                      onClick={() => setIsSearchOpen(true)}
-                      className="sidenav__link"
-                      style={{
-                        background: "transparent", border: "none", width: "100%",
-                        textAlign: "left", cursor: "pointer", padding: "12px 16px",
-                      }}
-                    >
-                      <span className="sidenav__icon">
-                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d={item.icon} />
-                        </svg>
-                      </span>
+                    <button onClick={() => setIsSearchOpen(true)} className="sidenav__link" style={{ background: "transparent", border: "none", width: "100%", textAlign: "left", cursor: "pointer", padding: "12px 16px" }}>
+                      <span className="sidenav__icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={item.icon} /></svg></span>
                       <span className="sidenav__label">{item.label}</span>
                     </button>
                   </li>
@@ -161,31 +169,10 @@ export default function Sidenav() {
               if (item.id === "notifications") {
                 return (
                   <li key={item.id} style={{ position: "relative" }}>
-                    <button
-                      onClick={() => setIsNotifOpen(!isNotifOpen)}
-                      className={`sidenav__link ${isNotifOpen ? "sidenav__link--active" : ""}`}
-                      style={{
-                        width: "100%", background: "transparent", border: "none",
-                        textAlign: "left", cursor: "pointer", padding: "12px 16px",
-                        fontFamily: "inherit", fontSize: "inherit", display: 'flex', alignItems: 'center'
-                      }}
-                    >
-                      <span className="sidenav__icon">
-                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d={item.icon} />
-                        </svg>
-                      </span>
+                    <button onClick={() => setIsNotifOpen(!isNotifOpen)} className={`sidenav__link ${isNotifOpen ? "sidenav__link--active" : ""}`} style={{ width: "100%", background: "transparent", border: "none", textAlign: "left", cursor: "pointer", padding: "12px 16px", fontFamily: "inherit", fontSize: "inherit", display: 'flex', alignItems: 'center' }}>
+                      <span className="sidenav__icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={item.icon} /></svg></span>
                       <span className="sidenav__label">{item.label}</span>
-                      
-                      {unreadCount > 0 && (
-                        <span style={{
-                          backgroundColor: '#ef4444', color: 'white', fontSize: '10px',
-                          minWidth: '18px', height: '18px', display: 'flex', alignItems: 'center', 
-                          justifyContent: 'center', borderRadius: '50%', fontWeight: 'bold', marginLeft: 'auto'
-                        }}>
-                          {unreadCount > 99 ? '99+' : unreadCount}
-                        </span>
-                      )}
+                      {unreadCount > 0 && <span style={{ backgroundColor: '#ef4444', color: 'white', fontSize: '10px', minWidth: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', fontWeight: 'bold', marginLeft: 'auto' }}>{unreadCount > 99 ? '99+' : unreadCount}</span>}
                     </button>
                     <NotificationPanel isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
                   </li>
@@ -193,26 +180,10 @@ export default function Sidenav() {
               }
               return (
                 <li key={item.id}>
-                  <Link
-                    href={item.href}
-                    className={`sidenav__link ${isActive(item.href) ? "sidenav__link--active" : ""}`}
-                    style={{ display: 'flex', alignItems: 'center' }}
-                  >
-                    <span className="sidenav__icon">
-                      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d={item.icon} />
-                      </svg>
-                    </span>
+                  <Link href={item.href} className={`sidenav__link ${isActive(item.href) ? "sidenav__link--active" : ""}`} style={{ display: 'flex', alignItems: 'center' }}>
+                    <span className="sidenav__icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={item.icon} /></svg></span>
                     <span className="sidenav__label">{item.label}</span>
-                    {item.id === "messages" && unreadMessagesCount > 0 && (
-                      <span style={{
-                        backgroundColor: '#3b82f6', color: 'white', fontSize: '10px',
-                        minWidth: '18px', height: '18px', display: 'flex', alignItems: 'center', 
-                        justifyContent: 'center', borderRadius: '50%', fontWeight: 'bold', marginLeft: 'auto'
-                      }}>
-                        {unreadMessagesCount}
-                      </span>
-                    )}
+                    {item.id === "messages" && unreadMessagesCount > 0 && <span style={{ backgroundColor: '#3b82f6', color: 'white', fontSize: '10px', minWidth: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', fontWeight: 'bold', marginLeft: 'auto' }}>{unreadMessagesCount}</span>}
                   </Link>
                 </li>
               );
@@ -222,15 +193,10 @@ export default function Sidenav() {
 
         <div className="sidenav__footer">
           <div className="sidenav__divider" />
-
           <Link href="/profile">
             <div className="sidenav__user">
               <div className="sidenav__avatar" style={{ overflow: "hidden" }}>
-                {user?.avatar ? (
-                  <img src={user.avatar} alt="avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                ) : (
-                  <span>{firstName[0] ?? ""}{lastName[0] ?? ""}</span>
-                )}
+                {user?.avatar ? <img src={user.avatar} alt="avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span>{firstName[0] ?? ""}{lastName[0] ?? ""}</span>}
               </div>
               <div className="sidenav__user-info">
                 <span className="sidenav__user-name">{firstName} {lastName}</span>
@@ -238,13 +204,8 @@ export default function Sidenav() {
               </div>
             </div>
           </Link>
-
           <button onClick={handleLogout} className="sidenav__logout" style={{ background: "transparent", border: "none", width: "100%", textAlign: "left", cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: "12px" }}>
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
             <span>Log Out</span>
           </button>
         </div>
