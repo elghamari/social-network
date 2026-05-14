@@ -10,9 +10,10 @@ import EditProfileModal from "@/app/ui/profile/EditProfileModal";
 import PostForm from "@/app/ui/feed/post-form";
 import { GetProfilePosts } from "@/app/lib/services/feed";
 import PostList from "@/app/ui/feed/post-list";
+import { showToast } from "@/app/ui/layout/toast-store";
 
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const { user,fetchUser } = useAuth();
 
   const [modalType, setModalType] = useState<"followers" | "following" | null>(
     null,
@@ -61,10 +62,10 @@ export default function ProfilePage() {
     try {
       const res = await client.post(`/follow/accept?target_id=${reqId}`, {});
       if (res) {
-        window.location.reload();
+        await fetchUser();
       }
     } catch (err) {
-      console.log("Accept error:", err);
+      showToast("An error occurred while accepting the request. Please try again.");
     }
   };
 
@@ -72,10 +73,10 @@ export default function ProfilePage() {
     try {
       const res = await client.post(`/follow/decline?target_id=${reqId}`, {});
       if (res) {
-        window.location.reload();
+        await fetchUser();
       }
     } catch (err) {
-      console.log("Decline error:", err);
+      showToast("An error occurred while declining the request. Please try again.");
     }
   };
 
