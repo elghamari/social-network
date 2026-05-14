@@ -47,7 +47,6 @@ function SearchContent() {
   );
 }
 
-// 2. التغلاف
 export default function GroupSearch() {
   return (
     <Suspense fallback={<div>Loading search...</div>}>
