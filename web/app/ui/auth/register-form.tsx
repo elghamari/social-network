@@ -150,7 +150,7 @@ export function RegisterForm() {
               label="Nickname"
               name="nickname"
               value={input.nickname || ""}
-              placeholder="johnny_dev"
+              placeholder="johnny"
               errors={errors.nickname}
               onChange={handleChange}
             />

@@ -36,7 +36,6 @@ export default function PostCard({ post }: { post: PostType }) {
         setLikesCount(prev => isLiked ? prev - 1 : prev + 1);
       }
     } catch (error: any) {
-      console.log("Error :", error);
       showToast("Network error. Please check your connection.");
     } finally {
       setIsLiking(false);

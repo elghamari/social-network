@@ -40,10 +40,7 @@ export default function GroupList({
   onRoleChange,
 }: Props) {
   if (!loading && groups.length === 0) {
-    const empty = emptyStates[tab];
-
-    console.log(tab);
-    
+    const empty = emptyStates[tab];  
 
     return (
       <div className="groups-empty">

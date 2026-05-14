@@ -66,11 +66,9 @@ export default function PostForm({ onCancel, onPostCreated, inGroup, groupId }: 
       const errorKeys = Object.keys(errors);
       if (errorKeys.length === 1) {
         const specificErrorMessage = Object.values(errors)[0] as string;
-        console.log("TOAST ERROR: ", specificErrorMessage);
         showToast(specificErrorMessage);
       } else {
         const errorMessage = "Please fix the highlighted fields.";
-        console.log("TOAST ERROR: ", errorMessage);
         showToast(errorMessage);
       }
 
@@ -96,12 +94,8 @@ export default function PostForm({ onCancel, onPostCreated, inGroup, groupId }: 
       });
     }
 
-    console.log("### Form Data >>>>>>>>>>>>>>> ", formData);
-
     try {
       const response = await CreatePost(formData);
-
-      console.log("====== Reasponse >>>>> ", response);
 
       if (response) {
         if (response.fields) {
@@ -118,14 +112,12 @@ export default function PostForm({ onCancel, onPostCreated, inGroup, groupId }: 
           return;
         }
 
-        console.log("Post created successfully:");
         onCancel();
         if (onPostCreated) {
           onPostCreated();
         }
       }
     } catch (error) {
-      console.log("Network error creating post: ", error);
       showToast("Network error. Please check your connection.");
     }
   };

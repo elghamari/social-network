@@ -21,12 +21,10 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         socketRef.current = socket;
 
         socket.onopen = () => {
-            console.log(' WebSocket connected');
             setIsConnected(true);
         };
 
         socket.onclose = () => {
-            console.log(' WebSocket disconnected');
             setIsConnected(false);
         };
         socket.onerror = (error) => {

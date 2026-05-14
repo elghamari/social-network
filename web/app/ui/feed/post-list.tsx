@@ -41,7 +41,6 @@ export default function PostList({ refreshKey, fetchData }: PostListProps) {
         if (isReset) setHasMore(false);
       }
     } catch (error) {
-      // console.log("Error fetching posts: ", error);
       showToast("Network error. Please check your connection.");
       setHasMore(false);
     } finally {

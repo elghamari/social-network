@@ -74,7 +74,6 @@ export default function CommentSection({ postId, onCommentCreated }: CommentSect
         onCommentCreated();
       }
     } catch (error) {
-      console.log("Network error creating comment:", error);
       showToast("Network error. Please check your connection.");
     }
   };
@@ -118,7 +117,6 @@ export default function CommentSection({ postId, onCommentCreated }: CommentSect
         if (isReset) setHasMore(false);
       }
     } catch (error) {
-      console.log("Error fetching Comments:", error);
       showToast("Network error. Please check your connection.");
     } finally {
       setIsLoading(false);

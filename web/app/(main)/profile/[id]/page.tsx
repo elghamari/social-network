@@ -61,7 +61,6 @@ export default function UserProfilePage() {
       ) {
         const res = await client.delete(`/unfollow?target_id=${profileId}`);
         if (res) {
-          console.log(res);
 
           setProfile((prev: any) => ({
             ...prev,
