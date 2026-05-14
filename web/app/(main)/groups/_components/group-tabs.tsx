@@ -2,10 +2,11 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { GroupTab } from "@/app/lib/types/group";
+import { Suspense } from "react";
 
 const TABS: GroupTab[] = ["discover", "joined", "requests", "invitations"];
 
-export default function GroupTabs() {
+function TabsContent() {
   const router = useRouter();
 
   const searchParams = useSearchParams();
@@ -32,5 +33,13 @@ export default function GroupTabs() {
         </button>
       ))}
     </div>
+  );
+}
+
+export default function GroupTabs() {
+  return (
+    <Suspense fallback={<div>Loading tabs...</div>}>
+      <TabsContent />
+    </Suspense>
   );
 }

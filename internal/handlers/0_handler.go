@@ -24,6 +24,7 @@ func New(svcs *services.Services) *Handler {
 }
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux, mid *middleware.Middleware) http.Handler {
+	mux.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("./web/public/uploads"))))
 	mux.HandleFunc("/auth/check", h.CheckSession)
 
 	guestRoutes := map[string]http.HandlerFunc{

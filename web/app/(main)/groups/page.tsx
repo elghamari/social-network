@@ -2,7 +2,7 @@
 
 import "./page.css";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 import { useGroups } from "./_hooks/use-groups";
@@ -15,7 +15,7 @@ import GroupFormModal from "./_components/group-form-modal";
 import { PlusIcon } from "@/app/ui/icons";
 import { Group, GroupTab } from "@/app/lib/types/group";
 
-export default function GroupsPage() {
+function GroupsContent() {
   const searchParams = useSearchParams();
 
   const tab = (searchParams.get("tab") as GroupTab) || "discover";
@@ -57,5 +57,14 @@ export default function GroupsPage() {
         />
       )}
     </div>
+  );
+}
+
+
+export default function GroupsPage() {
+  return (
+    <Suspense fallback={<div>Loading groups...</div>}>
+      <GroupsContent />
+    </Suspense>
   );
 }

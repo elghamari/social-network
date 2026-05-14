@@ -8,6 +8,7 @@ import { validateRegister } from "@/app/lib/utils/auth";
 import { RegisterField } from "./register-form-field";
 import { RegisterAvatarUpload } from "./register-form-avatar-upload";
 import Link from "next/link";
+import { showToast } from "../layout/toast-store";
 
 export function RegisterForm() {
   const router = useRouter();
