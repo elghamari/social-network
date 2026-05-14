@@ -341,21 +341,30 @@
 .modal-overlay {
   position: fixed;
   top: 0;
-  left: var(--sidenav-width, 240px);
-  width: calc(100% - var(--sidenav-width, 240px));
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(8px);
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(2px);
   z-index: 10;
   display: flex;
   justify-content: center;
   align-items: center;
+  padding-left: 350px;
+  box-sizing: border-box;
   animation: fadeInModal var(--transition-fast);
 }
+
+@media (max-width: 1024px) {
+  .modal-overlay {
+    padding-left: 80px; 
+  }
+}
+
 @media (max-width: 768px) {
   .modal-overlay {
-    left: 0;
-    width: 100%;
+    padding-left: 20px; 
+    padding-right: 20px;
   }
 }
 
