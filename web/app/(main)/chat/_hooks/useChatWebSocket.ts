@@ -32,18 +32,15 @@ export const useChatWebSocket = ({
       try {
         const parsed = JSON.parse(event.data);
 
-        // 1. التعامل مع الأخطاء (Security & Permissions)
         if (parsed.type === "error") {
           const { status, error } = parsed;
 
-          // حالة اليوزر ممسوح من الداتابيز (Unauthorized)
           if (status === 401) {
             localStorage.clear();
             window.location.href = '/login?reason=deleted';
             return;
           }
 
-          // حالة قطع الـ Follow أو المنع (Forbidden)
           if (status === 403) {
             showToast(error || "You don't have permission to message this user.");
             return;
@@ -53,11 +50,9 @@ export const useChatWebSocket = ({
           return;
         }
 
-        // 2. التعامل مع الميساجات الجديدة
         if (parsed.type === "new_message") {
           const m = parsed.data;
           
-          // 🚨 تصفية: إيلا كان ميساج ديال ݣروب، تجاهله هنا (بلاصتو فـ useGroupChatManager)
           if (m.group_id || m.groupId) return; 
 
           const newMsg: Message = {
@@ -72,7 +67,6 @@ export const useChatWebSocket = ({
           const currentContact = selectedContactRef.current;
           const currentContactsList = contactsRef.current;
 
-          // تحديث واجهة الشات إيلا كان مفتوح مع نفس الشخص
           if (currentContact && (newMsg.senderId === currentContact.id || newMsg.receiverId === currentContact.id)) {
             setMessages(prev => [...prev, newMsg]);
             if (newMsg.senderId === currentContact.id) markAsRead(currentContact.id);
@@ -84,7 +78,6 @@ export const useChatWebSocket = ({
             }, 100);
           }
 
-          // تحديث قائمة الـ Contacts (Sidebar)
           const isKnown = currentContactsList.some(c => c.id === newMsg.senderId || c.id === newMsg.receiverId);
           if (!isKnown) {
             fetchContactsList();
