@@ -1,10 +1,3 @@
-/* app/(main)/groups/page.css */
-
-/* ===================================================
-   GROUPS LISTING PAGE — /groups
-   =================================================== */
-
-/* ===== Page ===== */
 
 .groups-page {
   padding-right: 32px;
@@ -22,7 +15,7 @@
   font-weight: 600;
 }
 
-/* ===== Tabs ===== */
+
 
 .groups-tabs {
   display: flex;
@@ -50,7 +43,6 @@
   border-bottom-color: var(--accent-primary);
 }
 
-/* ===== Search ===== */
 
 .groups-search {
   position: relative;
@@ -86,7 +78,7 @@
   border-color: var(--accent-primary);
 }
 
-/* ===== Grid ===== */
+
 
 .groups-grid {
   display: grid;
@@ -94,7 +86,7 @@
   gap: 24px;
 }
 
-/* ===== Empty ===== */
+
 
 .groups-empty {
   text-align: center;
@@ -115,7 +107,7 @@
   margin-top: 4px;
 }
 
-/* ===== Button ===== */
+
 
 .btn-primary {
   display: inline-flex;
@@ -134,7 +126,7 @@
   opacity: 0.9;
 }
 
-/* ===== Card ===== */
+
 
 .group-card {
   background: var(--bg-surface);
@@ -200,7 +192,6 @@
   color: var(--text-muted);
 }
 
-/* ===== Card Badge ===== */
 
 .group-card__badge {
   padding: 6px 12px;
@@ -243,7 +234,7 @@
   cursor: not-allowed;
 }
 
-/* ===== Card Actions (invite accept/reject) ===== */
+
 
 .group-card__actions {
   display: flex;
@@ -286,7 +277,7 @@
   background: rgba(239, 68, 68, 0.08);
 }
 
-/* ===== Card Skeleton ===== */
+
 
 @keyframes shimmer {
   0% {
@@ -346,7 +337,6 @@
   border-radius: var(--radius-sm);
 }
 
-/* ===== Loading More ===== */
 
 .groups-loading-more {
   display: flex;
@@ -363,7 +353,7 @@
   animation: spin 0.6s linear infinite;
 }
 
-/* ===== Responsive ===== */
+
 
 @media (max-width: 768px) {
   .groups-page {
@@ -383,13 +373,26 @@
   .groups-grid {
     grid-template-columns: 1fr;
   }
+
+
+  .groups-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;          
+    -ms-overflow-style: none;        
+  }
+
+  .groups-tabs::-webkit-scrollbar {
+    display: none;                  
+  }
+
+  .groups-tabs__tab {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
 }
 
-/* ===================================================
-   GROUP FORM MODAL — Create Group
-   =================================================== */
-
-/* ===== Overlay ===== */
 
 .gf-overlay {
   position: fixed;
@@ -402,7 +405,7 @@
   padding: 16px;
 }
 
-/* ===== Modal Box ===== */
+
 
 .gf-modal {
   background: var(--bg-surface);
@@ -414,7 +417,7 @@
   overflow-y: auto;
 }
 
-/* ===== Modal Header ===== */
+
 
 .gf-modal__header {
   display: flex;
@@ -438,13 +441,11 @@
   color: var(--text-primary);
 }
 
-/* ===== Modal Form ===== */
 
 .gf-modal__form {
   padding: 24px;
 }
 
-/* ===== Modal Field ===== */
 
 .gf-modal__field {
   margin-bottom: 20px;
@@ -499,7 +500,6 @@
   margin-top: 6px;
 }
 
-/* ===== Modal Upload ===== */
 
 .gf-modal__upload {
   display: block;
@@ -568,7 +568,6 @@
   display: none;
 }
 
-/* ===== Modal Actions ===== */
 
 .gf-modal__actions {
   display: flex;
@@ -633,7 +632,6 @@
   }
 }
 
-/* ===== Modal Responsive ===== */
 
 @media (max-width: 768px) {
   .gf-modal {

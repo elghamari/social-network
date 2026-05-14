@@ -1,0 +1,23 @@
+# ── Git ──
+.git
+.gitignore
+
+# ── Data (will be mounted as a volume) ──
+data/
+
+# ── Frontend build artifacts & deps (rebuilt in Docker) ──
+web/.next/
+web/node_modules/
+web/public/uploads/
+
+# ── IDE / OS junk ──
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ── Docker files (no need to send to the build context) ──
+Dockerfile
+.dockerignore
