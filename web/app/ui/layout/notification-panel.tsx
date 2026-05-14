@@ -37,12 +37,21 @@ export default function NotificationPanel({ isOpen, onClose }: Props) {
             await markAsRead(notif.id);
         }
         onClose();
-        if (notif.type.includes('follow')) {
-            router.push(`/profile/${notif.sender_id}`); 
-        } else if (notif.type.includes('group') || notif.type === 'join_request') {
-            router.push(`/groups/${notif.entity_id}`);
-        } else if (notif.type.includes('event')) {
-            router.push(`/events/${notif.entity_id}`);
+    
+        switch (notif.type) {
+            case 'follow_request':
+            case 'follow_accept':
+                router.push(`/profile/${notif.sender_id}`); 
+                break;
+            case 'group_join_request':
+                router.push(`/groups/${notif.entity_id}/manage`);
+                break;
+            case 'group_event':
+                router.push(`/groups/${notif.entity_id}/events`);
+                break;
+            case 'group_invitation':
+                router.push(`/groups/${notif.entity_id}`);
+                break;
         }
     };
 
