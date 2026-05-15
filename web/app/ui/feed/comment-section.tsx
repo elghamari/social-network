@@ -70,6 +70,8 @@ export default function CommentSection({ postId, onCommentCreated }: CommentSect
         setInputForm({ content: "", postId: postId, image: null });
         setPreview(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
+        setHasMore(true);
+        setCursor(0);
         fetchComments(postId, 0, true);
         onCommentCreated(response.totalComments);
       }
@@ -226,11 +228,11 @@ export default function CommentSection({ postId, onCommentCreated }: CommentSect
           comments.map((comment) => <CommentCard key={comment.id} comment={comment} />)
         )}
 
+        <div ref={observerTarget} style={{ height: "20px", width: "100%" }}></div>
         {isLoading && (
           <div className="loading-spinner">Loading more comments...</div>
         )}
 
-        <div ref={observerTarget} style={{ height: "20px", width: "100%" }}></div>
       </div>
     </div>
   );
