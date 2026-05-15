@@ -1,4 +1,4 @@
-# Stage 1: Go Builder
+# Stage 1: Go builder
 FROM golang:1.26-bookworm AS go-builder
 WORKDIR /build
 COPY go.mod go.sum ./
@@ -7,14 +7,13 @@ COPY cmd/ cmd/
 COPY internal/ internal/
 RUN CGO_ENABLED=1 GOOS=linux go build -o server ./cmd/main.go
 
-# Stage 2: Next.js Builder
+# Stage 2: Next.js builder
 FROM node:22-bookworm-slim AS next-builder
 WORKDIR /build/web
 COPY web/package.json web/package-lock.json ./
 RUN npm ci
 COPY web/ ./
-RUN sed -i '1s/^/export const dynamic = "force-dynamic";\n/' "app/(main)/groups/page.tsx"
-RUN npm run build 
+RUN npm run build
 
 # Stage 3: Production
 FROM node:22-bookworm-slim AS production

@@ -1,28 +1,8 @@
 #!/bin/bash
-set -e
 
-# ── Trap signals for clean shutdown ──
-trap 'echo "🛑 Stopping services..."; kill $GO_PID $NEXT_PID 2>/dev/null; exit 0' SIGTERM SIGINT
-
-echo "🛠️ Building Go Backend..."
-go build -o server ./cmd/main.go
-
-echo "🛠️ Building Next.js Frontend..."
-cd web
-npm install
-npm run build
-cd ..
-
-echo "🚀 Starting Nexus Social Network..."
-
+echo "🚀 Starting Go Backend..."
 ./server &
-GO_PID=$!
 
-# ── 2. Start Next.js frontend ──
+echo "🚀 Starting Next.js Frontend..."
 cd web
-npm start &
-NEXT_PID=$!
-
-wait -n $GO_PID $NEXT_PID
-kill $GO_PID $NEXT_PID 2>/dev/null
-exit 1
+HOSTNAME="0.0.0.0" PORT=3000 node server.js

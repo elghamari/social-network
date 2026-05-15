@@ -39,8 +39,8 @@ class ClientApi {
         default:
           showToast("Unexpected error");
           return null;
-        }
-      } catch (err) {
+      }
+    } catch (err) {
       throw new Error("Network Error");
     }
   }
