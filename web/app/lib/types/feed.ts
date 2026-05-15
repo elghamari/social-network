@@ -94,5 +94,5 @@ export interface PostListProps {
 
 export interface CommentSectionProps {
   postId: number;
-  onCommentCreated: () => void;
+  onCommentCreated: (newTotal: number) => void;
 }

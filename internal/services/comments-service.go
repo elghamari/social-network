@@ -20,7 +20,7 @@ func NewCommentsService(comments *repositories.CommentsRepo, posts *repositories
 	}
 }
 
-func (s *CommentsService) CreateComment(currentUserId string, input types.CommentInput) (int64, error) {
+func (s *CommentsService) CreateComment(currentUserId string, input types.CommentInput) (int, error) {
 	input.UserId = currentUserId
 
 	if err := ValidateCommentInput(&input); err != nil {

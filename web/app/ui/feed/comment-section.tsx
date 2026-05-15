@@ -71,7 +71,7 @@ export default function CommentSection({ postId, onCommentCreated }: CommentSect
         setPreview(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
         fetchComments(postId, 0, true);
-        onCommentCreated();
+        onCommentCreated(response.totalComments);
       }
     } catch (error) {
       showToast("Network error. Please check your connection.");

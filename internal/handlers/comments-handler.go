@@ -57,15 +57,15 @@ func (h *Handler) CreateComment(w http.ResponseWriter, r *http.Request) {
 		ImageUrl: imageUrl,
 	}
 
-	commentId, err := h.Services.Comments.CreateComment(userId, input)
+	totalComments, err := h.Services.Comments.CreateComment(userId, input)
 	if err != nil {
 		HandleError(w, err)
 		return
 	}
 
 	utils.WriteJson(w, http.StatusCreated, map[string]any{
-		"message":   "Comment created successfully",
-		"commentId": commentId,
+		"message":       "Comment created successfully",
+		"totalComments": totalComments,
 	})
 }
 

@@ -115,9 +115,9 @@ export function validatePostForm(data: FormState): PostErrors | null {
   }
 
   const description = data.description.trim();
-  if (!description || description.length > 500) {
+  if (!description || description.length > 800) {
     errors.description =
-      "Description cannot be empty and must be between 10 and 500 letters.";
+      "description is required and must be under 800 characters.";
   }
 
   const privacy = data.privacy.trim();

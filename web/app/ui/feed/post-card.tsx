@@ -20,8 +20,8 @@ export default function PostCard({ post }: { post: PostType }) {
   const [showComments, setShowComments] = useState(false);
 
   const [commentsCount, setCommentsCount] = useState(post.total_comments);
-  const handleCommentCreated = () => {
-    setCommentsCount(prev => prev + 1);
+  const handleCommentCreated = (newTotal: number) => {
+    setCommentsCount(newTotal);
   };
 
   const handleLike = async () => {

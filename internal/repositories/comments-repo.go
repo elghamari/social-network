@@ -15,22 +15,35 @@ func NewCommentsRepo(db *sql.DB) *CommentsRepo {
 	return &CommentsRepo{DB: db}
 }
 
-func (r *CommentsRepo) InsertComment(input types.CommentInput) (int64, error) {
+func (r *CommentsRepo) InsertComment(input types.CommentInput) (int, error) {
+	tx, err := r.DB.Begin()
+	if err != nil {
+		return 0, fmt.Errorf("CommentsRepo.InsertComment (Begin): %w", err)
+	}
+	defer tx.Rollback()
+
 	queryInsert := `
     INSERT INTO comments (user_id, post_id, content, image_url)
     VALUES (?, ?, ?, ?)`
 
-	result, err := r.DB.Exec(queryInsert, input.UserId, input.PostId, input.Content, input.ImageUrl)
+	_, err = tx.Exec(queryInsert, input.UserId, input.PostId, input.Content, input.ImageUrl)
 	if err != nil {
 		return 0, fmt.Errorf("CommentsRepo.InsertComment (Exec): %w", err)
 	}
 
-	lastCommentId, err := result.LastInsertId()
+	var totalComments int
+	queryCount := `SELECT COUNT(*) FROM comments WHERE post_id = ?`
+
+	err = tx.QueryRow(queryCount, input.PostId).Scan(&totalComments)
 	if err != nil {
-		return 0, fmt.Errorf("CommentsRepo.InsertComment (LastInsertId): %w", err)
+		return 0, fmt.Errorf("CommentsRepo.InsertComment (Count): %w", err)
 	}
 
-	return lastCommentId, nil
+	if err = tx.Commit(); err != nil {
+		return 0, fmt.Errorf("CommentsRepo.InsertComment (Commit): %w", err)
+	}
+
+	return totalComments, nil
 }
 
 func (r *CommentsRepo) GetPostComments(postId int, cursor int) ([]types.CommentResponse, error) {
@@ -44,7 +57,7 @@ func (r *CommentsRepo) GetPostComments(postId int, cursor int) ([]types.CommentR
 		c.content, c.image_url, c.created_at
         FROM comments c
         INNER JOIN users u ON c.user_id = u.id
-	`	
+	`
 
 	if cursor == 0 {
 		query = selectClause + ` WHERE c.post_id = ?

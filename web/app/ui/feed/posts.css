@@ -314,6 +314,7 @@
 .image-preview {
   width: 100%;
   max-height: 250px;
+  min-height: 60px;
   object-fit: cover;
   display: block;
 }
