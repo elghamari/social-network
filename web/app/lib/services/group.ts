@@ -27,14 +27,6 @@ export async function getGroup(id: string) {
   return await clientAPI.get(`/groups/${id}`);
 }
 
-export async function getGroupPosts(groupId: string) {
-  return await clientAPI.get(`/groups/${groupId}/posts`);
-}
-
-export async function createGroupPost(groupId: string) {
-  return await clientAPI.get(`/groups/${groupId}/posts`);
-}
-
 export async function getInvitableUsers(
   groupId: string,
   query: string,
