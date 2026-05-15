@@ -358,7 +358,7 @@ func (s *GroupService) GetInvitationNotification(groupId, inviterId, userId stri
 		return types.Notification{}, err
 	}
 
-	content := fmt.Sprintf("%s invited you to join %s", data.InviterName, data.GroupTitle)
+	content := fmt.Sprintf("invited you to join %s", data.GroupTitle)
 
 	notif := types.Notification{
 		Type:       "group_invitation",
