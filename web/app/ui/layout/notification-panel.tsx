@@ -37,10 +37,14 @@ export default function NotificationPanel({ isOpen, onClose }: Props) {
             await markAsRead(notif.id);
         }
         onClose();
+
+        console.log("======> : ",notif.type);
+        
     
         switch (notif.type) {
             case 'follow_request':
             case 'follow_accept':
+            case 'follow':
                 router.push(`/profile/${notif.sender_id}`); 
                 break;
             case 'group_join_request':
